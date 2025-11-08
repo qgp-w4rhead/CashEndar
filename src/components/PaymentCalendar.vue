@@ -100,6 +100,45 @@
         </div>
       </div>
 
+      <!-- Inventory Tracker Section -->
+      <div class="inventory-section">
+        <div
+          :class="['inventory-header', { collapsed: isInventoryCollapsed }]"
+          @click="toggleInventorySection"
+        >
+          <h4 class="inventory-title">
+            <span class="tumbler-icon">▶</span>
+            Inventory Tracker
+          </h4>
+          <span class="inventory-total">{{ inventoryItems.length }} items</span>
+        </div>
+        <div class="inventory-content">
+          <div class="inventory-body">
+            <div class="inventory-list">
+              <div v-if="inventoryItems.length === 0" class="inventory-empty">
+                No inventory items to track
+              </div>
+              <div v-for="item in inventoryItems" :key="item.id" class="inventory-item" @click="highlightPaymentDay(item)">
+                <div class="inventory-avatar">
+                  <div :class="`avatar-circle inventory`">{{ item.itemName?.charAt(0).toUpperCase() || 'I' }}</div>
+                </div>
+                <div class="inventory-details">
+                  <div class="inventory-name">{{ item.itemName || 'Unnamed Item' }}</div>
+                  <div class="inventory-meta">
+                    <span class="portions-left">{{ getPortionsRemaining(item) }} portions left</span>
+                    <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· Estimated depletion: {{ getEstimatedDepletionDate(item) }}</span>
+                  </div>
+                  <div class="inventory-amount">{{ item.amount }}</div>
+                </div>
+                <div class="inventory-menu">
+                  <button class="menu-btn" @click.stop="openEditMenu(item)">⋯</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Total Section -->
       <div class="total-section">
         <div class="total-header">
@@ -119,6 +158,15 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
             <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20"/>
+          </svg>
+        </button>
+        <button class="item-chart-btn" @click="toggleItemChart" title="View Inventory Items Chart" v-if="inventoryItems.length > 0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"/>
+            <path d="M9 9h6"/>
+            <path d="M9 12h6"/>
+            <path d="M9 15h6"/>
+            <path d="M3 3l6 6"/>
           </svg>
         </button>
       </div>
@@ -185,38 +233,168 @@
           </div>
 
           <div class="form-group">
-            <label for="paymentTitle">Payment Title</label>
+            <label for="paymentTitle">{{ editForm.type === 'inventory' ? 'Item Name' : 'Payment Title' }}</label>
             <input
               id="paymentTitle"
               v-model="editForm.title"
               type="text"
               class="form-input"
-              placeholder="Enter payment title"
+              :placeholder="editForm.type === 'inventory' ? 'Enter item name' : 'Enter payment title'"
             >
           </div>
 
-          <div class="form-group side-by-side">
-            <div class="form-field">
-              <label for="paymentAmount">Amount</label>
-              <input
-                id="paymentAmount"
-                v-model="editForm.amount"
-                type="number"
-                step="0.01"
-                class="form-input"
-                placeholder="0.00"
-              >
+            <div class="form-group side-by-side">
+              <div class="form-field">
+                <label for="paymentAmount">Amount</label>
+                <input
+                  id="paymentAmount"
+                  v-model="editForm.amount"
+                  type="number"
+                  step="0.01"
+                  class="form-input"
+                  placeholder="0.00"
+                  @blur="handleAmountInputBlur"
+                  @keyup.enter="handleAmountInputKeyUp"
+                >
+              </div>
+              <div class="form-field">
+                <label for="paymentDate">Payment Date</label>
+                <input
+                  id="paymentDate"
+                  v-model="editForm.date"
+                  type="date"
+                  class="form-input"
+                >
+              </div>
             </div>
-            <div class="form-field">
-              <label for="paymentDate">Payment Date</label>
-              <input
-                id="paymentDate"
-                v-model="editForm.date"
-                type="date"
-                class="form-input"
-              >
+
+            <!-- Inventory-specific fields (only show when inventory type) -->
+            <div v-if="editForm.type === 'inventory'" class="inventory-fields-section">
+              <div class="section-divider">Inventory Details</div>
+
+              <!-- Single field for item size with unit -->
+              <div class="form-group">
+                <label for="editItemSize">Item Size (Total Amount)</label>
+                <div class="value-unit-input">
+                  <input
+                    id="editItemSize"
+                    v-model.number="editForm.itemSize"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="form-input value-input"
+                    placeholder="e.g., 500"
+                  >
+                  <select
+                    v-model="editForm.itemSizeUnit"
+                    class="form-input unit-select"
+                  >
+                    <option value="gram">grams</option>
+                    <option value="kg">kg</option>
+                    <option value="ml">ml</option>
+                    <option value="liter">liter</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group side-by-side">
+                <div class="form-field">
+                  <label for="editPortionSize">Portion Size</label>
+                  <div class="value-unit-input">
+                    <input
+                      id="editPortionSize"
+                      v-model.number="editForm.portionSize"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      class="form-input value-input"
+                      placeholder="e.g., 250"
+                    >
+                    <span class="unit-display">{{ editForm.itemSizeUnit }}s</span>
+                  </div>
+                </div>
+                <div class="form-field">
+                  <label>Estimated Portions</label>
+                  <input
+                    :value="getEstimatedPortions({ itemSize: editForm.itemSize, portionSize: editForm.portionSize } as any)"
+                    type="number"
+                    readonly
+                    class="form-input readonly-field"
+                    placeholder="Auto-calculated"
+                  >
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="editDepletionRate">Depletion Rate (optional)</label>
+                <div class="value-unit-input">
+                  <input
+                    id="editDepletionRate"
+                    v-model.number="editForm.depletionRate"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="form-input value-input"
+                    placeholder="e.g., 2"
+                  >
+                  <select
+                    v-model="editForm.depletionUnit"
+                    class="form-input unit-select"
+                  >
+                    <option value="day">portions/day</option>
+                    <option value="week">portions/week</option>
+                    <option value="month">portions/month</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Depletion Time</label>
+                <div class="value-unit-input">
+                  <input
+                    :value="getDepletionTimeInDays({ depletionRate: editForm.depletionRate, depletionUnit: editForm.depletionUnit, ...({ getEstimatedPortions: getEstimatedPortions, itemSize: editForm.itemSize, portionSize: editForm.portionSize } as any) } as any)"
+                    type="number"
+                    readonly
+                    class="form-input readonly-field value-input"
+                    placeholder="Time until depletion"
+                    step="0.01"
+                  >
+                  <span class="unit-display">{{ editForm.depletionUnit }}s</span>
+                </div>
+              </div>
+
+              <!-- Last Purchase Section -->
+              <div class="last-purchase-section">
+                <div class="section-divider">Last Purchase</div>
+
+                <!-- Last 3 Purchases List -->
+                <div class="last-purchases-list">
+                  <div v-for="purchase in getLastPurchases(editForm.title, editForm.date)" :key="purchase.id" class="purchase-item">
+                    <span class="purchase-date">{{ purchase.date }}</span>
+                    <span class="purchase-cost">{{ purchase.amount }}</span>
+                    <button class="purchase-delete-btn" @click.stop="deleteSinglePurchase(purchase)" title="Delete this purchase entry">[x]</button>
+                  </div>
+                  <div v-if="getLastPurchases(editForm.title, editForm.date).length === 0" class="no-purchases">
+                    No previous purchases found for this item
+                  </div>
+                </div>
+
+                <!-- Estimated Next Purchase Date -->
+                <div v-if="getLastPurchases(editForm.title, editForm.date).length >= 3" class="next-purchase-info">
+                  <label>Estimated Next Purchase:</label>
+                  <div class="next-purchase-date">{{ getEstimatedNextPurchaseDate(getLastPurchases(editForm.title, editForm.date)) || 'No data available' }}</div>
+                </div>
+                <div v-else class="next-purchase-info">
+                  <label>Need 3+ purchases to estimate next date</label>
+                </div>
+
+                <!-- Resupply Button -->
+                <div class="resupply-section">
+                  <button class="resupply-btn" @click="addResupply(editingPayment.title)" title="Add new purchase today (resupply)">+1</button>
+                  <span class="resupply-label">Resupply</span>
+                </div>
+              </div>
             </div>
-          </div>
 
           <div class="form-group">
             <label>Payment Frequency</label>
@@ -301,7 +479,7 @@
 
           <!-- Add New Payment Section -->
           <div class="add-payment-section">
-            <h4 class="section-subtitle">{{ selectedDayPayments.length > 0 ? 'Add Another Payment' :  `Payment Details for ${getSelectedDayDate()}` }}</h4>
+            <h4 class="section-divider">{{ selectedDayPayments.length > 0 ? 'Add Another Payment' :  `Payment Details for ${getSelectedDayDate()}` }}</h4>
             <div class="form-group">
               <div class="label-with-button">
                 <label for="addPaymentType">Payment Type</label>
@@ -319,27 +497,143 @@
             </div>
 
             <div class="form-group">
-              <label for="addPaymentTitle">Payment Title</label>
+              <label for="addPaymentTitle">{{ addForm.type === 'inventory' ? 'Item Name' : 'Payment Title' }}</label>
               <input
                 id="addPaymentTitle"
                 v-model="addForm.title"
                 type="text"
                 class="form-input"
-                placeholder="Enter payment title"
+                :placeholder="addForm.type === 'inventory' ? 'Enter item name' : 'Enter payment title'"
               >
             </div>
 
             <div class="form-group side-by-side">
               <div class="form-field">
-                <label for="addPaymentAmount">Amount</label>
+                <label for="addPaymentAmount">Cost</label>
                 <input
                   id="addPaymentAmount"
                   v-model="addForm.amount"
                   type="number"
                   step="0.01"
                   class="form-input"
-                  placeholder="0.00"
+                  placeholder="0.00$"
+                  @blur="handleAmountInputBlur"
+                  @keyup.enter="handleAmountInputKeyUp"
                 >
+              </div>
+            </div>
+
+            <!-- Remaining Inventory-specific fields (only show when inventory type) -->
+            <div v-if="addForm.type === 'inventory'" class="inventory-fields-section">
+              <div class="section-divider">Inventory Details</div>
+
+              <!-- Item Size field moved to Inventory Details section -->
+              <div class="form-group">
+                <label for="addItemSize">Item Size (Total Amount)</label>
+                <div class="value-unit-input">
+                  <input
+                    id="addItemSize"
+                    v-model.number="addForm.itemSize"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="form-input value-input"
+                    placeholder="e.g., 250"
+                  >
+                  <select
+                    v-model="addForm.itemSizeUnit"
+                    class="form-input unit-select"
+                  >
+                    <option value="gram">grams</option>
+                    <option value="kg">kg</option>
+                    <option value="ml">ml</option>
+                    <option value="liter">liter</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group side-by-side">
+                <div class="form-field">
+                  <label for="addPortionSize">Portion Size ({{ addForm.itemSizeUnit }}s)</label>
+                  <div class="value-unit-input">
+                    <input
+                      id="addPortionSize"
+                      v-model.number="addForm.portionSize"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      class="form-input value-input"
+                      placeholder="e.g., 250"
+                    >
+                  </div>
+                </div>
+                <div class="form-field">
+                  <label>Estimated Portions</label>
+                  <input
+                    :value="getEstimatedPortions({ itemSize: addForm.itemSize, portionSize: addForm.portionSize } as any)"
+                    type="number"
+                    readonly
+                    class="form-input readonly-field"
+                    placeholder="Auto-calculated"
+                  >
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="addDepletionRate">Depletion Rate (optional)</label>
+                <div class="value-unit-input">
+                  <input
+                    id="addDepletionRate"
+                    v-model.number="addForm.depletionRate"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="form-input value-input"
+                    placeholder="e.g., 2"
+                  >
+                  <select
+                    v-model="addForm.depletionUnit"
+                    class="form-input unit-select"
+                  >
+                    <option value="day">portions/day</option>
+                    <option value="week">portions/week</option>
+                    <option value="month">portions/month</option>
+                  </select>
+                  <input
+                    :value="getDepletionTimeInDays({ depletionRate: addForm.depletionRate, depletionUnit: addForm.depletionUnit, ...({ getEstimatedPortions: getEstimatedPortions, itemSize: addForm.itemSize, portionSize: addForm.portionSize } as any) } as any)"
+                    type="number"
+                    readonly
+                    class="form-input readonly-field value-input"
+                    placeholder="Time until depletion"
+                    step="0.01"
+                  >
+                  <span class="unit-display">{{ addForm.depletionUnit }}s</span>
+                </div>
+              </div>
+
+              <!-- Last Purchase Section -->
+              <div class="last-purchase-section">
+                <div class="section-divider">Last Purchase</div>
+
+                <!-- Last 3 Purchases List -->
+                <div class="last-purchases-list">
+                  <div v-for="purchase in getLastPurchases(addForm.title, '')" :key="purchase.id" class="purchase-item">
+                    <span class="purchase-date">{{ purchase.date }}</span>
+                    <span class="purchase-cost">{{ purchase.amount }}</span>
+                  </div>
+                  <div v-if="getLastPurchases(addForm.title, '').length === 0" class="no-purchases">
+                    No previous purchases found for this item
+                  </div>
+                </div>
+
+                <!-- Estimated Next Purchase Date -->
+                <div v-if="getLastPurchases(addForm.title, '').length >= 3" class="next-purchase-info">
+                  <label>Estimated Next Purchase:</label>
+                  <div class="next-purchase-date">{{ getEstimatedNextPurchaseDate(getLastPurchases(addForm.title, '')) || 'No data available' }}</div>
+                </div>
+                <div v-else class="next-purchase-info">
+                  <label>Need 3+ purchases to estimate next date</label>
+                </div>
               </div>
             </div>
 
@@ -602,6 +896,172 @@
       </div>
     </div>
 
+    <!-- Item Chart Modal -->
+    <div v-if="showItemChartModal" class="modal-overlay">
+      <div class="item-chart-modal" @click.stop>
+        <div class="modal-header">
+          <h3>Inventory Items Chart</h3>
+          <button class="close-btn" @click="closeItemChartModal">×</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="chart-container">
+            <div class="chart-header">
+              <h4 class="chart-title">Compare Inventory Items</h4>
+              <div class="chart-legend">
+                <div class="chart-total">{{ itemChartItems.length }} items</div>
+              </div>
+            </div>
+
+            <!-- Interactive Sliders -->
+            <div class="slider-controls">
+              <div class="slider-group">
+                <div class="slider-header">
+                  <label>Portion Size Comparison</label>
+                  <hover-text text="Move slider to compare portion sizes across items">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                  </hover-text>
+                </div>
+                <horizontal-slider
+                  v-model="portionSizeSliderValue"
+                  :min="0"
+                  :max="100"
+                  :step="0.1"
+                  class="inventory-slider"
+                ></horizontal-slider>
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <label>Portions Count Comparison</label>
+                  <hover-text text="Move slider to compare total portions across items">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                  </hover-text>
+                </div>
+                <horizontal-slider
+                  v-model="portionsCountSliderValue"
+                  :min="0"
+                  :max="100"
+                  :step="0.1"
+                  class="inventory-slider"
+                ></horizontal-slider>
+              </div>
+            </div>
+
+            <!-- Items Comparison Table -->
+            <div class="item-comparison-table">
+              <div class="table-header">
+                <div class="header-cell">Item</div>
+                <div class="header-cell">Portion Size</div>
+                <div class="header-cell">Count</div>
+                <div class="header-cell">Cost</div>
+                <div class="header-cell">Est. Depletion</div>
+              </div>
+
+              <div
+                v-for="item in itemChartItems"
+                :key="item.item.id"
+                class="table-row"
+                :class="{ 'selected-row': selectedChartItem === item }"
+                @click="selectedChartItem = item"
+              >
+                <div class="table-cell item-name">
+                  <div class="item-avatar">
+                    {{ item.itemName.charAt(0).toUpperCase() }}
+                  </div>
+                  <span>{{ item.itemName }}</span>
+                </div>
+                <div class="table-cell portion-size">
+                  <div class="comparison-bar">
+                    <div
+                      class="bar-fill"
+                      :style="{
+                        width: `${Math.min(100, (item.portionSize ? parsePortionSize(item.portionSize) : 0) * portionSizeSliderValue / 50)}%`
+                      }"
+                    ></div>
+                  </div>
+                  <span class="cell-value">{{ item.portionSize || 'N/A' }}</span>
+                </div>
+                <div class="table-cell portions-count">
+                  <div class="comparison-bar">
+                    <div
+                      class="bar-fill"
+                      :style="{
+                        width: `${Math.min(100, (item.portionsCount || 0) * portionsCountSliderValue / 50)}%`
+                      }"
+                    ></div>
+                  </div>
+                  <span class="cell-value">{{ item.portionsCount || 0 }}</span>
+                </div>
+                <div class="table-cell product-cost">
+                  <span class="cell-value">{{ item.productCost ? `$${item.productCost.toFixed(2)}` : '$0.00' }}</span>
+                </div>
+                <div class="table-cell depletion-date">
+                  <span class="cell-value">{{ item.depletionDate || (item.isTracked ? 'Forever' : 'No tracking') }}</span>
+                  <hover-text v-if="item.isTracked" :text="`Tracked with: ${item.item.depletionRate}`">
+                    <span class="tracking-indicator">●</span>
+                  </hover-text>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selected Item Details -->
+            <div v-if="selectedChartItem" class="selected-item-details">
+              <h4 class="details-title">Selected Item Details: {{ selectedChartItem.itemName }}</h4>
+              <div class="details-grid">
+                <div class="detail-item">
+                  <label>Portion Size:</label>
+                  <span>{{ selectedChartItem.portionSize || 'Not specified' }}</span>
+                </div>
+                <div class="detail-item">
+                  <label>Portions Remaining:</label>
+                  <span>{{ selectedChartItem.portionsCount || 0 }} portions</span>
+                </div>
+                <div class="detail-item">
+                  <label>Product Cost:</label>
+                  <span>{{ selectedChartItem.productCost ? `$${selectedChartItem.productCost.toFixed(2)}` : '$0.00' }}</span>
+                </div>
+                <div class="detail-item">
+                  <label>Tracking:</label>
+                  <span>{{ selectedChartItem.isTracked ? 'Enabled' : 'Disabled' }}</span>
+                </div>
+                <div v-if="selectedChartItem.depletionDate" class="detail-item">
+                  <label>Est. Depletion Date:</label>
+                  <span>{{ selectedChartItem.depletionDate }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart Summary -->
+            <div class="chart-summary">
+              <div class="summary-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Total Items:</span>
+                  <span class="stat-value">{{ itemChartItems.length }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Tracked Items:</span>
+                  <span class="stat-value">{{ itemChartItems.filter(i => i.isTracked).length }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Total Value:</span>
+                  <span class="stat-value">${{ itemChartItems.reduce((sum, item) => sum + (item.productCost || 0), 0).toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Gear Settings Menu Modal -->
     <div v-if="showGearMenu" class="modal-overlay">
       <div class="gear-modal" @click.stop>
@@ -713,10 +1173,12 @@ import {
   paymentTypeForm,
   showGearMenu,
   showPieChartModal,
+  showItemChartModal,
   hoveredSlice,
   modalStack,
   isNextPaymentsCollapsed,
-  isEarningsCollapsed
+  isEarningsCollapsed,
+  isInventoryCollapsed
 } from '../stores/ui-state.store'
 
 // Import composables
@@ -742,7 +1204,19 @@ import {
   getPaymentTypeClass,
   getPaymentTypeClassForDay,
   getDayStyle,
-  getSlicePath
+  getSlicePath,
+  inventoryItems,
+  getPortionsRemaining,
+  getEstimatedPortions,
+  getEstimatedDepletionDate,
+  parsePortionSize,
+  itemChartItems,
+  portionSizeSliderValue,
+  portionsCountSliderValue,
+  selectedChartItem,
+  getDepletionTimeInDays,
+  getLastPurchases,
+  getEstimatedNextPurchaseDate
 } from '../composables/payment-computables'
 
 // Import handlers
@@ -782,11 +1256,19 @@ import {
   goToNextMonth,
   toggleNextPaymentsSection,
   toggleEarningsSection,
+  toggleInventorySection,
   togglePieChart,
   closePieChartModal,
+  toggleItemChart,
+  closeItemChartModal,
   loadPayments,
   loadPaymentTypes,
-  initializeComponent
+  initializeComponent,
+  formatCurrencyAmount,
+  handleAmountInputBlur,
+  handleAmountInputKeyUp,
+  addResupply,
+  deleteSinglePurchase
 } from '../composables/payment-handlers'
 
 // Color presets

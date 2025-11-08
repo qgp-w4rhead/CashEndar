@@ -16,11 +16,21 @@ export const paymentTypes = ref<PaymentType[]>([])
 export const showEditMenu = ref(false)
 export const editingPayment = ref<Payment | null>(null)
 export const editForm = reactive({
-  title: '',
-  amount: '',
-  type: 'rent' as Payment['type'],
-  date: '',
-  frequency: 'recurring' as Payment['frequency']
+    title: '',
+    amount: '',
+    type: 'rent',
+    frequency: 'recurring' as Payment['frequency'],
+    date: '',
+    day: 1,
+    // Inventory fields
+    itemName: '',
+    itemSize: undefined,
+    itemSizeUnit: 'gram' as Payment['itemSizeUnit'],
+    portionSize: undefined,
+    portionsCount: undefined,
+    depletionRate: undefined,
+    depletionUnit: 'day' as Payment['depletionUnit'],
+    depletionTime: undefined as number | undefined
 })
 
 // Add payment state
@@ -30,7 +40,16 @@ export const addForm = reactive({
   amount: '',
   type: 'rent' as Payment['type'],
   day: 1, // Day of month for the payment
-  frequency: 'recurring' as Payment['frequency'] // Default to recurring
+  frequency: 'recurring' as Payment['frequency'], // Default to recurring
+  // Inventory-specific fields
+  itemName: '',
+  itemSize: undefined,
+  itemSizeUnit: 'gram' as Payment['itemSizeUnit'],
+  portionSize: undefined,
+  portionsCount: undefined,
+  depletionRate: undefined,
+  depletionUnit: 'day' as Payment['depletionUnit'],
+  depletionTime: undefined as number | undefined
 })
 
 // Add payment modal state
@@ -63,12 +82,16 @@ export const showGearMenu = ref(false)
 // Pie chart modal state
 export const showPieChartModal = ref(false)
 
+// Item chart modal state
+export const showItemChartModal = ref(false)
+
 // Pie chart hover state
 export const hoveredSlice = ref<string | null>(null)
 
 // Collapsible sections state
 export const isNextPaymentsCollapsed = ref(false)
 export const isEarningsCollapsed = ref(false)
+export const isInventoryCollapsed = ref(false)
 
 // Modal stack for escape key handling
 export const modalStack = ref<string[]>([])

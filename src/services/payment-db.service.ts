@@ -168,6 +168,7 @@ export class PaymentDB {
       { id: 'utility', label: 'Utility', value: 'utility', color: '#f59e0b', isCustom: false, isEarning: false },
       { id: 'credit', label: 'Credit', value: 'credit', color: '#06b6d4', isCustom: false, isEarning: false },
       { id: 'subscription', label: 'Subscription', value: 'subscription', color: '#10b981', isCustom: false, isEarning: false },
+      { id: 'inventory', label: 'Inventory', value: 'inventory', color: '#8b5cf6', isCustom: false, isEarning: false },
       { id: 'earnings', label: 'Earnings', value: 'earnings', color: '#10b981', isCustom: false, isEarning: true }
     ]
 
@@ -189,6 +190,15 @@ export class PaymentDB {
           const earningsTypeToAdd: PaymentType = { id: 'earnings', label: 'Earnings', value: 'earnings', color: '#10b981', isCustom: false, isEarning: true }
           await this.addPaymentType(earningsTypeToAdd)
           console.log('Added missing earnings type')
+        }
+
+        // Check if inventory type exists, if not, add it
+        const inventoryType = existingTypes.find(t => t.value === 'inventory')
+        if (!inventoryType) {
+          console.log('Inventory type missing, adding it...')
+          const inventoryTypeToAdd: PaymentType = { id: 'inventory', label: 'Inventory', value: 'inventory', color: '#8b5cf6', isCustom: false, isEarning: false }
+          await this.addPaymentType(inventoryTypeToAdd)
+          console.log('Added missing inventory type')
         }
       }
     } catch (error) {

@@ -1,4 +1,5 @@
 // Payment handlers for event handling and user interactions
+import { Payment } from '../types/payment.types'
 import { paymentDB } from '../services/payment-db.service'
 import { paymentService } from '../services/payment.service'
 import { paymentTypeService } from '../services/payment-type.service'
@@ -26,10 +27,12 @@ import {
   paymentTypeForm,
   showGearMenu,
   showPieChartModal,
+  showItemChartModal,
   hoveredSlice,
   modalStack,
   isNextPaymentsCollapsed,
-  isEarningsCollapsed
+  isEarningsCollapsed,
+  isInventoryCollapsed
 } from '../stores/ui-state.store'
 
 // Modal management functions
@@ -264,6 +267,15 @@ export const openEditMenu = (payment: any) => {
   editForm.type = payment.type
   editForm.date = payment.date
   editForm.frequency = payment.frequency || 'recurring' // Use frequency, fallback to recurring for legacy data
+
+  // Initialize inventory fields
+  editForm.itemName = payment.itemName || ''
+  editForm.itemSize = payment.itemSize || null
+  editForm.itemSizeUnit = payment.itemSizeUnit || 'gram'
+  editForm.portionSize = payment.portionSize || ''
+  editForm.portionsCount = payment.portionsCount || null
+  editForm.depletionRate = payment.depletionRate || ''
+
   showEditMenu.value = true
   openModal('edit')
 }
@@ -297,7 +309,25 @@ export const savePayment = async () => {
       amount: `$${editForm.amount}`,
       type: editForm.type,
       date: editForm.date,
-      frequency: editForm.frequency
+      frequency: editForm.frequency,
+      // Include inventory fields if type is inventory
+      ...(editForm.type === 'inventory' && {
+        itemName: editForm.title.trim(),
+        itemSize: editForm.itemSize,
+        itemSizeUnit: editForm.itemSizeUnit,
+        portionSize: editForm.portionSize,
+        portionsCount: editForm.portionsCount,
+        depletionRate: editForm.depletionRate,
+        depletionUnit: editForm.depletionUnit
+      })
+    }
+
+    // Clear inventory fields if type was changed from inventory to something else
+    if (editingPayment.value.type === 'inventory' && editForm.type !== 'inventory') {
+      updatedPayment.itemName = undefined
+      updatedPayment.portionSize = undefined
+      updatedPayment.portionsCount = undefined
+      updatedPayment.depletionRate = undefined
     }
 
     // Update day and reference date based on new frequency and date
@@ -543,7 +573,17 @@ export const saveNewPayment = async () => {
       day: (addForm.frequency === 'bi-monthly' || addForm.frequency === 'weekly') ? undefined : addForm.day, // Don't set day for weekly/bi-monthly
       dayOfWeek: (addForm.frequency === 'bi-monthly' || addForm.frequency === 'weekly') ? paymentDate.getDay() : undefined, // Set day of week for weekly/bi-monthly
       referenceDate: (addForm.frequency === 'bi-monthly' || addForm.frequency === 'weekly') ? paymentDate.getTime() : undefined, // Store reference timestamp for weekly/bi-monthly
-      frequency: addForm.frequency
+      frequency: addForm.frequency,
+      // Include inventory fields if type is inventory
+      ...(addForm.type === 'inventory' && {
+        itemName: addForm.title.trim(),
+        itemSize: addForm.itemSize,
+        itemSizeUnit: addForm.itemSizeUnit,
+        portionSize: addForm.portionSize,
+        portionsCount: addForm.portionsCount,
+        depletionRate: addForm.depletionRate,
+        depletionUnit: addForm.depletionUnit
+      })
     }
 
     // Save to IndexedDB
@@ -680,6 +720,11 @@ export const toggleEarningsSection = () => {
   isEarningsCollapsed.value = !isEarningsCollapsed.value
 }
 
+// Inventory section functions
+export const toggleInventorySection = () => {
+  isInventoryCollapsed.value = !isInventoryCollapsed.value
+}
+
 // Pie chart modal functions
 export const togglePieChart = () => {
   showPieChartModal.value = !showPieChartModal.value
@@ -693,6 +738,21 @@ export const togglePieChart = () => {
 export const closePieChartModal = () => {
   showPieChartModal.value = false
   closeModal('pieChart')
+}
+
+// Item chart modal functions
+export const toggleItemChart = () => {
+  showItemChartModal.value = !showItemChartModal.value
+  if (showItemChartModal.value) {
+    openModal('itemChart')
+  } else {
+    closeModal('itemChart')
+  }
+}
+
+export const closeItemChartModal = () => {
+  showItemChartModal.value = false
+  closeModal('itemChart')
 }
 
 // Load payments from IndexedDB on component mount
@@ -714,6 +774,141 @@ export const loadPaymentTypes = async () => {
   } catch (error) {
     console.error('Error loading payment types:', error)
     paymentTypes.value = []
+  }
+}
+
+// Helper function to format currency amounts to 2 decimal places
+export const formatCurrencyAmount = (value: string) => {
+  if (!value) return ''
+
+  // Parse the value and limit to 2 decimal places
+  const numericValue = parseFloat(value.replace(/[^0-9.-]+/g, ''))
+  if (isNaN(numericValue)) return ''
+
+  return numericValue.toFixed(2)
+}
+
+// Helper function to handle amount input blur events
+export const handleAmountInputBlur = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const currentValue = target.value
+  if (currentValue) {
+    target.value = formatCurrencyAmount(currentValue)
+    // Trigger input event to update v-model binding
+    target.dispatchEvent(new Event('input', { bubbles: true }))
+  }
+}
+
+// Helper function to handle amount input key events (Enter key)
+export const handleAmountInputKeyUp = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    const target = event.target as HTMLInputElement
+    const currentValue = target.value
+    if (currentValue) {
+      target.value = formatCurrencyAmount(currentValue)
+      // Trigger input event to update v-model binding
+      target.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+  }
+}
+
+// Delete a single purchase entry (for inventory history management)
+export const deleteSinglePurchase = async (purchase: Payment) => {
+  if (!confirm('Are you sure you want to delete this purchase entry?')) {
+    return
+  }
+
+  try {
+    // Delete from IndexedDB
+    await paymentDB.deletePayment(purchase.id)
+
+    // Remove from local payments array
+    const paymentIndex = payments.value.findIndex(p => p.id === purchase.id)
+    if (paymentIndex !== -1) {
+      payments.value.splice(paymentIndex, 1)
+    }
+
+    // Show success message
+    showMessage('Purchase entry deleted successfully', 'success')
+
+    console.log('Purchase entry deleted:', purchase)
+  } catch (error) {
+    console.error('Error deleting purchase entry:', error)
+    showMessage('Error deleting purchase entry. Please try again.', 'error')
+  }
+}
+
+// Add resupply function for inventory items
+export const addResupply = async (itemName: string) => {
+  try {
+    // Generate a new sequential ID
+    const sequentialId = await paymentDB.getNextPaymentId()
+    const newId = sequentialId.toString()
+
+    // Create today's date in the payment format - use CURRENT actual date
+    const today = new Date()
+    console.log('Current date for resupply:', today.toString()) // Debug log
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ]
+    const monthName = monthNames[today.getMonth()]
+    const day = today.getDate()
+    console.log('Day extracted:', day) // Debug log
+
+    const daySuffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'
+    const dynamicDate = `${monthName} ${day}${daySuffix}, ${today.getFullYear()}`
+
+    console.log('Generated resupply date:', dynamicDate) // Debug log
+
+    // Find all existing items of the same name to aggregate data from
+    const existingItems = payments.value.filter(p => p.type === 'inventory' && p.itemName === itemName)
+
+    // Get the most recent item as the base for copying details
+    const sortedItems = existingItems.sort((a, b) => {
+      const dateA = paymentService.parsePaymentDate(a.date)
+      const dateB = paymentService.parsePaymentDate(b.date)
+      if (!dateA || !dateB) return 0
+      const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
+      const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
+      return dateObjB.getTime() - dateObjA.getTime()
+    })
+
+    const mostRecentItem = sortedItems[0] // Most recent purchase of this item
+
+    if (!mostRecentItem) {
+      console.error('No existing items found to resupply from')
+      return
+    }
+
+    // Create new resupply payment with the same details but today's date
+    const resupplyPayment: Payment = {
+      id: newId,
+      title: itemName,
+      amount: mostRecentItem.amount, // Copy the amount from most recent item
+      date: dynamicDate,
+      type: 'inventory',
+      frequency: 'one-time' as const, // Resupply entries are one-time
+      itemName: itemName,
+      itemSize: mostRecentItem.itemSize,
+      itemSizeUnit: mostRecentItem.itemSizeUnit,
+      portionSize: mostRecentItem.portionSize,
+      portionsCount: mostRecentItem.portionsCount,
+      depletionRate: mostRecentItem.depletionRate,
+      depletionUnit: mostRecentItem.depletionUnit
+    }
+
+    // Save to IndexedDB
+    await paymentDB.addPayment(resupplyPayment)
+
+    // Add to local payments array
+    payments.value.push(resupplyPayment)
+
+    // Keep the modal open so user can see updated purchase history
+    console.log('Resupply added successfully with date:', dynamicDate)
+  } catch (error) {
+    console.error('Error adding resupply:', error)
   }
 }
 

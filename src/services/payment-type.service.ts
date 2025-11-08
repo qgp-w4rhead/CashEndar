@@ -70,11 +70,12 @@ export class PaymentTypeService {
       } else {
         console.log('No payment types in database, using fallback defaults')
         // Database is empty, use fallback defaults
-        const defaultTypes: PaymentType[] = [
+      const defaultTypes: PaymentType[] = [
           { id: 'rent', label: 'Rent', value: 'rent', color: '#ef4444', isCustom: false, isEarning: false },
           { id: 'utility', label: 'Utility', value: 'utility', color: '#f59e0b', isCustom: false, isEarning: false },
           { id: 'credit', label: 'Credit', value: 'credit', color: '#06b6d4', isCustom: false, isEarning: false },
           { id: 'subscription', label: 'Subscription', value: 'subscription', color: '#10b981', isCustom: false, isEarning: false },
+          { id: 'inventory', label: 'Inventory', value: 'inventory', color: '#8b5cf6', isCustom: false, isEarning: false },
           { id: 'earnings', label: 'Earnings', value: 'earnings', color: '#10b981', isCustom: false, isEarning: true }
         ]
 

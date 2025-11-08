@@ -14,6 +14,15 @@ export interface Payment {
   referenceDate?: number;
   // Add payment frequency type - now supports: 'one-time', 'recurring', 'weekly', 'bi-monthly'
   frequency: 'one-time' | 'recurring' | 'weekly' | 'bi-monthly';
+  // Inventory-specific fields (when type === 'inventory')
+  itemName?: string; // The actual product name
+  portionSize?: number; // Numerical size of each portion (same unit as itemSizeUnit)
+  portionsCount?: number; // How many portions this purchase contains
+  itemSize?: number; // Total size of the purchased item
+  itemSizeUnit?: 'gram' | 'kg' | 'ml' | 'liter'; // Unit for both item size and portion size
+  depletionRate?: number; // Numerical depletion rate
+  depletionUnit?: 'day' | 'week' | 'month'; // Unit for depletion rate
+  depletionTime?: number; // Calculated time in days to deplete inventory (getEstimatedPortions / depletionRate)
 }
 
 // Earnings interface for TypeScript

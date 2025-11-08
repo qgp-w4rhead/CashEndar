@@ -296,6 +296,34 @@ html, body {
   height: 20px;
 }
 
+.item-chart-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.item-chart-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+}
+
+.item-chart-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
 .month-title {
   color: white;
   font-size: 24px;
@@ -529,7 +557,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
   width: 90%;
-  max-width: 500px;
+  max-width: 50vw;
   max-height: 90vh;
   overflow-y: auto;
   animation: modalSlideIn 0.3s ease-out;
@@ -647,7 +675,7 @@ html, body {
 }
 
 .form-input {
-  width: 100%;
+  width: 50%;
   padding: 12px 16px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -780,9 +808,10 @@ html, body {
 }
 
 .section-divider {
-  height: 1px;
+  color: white;
+  height: 2px;
   background: rgba(16, 185, 129, 0.2);
-  margin: 24px 0;
+  margin: 24px -10px;
 }
 
 .add-payment-section {
@@ -1346,6 +1375,235 @@ html, body {
   }
 }
 
+/* Item Chart Modal */
+.item-chart-modal {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  width: 95%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Slider Controls */
+.slider-controls {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.slider-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slider-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-header label {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.inventory-slider {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  outline: none;
+}
+
+/* Item Comparison Table */
+.item-comparison-table {
+  margin-bottom: 24px;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 25% 15% 15% 15% 30%;
+  gap: 16px;
+  padding: 16px 24px;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.header-cell {
+  color: #8b5cf6;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 25% 15% 15% 15% 30%;
+  gap: 16px;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.table-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(139, 92, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.selected-row {
+  background: rgba(139, 92, 246, 0.1) !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+}
+
+.table-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-size: 14px;
+}
+
+.item-name {
+  font-weight: 600;
+}
+
+.item-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.cell-value {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.comparison-bar {
+  width: 60px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-right: 8px;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #a855f7);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.depletion-date .tracking-indicator {
+  color: #10b981;
+  margin-left: 8px;
+  cursor: help;
+}
+
+/* Selected Item Details */
+.selected-item-details {
+  padding: 24px;
+  background: rgba(139, 92, 246, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  margin-bottom: 24px;
+}
+
+.details-title {
+  color: #8b5cf6;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-item span {
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Responsive adjustments for item chart modal */
+@media (max-width: 768px) {
+  .item-chart-modal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .slider-controls {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .table-header {
+    display: none; /* Hide on mobile for better space usage */
+  }
+
+  .table-row {
+    padding: 12px 16px;
+  }
+
+  .comparison-bar {
+    width: 40px;
+    height: 6px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Gear Settings Modal */
 .gear-modal {
   background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
@@ -1694,6 +1952,142 @@ html, body {
   font-style: italic;
 }
 
+/* Inventory Tracker Section */
+.inventory-section {
+  margin-top: 24px;
+  background: linear-gradient(270deg, #8b5cf886 0%, #a855f7 50%, #8b5cf8 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  overflow: show;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
+}
+
+.inventory-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(139, 92, 246, 0.02);
+}
+
+.inventory-header:hover {
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.inventory-title {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inventory-total {
+  color: #8b5cf6;
+  font-size: 14px;
+  font-weight: 500;
+  background: rgba(139, 92, 246, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.inventory-content {
+  max-height: 400px;
+  opacity: 1;
+  transition: all 0.3s ease;
+  overflow: auto;
+}
+
+.inventory-header.collapsed + .inventory-content {
+  max-height: 0;
+  opacity: 0;
+}
+
+.inventory-body {
+  padding: 0 24px 24px 24px;
+}
+
+.inventory-list {
+  /* Additional spacing if needed */
+}
+
+.inventory-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.05);
+  transition: all 0.2s ease;
+}
+
+.inventory-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(139, 92, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.inventory-avatar {
+  margin-right: 16px;
+}
+
+.avatar-circle.inventory {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  border: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+.inventory-details {
+  flex: 1;
+}
+
+.inventory-name {
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.inventory-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.portions-left {
+  color: #8b5cf6;
+  font-weight: 500;
+}
+
+.depletion-date {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.inventory-amount {
+  font-weight: 700;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.inventory-empty {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  padding: 20px 0;
+  font-style: italic;
+}
+
+.inventory-menu {
+  margin-left: 16px;
+}
+
 /* Total Summary Section */
 .total-remaining-section {
   margin-top: 24px;
@@ -1811,4 +2205,200 @@ html, body {
     padding: 16px;
     font-size: 16px;
   }
+}
+
+/* Value-unit input styling */
+.value-unit-input {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.value-input {
+  flex: 1;
+}
+
+.unit-select {
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.unit-display {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  padding: 0 8px;
+  align-self: center;
+}
+
+/* Readonly field styling */
+.readonly-field {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #10b981 !important;
+  font-weight: 600 !important;
+  cursor: not-allowed !important;
+}
+
+.readonly-field:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  box-shadow: none !important;
+}
+
+.readonly-field:focus {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  box-shadow: none !important;
+}
+
+/* Last Purchase Section */
+.last-purchase-section {
+  margin-top: 16px;
+}
+
+.last-purchases-list {
+  margin-bottom: 16px;
+  max-height: 180px; /* Fits about 3 purchase items */
+  overflow-y: auto;
+  /* Custom scrollbar styling for the purchase list */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.3) rgba(255, 255, 255, 0.1);
+}
+
+.last-purchases-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.last-purchases-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.last-purchases-list::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 4px;
+}
+
+.last-purchases-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.7);
+}
+
+.purchase-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 14px;
+}
+
+.purchase-date {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.purchase-cost {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.purchase-delete-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.purchase-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+.purchase-delete-btn:active {
+  background: rgba(239, 68, 68, 0.3);
+  transform: scale(0.95);
+}
+
+.no-purchases {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  padding: 12px 0;
+  font-style: italic;
+}
+
+.next-purchase-info {
+  padding: 12px;
+  background: rgba(16, 185, 129, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.next-purchase-info label {
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.next-purchase-date {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 16px;
+  font-family: monospace;
+}
+
+/* Resupply Button Section */
+.resupply-section {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.resupply-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.resupply-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.resupply-btn:active {
+  transform: scale(0.95);
+}
+
+.resupply-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 500;
 }
