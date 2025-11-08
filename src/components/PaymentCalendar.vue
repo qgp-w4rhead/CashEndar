@@ -160,7 +160,7 @@
             <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20"/>
           </svg>
         </button>
-        <button class="item-chart-btn" @click="toggleItemChart" title="View Inventory Items Chart" v-if="inventoryItems.length > 0">
+        <button class="item-chart-btn" @click="toggleItemChart" title="View Inventory Items Chart">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 3v18h18"/>
             <path d="M9 9h6"/>
@@ -190,6 +190,7 @@
               'date-cell': true,
               'other-month': !dateInfo.isCurrentMonth,
               'has-payment': dateInfo.hasPayment,
+              'today': isToday(dateInfo.date),
               'selected': selectedDate && selectedDate.getDate() === dateInfo.day &&
                          selectedDate.getMonth() === currentMonth &&
                          selectedDate.getFullYear() === currentYear,
@@ -202,6 +203,17 @@
             @click="handleDayClick(dateInfo)"
           >
             {{ dateInfo.day }}
+            <!-- Render multiple dots based on payment count -->
+            <div v-if="dateInfo.paymentCount > 0" class="payment-dots">
+              <span
+                v-for="n in Math.min(dateInfo.paymentCount, 5)"
+                :key="n"
+                class="payment-dot"
+                :style="{ backgroundColor: getPaymentTypeClassForDay(dateInfo.day) ? 'var(--payment-color, #10b981)' : '#10b981' }"
+              ></span>
+              <!-- Show + indicator if more than 5 payments -->
+              <span v-if="dateInfo.paymentCount > 5" class="payment-dot-plus">+</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1282,6 +1294,14 @@ const colorPresets = [
   { name: 'Orange', color: '#f97316' },
   { name: 'Teal', color: '#14b8a6' }
 ]
+
+// Helper function to check if a date is today
+const isToday = (date: Date) => {
+  const today = new Date()
+  return date.getDate() === today.getDate() &&
+         date.getMonth() === today.getMonth() &&
+         date.getFullYear() === today.getFullYear()
+}
 
 // Initialize component on mount
 onMounted(async () => {
