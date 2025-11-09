@@ -22,7 +22,7 @@
         </div>
         <div class="payment-details">
           <div class="payment-title">{{ payment.title }}</div>
-          <div class="payment-date">{{ payment.date }} at {{ payment.time }}</div>
+          <div class="payment-date">{{ payment.date }}</div>
           <div :class="['payment-amount', getPaymentTypeClass(payment.type)]">{{ payment.amount }}</div>
         </div>
         <div class="payment-menu">
