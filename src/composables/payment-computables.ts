@@ -12,6 +12,28 @@ import {
   isEarningsCollapsed
 } from '../stores/ui-state.store'
 
+// Month name constants to avoid duplication
+const MONTH_NAMES_FULL = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+]
+
+const MONTH_NAMES_SHORT = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+]
+
+// Helper function to get current date components
+const getCurrentDateComponents = () => {
+  const today = new Date()
+  return {
+    today,
+    currentDay: today.getDate(),
+    currentMonth: today.getMonth(),
+    currentYear: today.getFullYear()
+  }
+}
+
 // Computed property to sort payments by date (first to last), excluding inventory items
 export const sortedPayments = computed(() => {
   return [...payments.value]
@@ -51,10 +73,7 @@ export const calendarDates = computed(() => {
 
 // Next payments computed properties (expenses only)
 export const nextPayments = computed(() => {
-  const today = new Date()
-  const currentDay = today.getDate()
-  const currentMonth = today.getMonth()
-  const currentYear = today.getFullYear()
+  const { today, currentDay, currentMonth, currentYear } = getCurrentDateComponents()
 
   // Define the range: from today to end of month
   const startDate = new Date(currentYear, currentMonth, currentDay)
@@ -69,17 +88,9 @@ export const nextPaymentsTotal = computed(() => {
 })
 
 export const nextPaymentsPeriod = computed(() => {
-  const today = new Date()
-  const currentDay = today.getDate()
-  const currentMonth = today.getMonth()
-  const currentYear = today.getFullYear()
+  const { currentDay, currentMonth, currentYear } = getCurrentDateComponents()
 
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
-
-  const monthName = monthNames[currentMonth]
+  const monthName = MONTH_NAMES_FULL[currentMonth]
   const year = currentYear
 
   return `${monthName} ${currentDay} - ${monthName} 31, ${year}`
@@ -87,10 +98,7 @@ export const nextPaymentsPeriod = computed(() => {
 
 // Earnings computed properties (earnings only)
 export const nextEarnings = computed(() => {
-  const today = new Date()
-  const currentDay = today.getDate()
-  const currentMonth = today.getMonth()
-  const currentYear = today.getFullYear()
+  const { currentDay, currentMonth, currentYear } = getCurrentDateComponents()
 
   // Define the range: from today to end of month
   const startDate = new Date(currentYear, currentMonth, currentDay)
@@ -105,17 +113,9 @@ export const earningsTotal = computed(() => {
 })
 
 export const earningsPeriod = computed(() => {
-  const today = new Date()
-  const currentDay = today.getDate()
-  const currentMonth = today.getMonth()
-  const currentYear = today.getFullYear()
+  const { currentDay, currentMonth, currentYear } = getCurrentDateComponents()
 
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
-
-  const monthName = monthNames[currentMonth]
+  const monthName = MONTH_NAMES_FULL[currentMonth]
   const year = currentYear
 
   return `${monthName} ${currentDay} - ${monthName} 31, ${year}`
@@ -133,8 +133,7 @@ export const totalRemainingSummary = computed(() => {
 
 // All payments in current month (entire month, not just from current date)
 export const allMonthPayments = computed(() => {
-  const currentMonth = new Date().getMonth()
-  const currentYear = new Date().getFullYear()
+  const { currentMonth, currentYear } = getCurrentDateComponents()
 
   // Define the range: entire current month
   const startDate = new Date(currentYear, currentMonth, 1)
@@ -145,8 +144,7 @@ export const allMonthPayments = computed(() => {
 
 // All earnings in current month (entire month, not just from current date)
 export const allMonthEarnings = computed(() => {
-  const currentMonth = new Date().getMonth()
-  const currentYear = new Date().getFullYear()
+  const { currentMonth, currentYear } = getCurrentDateComponents()
 
   // Define the range: entire current month
   const startDate = new Date(currentYear, currentMonth, 1)
@@ -223,19 +221,23 @@ export const chartTotal = computed(() => {
 })
 
 export const chartPeriod = computed(() => {
-  const today = new Date()
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
-  const monthName = monthNames[today.getMonth()]
-  const year = today.getFullYear()
+  const { currentMonth, currentYear } = getCurrentDateComponents()
+  const monthName = MONTH_NAMES_FULL[currentMonth]
+  const year = currentYear
   return `${monthName} ${year}`
 })
 
 export const largestCategory = computed(() => {
   const largest = chartData.value[0]
   return largest ? largest.label : 'None'
+})
+
+// Helper function to get common calendar parameters
+const getCalendarParams = () => ({
+  payments: payments.value,
+  paymentTypes: paymentTypes.value,
+  currentMonth: currentMonth.value,
+  currentYear: currentYear.value
 })
 
 // Helper function to get payment type class for styling
@@ -245,23 +247,25 @@ export const getPaymentTypeClass = (paymentType: string) => {
 
 // Helper function to get the dominant payment type class for a specific day
 export const getPaymentTypeClassForDay = (day: number) => {
+  const params = getCalendarParams()
   return calendarService.getPaymentTypeClassForDay(
-    payments.value,
-    paymentTypes.value,
+    params.payments,
+    params.paymentTypes,
     day,
-    currentMonth.value,
-    currentYear.value
+    params.currentMonth,
+    params.currentYear
   )
 }
 
 // Helper function to get the style for a specific day based on payment types
 export const getDayStyle = (day: number) => {
+  const params = getCalendarParams()
   return calendarService.getDayStyle(
-    payments.value,
-    paymentTypes.value,
+    params.payments,
+    params.paymentTypes,
     day,
-    currentMonth.value,
-    currentYear.value
+    params.currentMonth,
+    params.currentYear
   )
 }
 
@@ -368,17 +372,76 @@ export const getEstimatedPortions = computed(() => {
 
 // Helper function to calculate portions remaining for inventory item
 export const getPortionsRemaining = (item: Payment) => {
-  // Use portionsCount if it exists (legacy data or manually set), otherwise calculate from itemSize/portionsSize
-  if (item.portionsCount !== null && item.portionsCount !== undefined) {
-    return item.portionsCount
-  }
+  // Get all purchases for this item
+  const itemPurchases = payments.value.filter(payment =>
+    payment.type === 'inventory' &&
+    payment.itemName === item.itemName
+  )
 
-  // Calculate estimated portions from item size and portion size
-  if (!item.itemSize || !item.portionSize || item.portionSize === 0) {
+  if (itemPurchases.length === 0) {
     return 0
   }
 
-  return Math.floor(item.itemSize / item.portionSize)
+  // Calculate total portions from all purchases
+  let totalPortions = 0
+  itemPurchases.forEach(purchase => {
+    // Use portionsCount if it exists, otherwise calculate from itemSize/portionSize
+    if (purchase.portionsCount !== null && purchase.portionsCount !== undefined) {
+      totalPortions += purchase.portionsCount
+    } else if (purchase.itemSize && purchase.portionSize && purchase.portionSize > 0) {
+      totalPortions += Math.floor(purchase.itemSize / purchase.portionSize)
+    }
+  })
+
+  // If no depletion rate is set, return total portions
+  if (!item.depletionRate || !item.depletionUnit) {
+    return totalPortions
+  }
+
+  // Calculate consumed portions based on time elapsed since each purchase
+  let totalConsumedPortions = 0
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Reset time to start of day for accurate date comparison
+
+  itemPurchases.forEach(purchase => {
+    // Parse purchase date
+    const parsedDate = paymentService.parsePaymentDate(purchase.date)
+    if (!parsedDate) return
+
+    const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
+    purchaseDate.setHours(0, 0, 0, 0) // Reset time to start of day
+
+    // Calculate days elapsed since purchase
+    const daysElapsed = Math.max(0, Math.floor((today.getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24)))
+
+    // Convert depletion rate to portions per day
+    let portionsPerDay: number
+    switch (item.depletionUnit.toLowerCase()) {
+      case 'day':
+        portionsPerDay = item.depletionRate
+        break
+      case 'week':
+        portionsPerDay = item.depletionRate / 7
+        break
+      case 'month':
+        portionsPerDay = item.depletionRate / 30 // Approximate month as 30 days
+        break
+      default:
+        portionsPerDay = item.depletionRate
+        break
+    }
+
+    // Calculate portions consumed from this purchase
+    const portionsFromThisPurchase = purchase.portionsCount ||
+      (purchase.itemSize && purchase.portionSize && purchase.portionSize > 0 ?
+        Math.floor(purchase.itemSize / purchase.portionSize) : 0)
+
+    const consumedFromThisPurchase = Math.min(portionsFromThisPurchase, daysElapsed * portionsPerDay)
+    totalConsumedPortions += consumedFromThisPurchase
+  })
+
+  // Return remaining portions (total minus consumed), never go below 0
+  return Math.max(0, totalPortions - totalConsumedPortions)
 }
 
 // Helper function to calculate estimated depletion date
@@ -418,12 +481,7 @@ export const getEstimatedDepletionDate = (item: Payment) => {
   targetDate.setDate(targetDate.getDate() + daysRemaining)
 
   // Format date
-  const monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-  ]
-
-  const month = monthNames[targetDate.getMonth()]
+  const month = MONTH_NAMES_SHORT[targetDate.getMonth()]
   const day = targetDate.getDate()
   const year = targetDate.getFullYear()
 
@@ -621,12 +679,7 @@ export const getEstimatedNextPurchaseDate = computed(() => {
     const nextPurchaseDate = new Date(nextPurchaseTime)
 
     // Format date
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ]
-
-    const month = monthNames[nextPurchaseDate.getMonth()]
+    const month = MONTH_NAMES_SHORT[nextPurchaseDate.getMonth()]
     const day = nextPurchaseDate.getDate()
     const year = nextPurchaseDate.getFullYear()
 

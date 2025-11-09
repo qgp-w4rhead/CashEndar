@@ -2072,7 +2072,7 @@ html, body {
 }
 
 .portions-left {
-  color: #8b5cf6;
+  color: #cdb7ff;
   font-weight: 500;
 }
 
@@ -2269,8 +2269,8 @@ html, body {
 
 .last-purchases-list {
   margin-bottom: 16px;
-  max-height: 180px; /* Fits about 3 purchase items */
-  overflow-y: auto;
+  max-height: 150px; /* Fits about 3 purchase items */
+  overflow-y: scroll;
   /* Custom scrollbar styling for the purchase list */
   scrollbar-width: thin;
   scrollbar-color: rgba(139, 92, 246, 0.3) rgba(255, 255, 255, 0.1);

@@ -430,6 +430,8 @@ export const openAddMenu = () => {
   addForm.title = ''
   addForm.amount = ''
   addForm.type = 'rent'
+  // Set default day to current day when no days are selected
+  addForm.day = new Date().getDate()
   showAddMenu.value = true
 }
 
