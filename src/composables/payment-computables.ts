@@ -444,48 +444,36 @@ export const getPortionsRemaining = (item: Payment) => {
   return Math.max(0, totalPortions - totalConsumedPortions)
 }
 
-// Helper function to calculate estimated depletion date
+// Helper function to calculate estimated depletion time in days
 export const getEstimatedDepletionDate = (item: Payment) => {
-  if (!item.depletionRate || !item.portionsCount || !item.depletionUnit) return null
+  const remainingPortions = getPortionsRemaining(item)
 
-  // Use the numeric depletionRate and depletionUnit
-  const portionsPerPeriod = item.depletionRate
-  const period = item.depletionUnit
+  if (!item.depletionRate || remainingPortions <= 0 || !item.depletionUnit) return null
 
-  if (portionsPerPeriod <= 0 || item.portionsCount <= 0) return null
-
-  // Calculate days per period
-  let daysPerPeriod: number
-  switch (period.toLowerCase()) {
+  // Convert depletion rate to portions per day
+  let portionsPerDay: number
+  switch (item.depletionUnit.toLowerCase()) {
     case 'day':
-      daysPerPeriod = 1
+      portionsPerDay = item.depletionRate
       break
     case 'week':
-      daysPerPeriod = 7
+      portionsPerDay = item.depletionRate / 7
       break
     case 'month':
-      daysPerPeriod = 30 // Approximate
+      portionsPerDay = item.depletionRate / 30 // Approximate month as 30 days
       break
     default:
       return null
   }
 
-  // Calculate remaining periods
-  const remainingPeriods = item.portionsCount / portionsPerPeriod
+  if (portionsPerDay <= 0) return null
 
-  // Calculate days remaining
-  const daysRemaining = remainingPeriods * daysPerPeriod
+  // Calculate days remaining: remaining portions divided by portions consumed per day
+  const daysRemaining = remainingPortions / portionsPerDay
 
-  // Calculate target date
-  const targetDate = new Date()
-  targetDate.setDate(targetDate.getDate() + daysRemaining)
-
-  // Format date
-  const month = MONTH_NAMES_SHORT[targetDate.getMonth()]
-  const day = targetDate.getDate()
-  const year = targetDate.getFullYear()
-
-  return `${month} ${day}, ${year}`
+  // Return as formatted string (e.g., "8 days")
+  const roundedDays = Math.ceil(daysRemaining)
+  return `${roundedDays} day${roundedDays === 1 ? '' : 's'}`
 }
 
 // Item chart data computed properties
@@ -564,10 +552,10 @@ export const itemChartItems = computed((): ItemChartItem[] => {
       item,
       itemName: item.itemName || 'Unnamed Item',
       portionSize: formattedPortionSize,
-      portionsCount: item.portionsCount || 0,
+      portionsCount: getPortionsRemaining(item),
       productCost: parseFloat(item.amount.replace('$', '')) || 0,
       depletionDate: getEstimatedDepletionDate(item),
-      isTracked: Boolean(item.depletionRate && item.portionsCount)
+      isTracked: Boolean(item.depletionRate)
     }
   })
 })

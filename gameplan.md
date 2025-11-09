@@ -20,6 +20,8 @@ the next one would be : 24th
 
 - [X] The amount of portions should go down by the depletion rate
 
+- [ ] An option to forego or skip the payment
+
 Instead of using the "Amount" field and refreshing it dynamically, make a new "Total Amount" field that will be in the "Last Purchase" section
 
 Nitpicks
