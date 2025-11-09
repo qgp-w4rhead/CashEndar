@@ -365,6 +365,7 @@ html, body {
 
 .date-cell {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.05);
@@ -375,6 +376,25 @@ html, body {
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  padding: 8px 4px;
+}
+
+/* Day total amount displayed above day number */
+.day-total {
+  color: #d1d5db;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 0px;
+  text-align: center;
+  line-height: 1;
+}
+
+.day-total-positive {
+  color: #10b981 !important; /* green for earnings */
+}
+
+.day-total-negative {
+  color: #ef4444 !important; /* red for expenses */
 }
 
 .date-cell:hover {

@@ -391,6 +391,21 @@ export class PaymentService {
     }, 0)
   }
 
+  // Calculate net total amount for a day (earnings positive, expenses negative)
+  calculateNetDailyTotal(payments: Payment[], paymentTypes: PaymentType[]) {
+    return payments.reduce((sum, payment) => {
+      const amount = parseFloat(payment.amount.replace('$', '')) || 0
+      const paymentType = paymentTypes.find(type => type.value === payment.type)
+
+      // If it's an earning, add as positive; if it's an expense, add as negative
+      if (paymentType && paymentType.isEarning) {
+        return sum + amount
+      } else {
+        return sum - amount
+      }
+    }, 0)
+  }
+
   // Format total as currency string
   formatTotalAmount(total: number) {
     return `$${total.toFixed(2)}`

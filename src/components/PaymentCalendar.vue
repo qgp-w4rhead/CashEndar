@@ -126,7 +126,7 @@
                   <div class="inventory-name">{{ item.itemName || 'Unnamed Item' }}</div>
                   <div class="inventory-meta">
                     <span class="portions-left">{{ getPortionsRemaining(item) }} portions left</span>
-                    <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· Estimated depletion: {{ getEstimatedDepletionDate(item) }}</span>
+                    <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· Est. depletion: {{ getEstimatedDepletionDate(item) }}</span>
                   </div>
                   <div class="inventory-amount">{{ item.amount }}</div>
                 </div>
@@ -202,6 +202,10 @@
             :data-payment-type="getPaymentTypeClassForDay(dateInfo.day) || undefined"
             @click="handleDayClick(dateInfo)"
           >
+            <!-- Display total amount above day number -->
+            <div v-if="dateInfo.totalAmount !== 0" class="day-total" :class="{ 'day-total-positive': dateInfo.totalAmount > 0, 'day-total-negative': dateInfo.totalAmount < 0 }">
+              {{ dateInfo.totalAmount > 0 ? '+' : '-' }}${{ Math.abs(dateInfo.totalAmount).toFixed(2) }}
+            </div>
             {{ dateInfo.day }}
             <!-- Render multiple dots based on payment count -->
             <div v-if="dateInfo.paymentCount > 0" class="payment-dots">
@@ -419,12 +423,6 @@
                   One-Time
                 </button>
                 <button
-                  :class="['toggle-option', { active: editForm.frequency === 'recurring' }]"
-                  @click="editForm.frequency = 'recurring'"
-                >
-                  Recurring
-                </button>
-                <button
                   :class="['toggle-option', { active: editForm.frequency === 'weekly' }]"
                   @click="editForm.frequency = 'weekly'"
                 >
@@ -435,6 +433,12 @@
                   @click="editForm.frequency = 'bi-monthly'"
                 >
                   Bi-Monthly
+                </button>
+                <button
+                  :class="['toggle-option', { active: editForm.frequency === 'recurring' }]"
+                  @click="editForm.frequency = 'recurring'"
+                >
+                  Monthly
                 </button>
               </div>
             </div>
@@ -660,12 +664,6 @@
                     One-Time
                   </button>
                   <button
-                    :class="['toggle-option', { active: addForm.frequency === 'recurring' }]"
-                    @click="addForm.frequency = 'recurring'"
-                  >
-                    Recurring
-                  </button>
-                  <button
                     :class="['toggle-option', { active: addForm.frequency === 'weekly' }]"
                     @click="addForm.frequency = 'weekly'"
                   >
@@ -676,6 +674,12 @@
                     @click="addForm.frequency = 'bi-monthly'"
                   >
                     Bi-Monthly
+                  </button>
+                  <button
+                    :class="['toggle-option', { active: addForm.frequency === 'recurring' }]"
+                    @click="addForm.frequency = 'recurring'"
+                  >
+                    Monthly
                   </button>
                 </div>
               </div>

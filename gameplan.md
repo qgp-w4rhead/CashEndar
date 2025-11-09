@@ -10,6 +10,8 @@ A "Last Purchase" section under the "Inventory Details"
 
 the next one would be : 24th
 
+- [x] Instead of using the "Amount" field and refreshing it dynamically, make a new "Total Amount" field that will be in the "Last Purchase" section
+
 - [x] Add a "Resupply" button (Depicted as "+1") that allows to add the current date to the "last-purchase-section" for this item
 
 - [x] When clicking the + button and no days are selected, the default behaviour should be to open the modal to add a payment for the current day, we can do so by selecting the day in question instead of the first
@@ -22,8 +24,12 @@ the next one would be : 24th
 
 - [ ] An option to forego or skip the payment
 
-Instead of using the "Amount" field and refreshing it dynamically, make a new "Total Amount" field that will be in the "Last Purchase" section
+- [ ] Display the payment.amount sum total for the day in question dead center, above the day number [calendar-dates]
 
-Nitpicks
+________________
+
+### BUGSECTION
+
+- Estimated Next Purchase doesn't refresh when a Resupply is added.
 
 - The slider bar that's behind the slider doesn't follow the slider accuratelly enough

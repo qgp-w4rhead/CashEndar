@@ -35,7 +35,8 @@ export class CalendarService {
         isCurrentMonth: false,
         date: prevMonth,
         hasPayment: false,
-        paymentCount: 0
+        paymentCount: 0,
+        totalAmount: 0
       })
     }
 
@@ -94,13 +95,15 @@ export class CalendarService {
       // Get all payments for this day
       const dayPayments = paymentService.getPaymentsForDay(payments, day, currentMonth, currentYear)
       const paymentCount = dayPayments.length
+      const totalAmount = paymentService.calculateNetDailyTotal(dayPayments, paymentTypes)
 
       dates.push({
         day,
         isCurrentMonth: true,
         date,
         hasPayment: paymentCount > 0,
-        paymentCount
+        paymentCount,
+        totalAmount
       })
     }
 
@@ -113,7 +116,8 @@ export class CalendarService {
         isCurrentMonth: false,
         date: nextMonth,
         hasPayment: false,
-        paymentCount: 0
+        paymentCount: 0,
+        totalAmount: 0
       })
     }
 
