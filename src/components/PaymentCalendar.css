@@ -139,6 +139,7 @@ html, body {
 }
 
 .sort-dropdown {
+  margin: 10px 0px 0px 0px;
   position: absolute;
   top: 100%;
   right: 0;
@@ -1039,7 +1040,7 @@ html, body {
 }
 
 .toggle-option:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -1548,6 +1549,7 @@ html, body {
   max-width: 1000px;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: auto;
   animation: modalSlideIn 0.3s ease-out;
 }
 
@@ -1597,8 +1599,8 @@ html, body {
 .table-header {
   display: grid;
   grid-template-columns: 25% 15% 15% 15% 30%;
-  gap: 16px;
-  padding: 16px 24px;
+  gap: 12px;
+  padding: 16px 16px;
   background: rgba(139, 92, 246, 0.1);
   border-radius: 8px;
   border: 1px solid rgba(139, 92, 246, 0.2);
@@ -1615,8 +1617,8 @@ html, body {
 .table-row {
   display: grid;
   grid-template-columns: 25% 15% 15% 15% 30%;
-  gap: 16px;
-  padding: 16px 24px;
+  gap: 12px;
+  padding: 16px 16px;
   background: rgba(255, 255, 255, 0.02);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -2468,7 +2470,8 @@ html, body {
 .last-purchases-list {
   margin-bottom: 16px;
   max-height: 150px; /* Fits about 3 purchase items */
-  overflow-y: scroll;
+  overflow-y: auto;
+  padding-right: 12px; /* Add padding to create space around the scrollbar */
   /* Custom scrollbar styling for the purchase list */
   scrollbar-width: thin;
   scrollbar-color: rgba(139, 92, 246, 0.3) rgba(255, 255, 255, 0.1);
@@ -2496,7 +2499,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 12px;
   margin-bottom: 8px;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 6px;
@@ -2572,7 +2575,7 @@ html, body {
 
 /* Resupply Button Section */
 .resupply-section {
-  margin-top: 16px;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
   gap: 12px;

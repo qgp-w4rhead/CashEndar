@@ -458,6 +458,10 @@
               <!-- Last Purchase Section -->
               <div class="last-purchase-section">
                 <div class="section-divider">Last Purchase</div>
+                <div class="resupply-section">
+                  <button class="resupply-btn" @click="addResupply(editingPayment.title)" title="Add new purchase today (resupply)">+1</button>
+                  <span class="resupply-label">Resupply</span>
+                </div>
 
                 <!-- Last 3 Purchases List -->
                 <div class="last-purchases-list">
@@ -478,12 +482,6 @@
                 </div>
                 <div v-else class="next-purchase-info">
                   <label>Need 3+ purchases to estimate next date</label>
-                </div>
-
-                <!-- Resupply Button -->
-                <div class="resupply-section">
-                  <button class="resupply-btn" @click="addResupply(editingPayment.title)" title="Add new purchase today (resupply)">+1</button>
-                  <span class="resupply-label">Resupply</span>
                 </div>
               </div>
             </div>
@@ -713,6 +711,10 @@
               <!-- Last Purchase Section -->
               <div class="last-purchase-section">
                 <div class="section-divider">Last Purchase</div>
+                <div class="resupply-section">
+                  <button class="resupply-btn" @click="addResupply(editingPayment.title)" title="Add new purchase today (resupply)">+1</button>
+                  <span class="resupply-label">Resupply</span>
+                </div>
 
                 <!-- Last 3 Purchases List -->
                 <div class="last-purchases-list">
