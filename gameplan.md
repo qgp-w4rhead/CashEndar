@@ -30,5 +30,4 @@ ________________
 - [X] Future inventory purchase should add to previous portion count if its the same item name
 
 - [ ] By default, "Inventory Tracker" should select "Depletion Rate" for the toggle-container and grey out the "Purchase" option if the condition of 3 last purchase is not met
-
-- [ ] when hovering the "Purchase: option and the condition is not met, the tool tip displays "insufficient data"
+    - Additionally, when hovering the "Purchase" option and the condition is not met, the tool tip displays "Insufficient data"

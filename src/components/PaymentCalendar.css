@@ -1049,6 +1049,19 @@ html, body {
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
+.toggle-option.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.toggle-option.disabled:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+  transform: none;
+}
+
 /* Payment Type Modal */
 .payment-type-modal {
   background: linear-gradient(135deg, #1e293b 0%, #334155 100%);

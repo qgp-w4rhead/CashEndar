@@ -179,13 +179,15 @@
                       <div class="toggle-switch">
                         <div class="toggle-container two-options">
                           <button
-                            :class="['toggle-option small', { active: !itemCostMethodPrefs[item.id] }]"
+                            :class="['toggle-option small', { active: !itemCostMethodPrefs[item.id], disabled: getLastPurchases(item.itemName, item.date).length < 3 }]"
+                            :disabled="getLastPurchases(item.itemName, item.date).length < 3"
+                            :title="getLastPurchases(item.itemName, item.date).length < 3 ? 'Insufficient data' : ''"
                             @click.stop="itemCostMethodPrefs[item.id] = false"
                           >
                             Purchase
                           </button>
                           <button
-                            :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] }]"
+                            :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] !== false }]"
                             @click.stop="itemCostMethodPrefs[item.id] = true"
                           >
                             Depletion
