@@ -31,3 +31,5 @@ ________________
 
 - [ ] By default, "Inventory Tracker" should select "Depletion Rate" for the toggle-container and grey out the "Purchase" option if the condition of 3 last purchase is not met
     - Additionally, when hovering the "Purchase" option and the condition is not met, the tool tip displays "Insufficient data"
+
+- [ ] When clicking a inventory item in the Inventory tracker, every instance of the item should glow for any given day.
