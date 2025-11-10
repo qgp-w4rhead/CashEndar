@@ -16,6 +16,6 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['cashendar.str8octane.com']
+    allowedHosts: ['localhost','cashendar.str8octane.com']
   }
 })
