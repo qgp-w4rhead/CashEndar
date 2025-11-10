@@ -12,6 +12,45 @@
               <circle cx="12" cy="12" r="1"/>
             </svg>
           </button>
+          <div class="sort-btn-container">
+            <button class="sort-btn" :title="getSortButtonTitle()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="19" y2="12"></line>
+                <line x1="8" y1="18" x2="16" y2="18"></line>
+              </svg>
+            </button>
+            <div class="sort-dropdown">
+              <button
+                class="sort-option"
+                :class="{ active: sortMode === 'date-asc' }"
+                @click="setSortMode('date-asc')"
+              >
+                Date (Earliest First)
+              </button>
+              <button
+                class="sort-option"
+                :class="{ active: sortMode === 'date-desc' }"
+                @click="setSortMode('date-desc')"
+              >
+                Date (Latest First)
+              </button>
+              <button
+                class="sort-option"
+                :class="{ active: sortMode === 'amount-asc' }"
+                @click="setSortMode('amount-asc')"
+              >
+                Amount (Lowest First)
+              </button>
+              <button
+                class="sort-option"
+                :class="{ active: sortMode === 'amount-desc' }"
+                @click="setSortMode('amount-desc')"
+              >
+                Amount (Highest First)
+              </button>
+            </div>
+          </div>
           <button class="add-btn" @click="openAddMenu">+</button>
         </div>
       </div>
@@ -119,19 +158,53 @@
                 No inventory items to track
               </div>
               <div v-for="item in inventoryItems" :key="item.id" class="inventory-item" @click="highlightPaymentDay(item)">
-                <div class="inventory-avatar">
-                  <div :class="`avatar-circle inventory`">{{ item.itemName?.charAt(0).toUpperCase() || 'I' }}</div>
-                </div>
                 <div class="inventory-details">
-                  <div class="inventory-name">{{ item.itemName || 'Unnamed Item' }}</div>
-                  <div class="inventory-meta">
-                    <span class="portions-left">{{ getPortionsRemaining(item) }} portions left</span>
-                    <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· Est. depletion: {{ getEstimatedDepletionDate(item) }}</span>
+                <div class="cost-section">
+                  <div class="">
+                    <div class="inventory-name">{{ item.itemName || 'Unnamed Item' }}</div>
+                    <div class="inventory-meta">
+                      <span class="portions-left">{{ getPortionsRemaining(item) }} portions left</span>
+                      <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· Est. depletion: {{ getEstimatedDepletionDate(item) }}</span>
+                    </div>
+                    <div class="inventory-amount">{{ item.amount }}</div>
                   </div>
-                  <div class="inventory-amount">{{ item.amount }}</div>
+                  <div class="inventory-menu">
+                    <button class="menu-btn" @click.stop="openEditMenu(item)">⋯</button>
+                  </div>
                 </div>
-                <div class="inventory-menu">
-                  <button class="menu-btn" @click.stop="openEditMenu(item)">⋯</button>
+
+                  <!-- Annual Cost Estimate Section -->
+                  <div class="cost-section" v-if="getAnnualCostFromPurchases(item) || getAnnualCostFromDepletion(item)">
+                    <div class="cost-toggle">
+                      <div class="toggle-switch">
+                        <div class="toggle-container two-options">
+                          <button
+                            :class="['toggle-option small', { active: !itemCostMethodPrefs[item.id] }]"
+                            @click.stop="itemCostMethodPrefs[item.id] = false"
+                          >
+                            Purchase
+                          </button>
+                          <button
+                            :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] }]"
+                            @click.stop="itemCostMethodPrefs[item.id] = true"
+                          >
+                            Depletion
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="">
+                      <div class="annual-cost-amount" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
+                        ${{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).cost.toFixed(2) }}/year
+                      </div>
+                      <div class="annual-cost-method" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
+                        {{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).method }}
+                      </div>
+                      <div class="annual-cost-details" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
+                        {{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).details }}
+                      </div> 
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1159,7 +1232,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import './PaymentCalendar.css'
 
 // Import types
@@ -1196,6 +1269,7 @@ import {
   editingPaymentType,
   paymentTypeForm,
   showGearMenu,
+  sortMode,
   showPieChartModal,
   showItemChartModal,
   hoveredSlice,
@@ -1241,7 +1315,11 @@ import {
   selectedChartItem,
   getDepletionTimeInDays,
   getLastPurchases,
-  getEstimatedNextPurchaseDate
+  getEstimatedNextPurchaseDate,
+  getAnnualCostFromPurchases,
+  getAnnualCostFromDepletion,
+  getCurrentAnnualCost,
+  getCurrentAnnualCostReactive
 } from '../composables/payment-computables'
 
 // Import handlers
@@ -1309,12 +1387,36 @@ const colorPresets = [
   { name: 'Teal', color: '#14b8a6' }
 ]
 
+// Reactive state for annual cost method preferences (item ID -> boolean)
+const itemCostMethodPrefs = ref<Record<string, boolean>>({})
+
 // Helper function to check if a date is today
 const isToday = (date: Date) => {
   const today = new Date()
   return date.getDate() === today.getDate() &&
          date.getMonth() === today.getMonth() &&
          date.getFullYear() === today.getFullYear()
+}
+
+// Set sort mode directly
+const setSortMode = (mode: 'date-asc' | 'date-desc' | 'amount-asc' | 'amount-desc') => {
+  sortMode.value = mode
+}
+
+// Get sort button title based on current sort mode
+const getSortButtonTitle = () => {
+  switch (sortMode.value) {
+    case 'date-asc':
+      return 'Sort by date (earliest first)'
+    case 'date-desc':
+      return 'Sort by date (latest first)'
+    case 'amount-asc':
+      return 'Sort by amount (lowest first)'
+    case 'amount-desc':
+      return 'Sort by amount (highest first)'
+    default:
+      return 'Sort payments'
+  }
 }
 
 // Initialize component on mount

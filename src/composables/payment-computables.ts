@@ -10,7 +10,8 @@ import {
   currentYear,
   isNextPaymentsCollapsed,
   isEarningsCollapsed,
-  forgoneInstances
+  forgoneInstances,
+  sortMode
 } from '../stores/ui-state.store'
 
 // Month name constants to avoid duplication
@@ -35,27 +36,60 @@ const getCurrentDateComponents = () => {
   }
 }
 
-// Computed property to sort payments by date (first to last), excluding inventory items
+// Computed property to sort payments based on current sort mode, excluding inventory items
 export const sortedPayments = computed(() => {
   return [...payments.value]
     .filter(payment => payment.type !== 'inventory') // Exclude inventory items
     .sort((a, b) => {
-    // Parse the date strings to compare them chronologically
-    const dateA = paymentService.parsePaymentDate(a.date)
-    const dateB = paymentService.parsePaymentDate(b.date)
+      switch (sortMode.value) {
+        case 'date-asc': {
+          // Sort by date ascending (earliest first)
+          const dateA = paymentService.parsePaymentDate(a.date)
+          const dateB = paymentService.parsePaymentDate(b.date)
 
-    if (!dateA || !dateB) {
-      // If parsing fails, fall back to string comparison
-      return a.date.localeCompare(b.date)
-    }
+          if (!dateA || !dateB) {
+            return a.date.localeCompare(b.date)
+          }
 
-    // Create Date objects for comparison
-    const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
-    const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
+          const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
+          const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
 
-    // Return comparison result (negative = a before b, positive = a after b)
-    return dateObjA.getTime() - dateObjB.getTime()
-  })
+          return dateObjA.getTime() - dateObjB.getTime()
+        }
+
+        case 'date-desc': {
+          // Sort by date descending (latest first)
+          const dateA = paymentService.parsePaymentDate(a.date)
+          const dateB = paymentService.parsePaymentDate(b.date)
+
+          if (!dateA || !dateB) {
+            return b.date.localeCompare(a.date)
+          }
+
+          const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
+          const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
+
+          return dateObjB.getTime() - dateObjA.getTime()
+        }
+
+        case 'amount-asc': {
+          // Sort by amount ascending (lowest first)
+          const amountA = parseFloat(a.amount.replace(/[$,]/g, '')) || 0
+          const amountB = parseFloat(b.amount.replace(/[$,]/g, '')) || 0
+          return amountA - amountB
+        }
+
+        case 'amount-desc': {
+          // Sort by amount descending (highest first)
+          const amountA = parseFloat(a.amount.replace(/[$,]/g, '')) || 0
+          const amountB = parseFloat(b.amount.replace(/[$,]/g, '')) || 0
+          return amountB - amountA
+        }
+
+        default:
+          return 0
+      }
+    })
 })
 
 // Computed properties for calendar
@@ -713,3 +747,174 @@ export const portionsCountSliderValue = ref(50)
 
 // Selected item for detailed comparison
 export const selectedChartItem = ref<ItemChartItem | null>(null)
+
+// Annual cost estimation methods for inventory items
+export const getAnnualCostFromPurchases = computed(() => {
+  return (item: Payment): { cost: number; method: string; details: string } | null => {
+    // Get all purchases for this item
+    const itemPurchases = payments.value.filter(payment =>
+      payment.type === 'inventory' &&
+      payment.itemName === item.itemName
+    )
+
+    if (itemPurchases.length < 3) {
+      return null // Need at least 3 purchases for reliable estimate
+    }
+
+    // Sort by date (oldest to newest)
+    const sortedPurchases = itemPurchases.sort((a, b) => {
+      const dateA = paymentService.parsePaymentDate(a.date)
+      const dateB = paymentService.parsePaymentDate(b.date)
+
+      if (!dateA || !dateB) return 0
+
+      const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
+      const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
+
+      return dateObjA.getTime() - dateObjB.getTime()
+    })
+
+    // Get last 3 purchases
+    const lastThreePurchases = sortedPurchases.slice(-3)
+
+    // Calculate intervals between purchases (in days)
+    const intervals: number[] = []
+    for (let i = 1; i < lastThreePurchases.length; i++) {
+      const prevDate = paymentService.parsePaymentDate(lastThreePurchases[i-1].date)
+      const currDate = paymentService.parsePaymentDate(lastThreePurchases[i].date)
+
+      if (prevDate && currDate) {
+        const prevDateObj = new Date(prevDate.year, prevDate.month, prevDate.day)
+        const currDateObj = new Date(currDate.year, currDate.month, currDate.day)
+
+        const intervalDays = (currDateObj.getTime() - prevDateObj.getTime()) / (1000 * 60 * 60 * 24)
+        intervals.push(intervalDays)
+      }
+    }
+
+    if (intervals.length === 0) return null
+
+    // Calculate average interval and cost
+    const averageInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length
+    const averageCost = lastThreePurchases.reduce((sum, purchase) => {
+      return sum + (parseFloat(purchase.amount.replace('$', '')) || 0)
+    }, 0) / lastThreePurchases.length
+
+    // Annual cost = (average cost per purchase / average days between purchases) × 365
+    const annualCost = (averageCost / averageInterval) * 365
+
+    return {
+      cost: annualCost,
+      method: 'Purchase Rate',
+      details: `Based on ${lastThreePurchases.length} purchases, avg $${averageCost.toFixed(2)} every ${averageInterval.toFixed(1)} days`
+    }
+  }
+})
+
+export const getAnnualCostFromDepletion = computed(() => {
+  return (item: Payment): { cost: number; method: string; details: string } | null => {
+    if (!item.depletionRate || !item.depletionUnit || !item.portionSize) {
+      return null // Missing depletion data
+    }
+
+    // Get all current and past purchases for this item
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const itemPurchases = payments.value.filter(payment => {
+      if (payment.type !== 'inventory' || payment.itemName !== item.itemName) {
+        return false
+      }
+
+      const parsedDate = paymentService.parsePaymentDate(payment.date)
+      if (!parsedDate) return false
+
+      const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
+      purchaseDate.setHours(0, 0, 0, 0)
+
+      return purchaseDate.getTime() <= today.getTime()
+    })
+
+    if (itemPurchases.length === 0) return null
+
+    // Calculate total portions and total cost from all purchases
+    let totalPortions = 0
+    let totalCost = 0
+
+    itemPurchases.forEach(purchase => {
+      const purchaseCost = parseFloat(purchase.amount.replace('$', '')) || 0
+      totalCost += purchaseCost
+
+      // Calculate portions for this purchase
+      let portionsInPurchase = 0
+      if (purchase.portionsCount !== null && purchase.portionsCount !== undefined) {
+        portionsInPurchase = purchase.portionsCount
+      } else if (purchase.itemSize && purchase.portionSize && purchase.portionSize > 0) {
+        portionsInPurchase = Math.floor(purchase.itemSize / purchase.portionSize)
+      }
+
+      totalPortions += portionsInPurchase
+    })
+
+    if (totalPortions === 0 || totalCost === 0) return null
+
+    // Calculate cost per portion
+    const costPerPortion = totalCost / totalPortions
+
+    // Calculate portions consumed per year based on depletion rate
+    let portionsPerYear: number
+    switch (item.depletionUnit.toLowerCase()) {
+      case 'day':
+        portionsPerYear = item.depletionRate * 365
+        break
+      case 'week':
+        portionsPerYear = item.depletionRate * 52 // Approximate weeks per year
+        break
+      case 'month':
+        portionsPerYear = item.depletionRate * 12
+        break
+      default:
+        portionsPerYear = item.depletionRate * 365
+        break
+    }
+
+    // Annual cost = portions per year × cost per portion
+    const annualCost = portionsPerYear * costPerPortion
+
+    return {
+      cost: annualCost,
+      method: 'Depletion Rate',
+      details: `$${costPerPortion.toFixed(3)}/portion × ${portionsPerYear.toFixed(1)} portions/year`
+    }
+  }
+})
+
+// Helper function to get the current annual cost based on toggle state
+// This function needs access to the reactive itemCostMethodPrefs from the component
+// We'll create a version that takes the preferences as a parameter
+export const getCurrentAnnualCost = (item: Payment, useDepletionCost: boolean): { cost: number; method: string; details: string } | null => {
+  if (useDepletionCost) {
+    // Try depletion rate first
+    const depletionCost = getAnnualCostFromDepletion.value(item)
+    if (depletionCost) {
+      return depletionCost
+    }
+    // Fall back to purchase rate if depletion not available
+    return getAnnualCostFromPurchases.value(item)
+  } else {
+    // Try purchase rate first
+    const purchaseCost = getAnnualCostFromPurchases.value(item)
+    if (purchaseCost) {
+      return purchaseCost
+    }
+    // Fall back to depletion rate if purchase not available
+    return getAnnualCostFromDepletion.value(item)
+  }
+}
+
+// Computed property to get current annual cost for an item with reactive preferences
+// This will be used in the component to ensure reactivity
+export const getCurrentAnnualCostReactive = (item: Payment, itemCostMethodPrefs: Record<string, boolean>) => {
+  const useDepletionCost = itemCostMethodPrefs[item.id] || false
+  return getCurrentAnnualCost(item, useDepletionCost)
+}

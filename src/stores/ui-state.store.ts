@@ -79,6 +79,10 @@ export const paymentTypeForm = reactive({
 // Gear menu state
 export const showGearMenu = ref(false)
 
+// Sort mode state for payments
+export type SortMode = 'date-asc' | 'date-desc' | 'amount-asc' | 'amount-desc'
+export const sortMode = ref<SortMode>('date-asc')
+
 // Pie chart modal state
 export const showPieChartModal = ref(false)
 
