@@ -95,3 +95,6 @@ export const isInventoryCollapsed = ref(false)
 
 // Modal stack for escape key handling
 export const modalStack = ref<string[]>([])
+
+// Forgone payment instances (tracks which specific payment instances are forgone)
+export const forgoneInstances = ref<Set<string>>(new Set())

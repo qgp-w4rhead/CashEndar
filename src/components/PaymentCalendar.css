@@ -209,7 +209,7 @@ html, body {
 }
 
 .payment-amount.payment-expense {
-  color: #ff4747;
+  color: #ff7575;
 }
 
 .payment-amount.payment-earning {
@@ -830,6 +830,46 @@ html, body {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.day-payment-item.forgone-payment {
+  opacity: 0.5;
+  background: rgba(128, 128, 128, 0.1);
+  border-color: rgba(128, 128, 128, 0.2);
+}
+
+.day-payment-item.forgone-payment .payment-title,
+.day-payment-item.forgone-payment .payment-amount,
+.day-payment-item.forgone-payment .payment-time {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.day-payment-item.forgone-payment .avatar-circle {
+  opacity: 0.6;
+}
+
+/* Forgo button styling */
+.forgo-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.forgo-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: scale(1.1);
 }
 
 .section-divider {
@@ -1815,7 +1855,7 @@ html, body {
 }
 
 .next-payments-total {
-  color: #ff4747;
+  color: #ff7575;
   font-size: 20px;
   font-weight: 700;
 }
@@ -1851,7 +1891,7 @@ html, body {
 }
 
 .next-payment-amount {
-  color: #ff4747;
+  color: #ff7575;
   font-size: 14px;
   font-weight: 600;
 }
@@ -1928,7 +1968,7 @@ html, body {
 }
 
 .earnings-total {
-  color: #10b981;
+  color: #43ffc0;
   font-size: 20px;
   font-weight: 700;
 }
@@ -1964,7 +2004,7 @@ html, body {
 }
 
 .earning-amount {
-  color: #10b981;
+  color: #43ffc0;
   font-size: 14px;
   font-weight: 600;
 }

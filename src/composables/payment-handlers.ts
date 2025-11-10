@@ -32,7 +32,8 @@ import {
   modalStack,
   isNextPaymentsCollapsed,
   isEarningsCollapsed,
-  isInventoryCollapsed
+  isInventoryCollapsed,
+  forgoneInstances
 } from '../stores/ui-state.store'
 
 // Modal management functions
@@ -261,20 +262,41 @@ export const handleManagePaymentTypes = () => {
 
 // Open edit menu for a specific payment
 export const openEditMenu = (payment: any) => {
-  editingPayment.value = payment
-  editForm.title = payment.title
-  editForm.amount = payment.amount.replace('$', '')
-  editForm.type = payment.type
-  editForm.date = payment.date
-  editForm.frequency = payment.frequency || 'recurring' // Use frequency, fallback to recurring for legacy data
+  // Handle recurring payment instances - find the original payment
+  let originalPayment = payment
+  if (payment.id.includes('-')) {
+    // This is a recurring payment instance (e.g., "123-5")
+    const originalId = payment.id.split('-')[0] // Extract original ID (e.g., "123")
+    originalPayment = payments.value.find(p => p.id === originalId) || payment
+  }
+
+  editingPayment.value = originalPayment
+  editForm.title = originalPayment.title
+  editForm.amount = originalPayment.amount.replace('$', '')
+  editForm.type = originalPayment.type
+
+  // Convert payment date from human-readable format to YYYY-MM-DD for date input
+  const parsedDate = paymentService.parsePaymentDate(originalPayment.date)
+  if (parsedDate) {
+    const { year, month, day } = parsedDate
+    // Format as YYYY-MM-DD for HTML date input
+    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    editForm.date = formattedDate
+  } else {
+    // Fallback: set to current date if parsing fails
+    const today = new Date()
+    editForm.date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  }
+
+  editForm.frequency = originalPayment.frequency || 'recurring' // Use frequency, fallback to recurring for legacy data
 
   // Initialize inventory fields
-  editForm.itemName = payment.itemName || ''
-  editForm.itemSize = payment.itemSize || null
-  editForm.itemSizeUnit = payment.itemSizeUnit || 'gram'
-  editForm.portionSize = payment.portionSize || ''
-  editForm.portionsCount = payment.portionsCount || null
-  editForm.depletionRate = payment.depletionRate || ''
+  editForm.itemName = originalPayment.itemName || ''
+  editForm.itemSize = originalPayment.itemSize || null
+  editForm.itemSizeUnit = originalPayment.itemSizeUnit || 'gram'
+  editForm.portionSize = originalPayment.portionSize || ''
+  editForm.portionsCount = originalPayment.portionsCount || null
+  editForm.depletionRate = originalPayment.depletionRate || ''
 
   showEditMenu.value = true
   openModal('edit')
@@ -302,13 +324,25 @@ export const savePayment = async () => {
     const newFrequency = editForm.frequency
     const frequencyChanged = originalFrequency !== newFrequency
 
+    // Convert the date back to human-readable format for storage
+    const dateString = editForm.date // Format: "2025-10-07"
+    const [year, month, day] = dateString.split('-').map(Number)
+    const paymentDate = new Date(year, month - 1, day) // month is 0-indexed
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ]
+    const monthName = monthNames[paymentDate.getMonth()]
+    const daySuffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'
+    const humanReadableDate = `${monthName} ${day}${daySuffix}, ${year}`
+
     // Create updated payment object
     const updatedPayment = {
       ...editingPayment.value,
       title: editForm.title,
       amount: `$${editForm.amount}`,
       type: editForm.type,
-      date: editForm.date,
+      date: humanReadableDate,
       frequency: editForm.frequency,
       // Include inventory fields if type is inventory
       ...(editForm.type === 'inventory' && {
@@ -404,18 +438,42 @@ export const deletePayment = async () => {
   if (!editingPayment.value) return
 
   try {
-    await paymentDB.deletePayment(editingPayment.value.id)
+    // Special handling for inventory items - delete all purchases of the same item
+    if (editingPayment.value.type === 'inventory' && editingPayment.value.itemName) {
+      // Find all payments with the same item name and type
+      const relatedPayments = payments.value.filter(p =>
+        p.type === 'inventory' && p.itemName === editingPayment.value!.itemName
+      )
 
-    // Remove from local payments array
-    const paymentIndex = payments.value.findIndex(p => p.id === editingPayment.value!.id)
-    if (paymentIndex !== -1) {
-      payments.value.splice(paymentIndex, 1)
-    }
+      // Delete all related payments from database
+      for (const payment of relatedPayments) {
+        await paymentDB.deletePayment(payment.id)
+      }
 
-    // Remove from selectedDayPayments array if it exists there
-    const dayPaymentIndex = selectedDayPayments.value.findIndex(p => p.id === editingPayment.value!.id)
-    if (dayPaymentIndex !== -1) {
-      selectedDayPayments.value.splice(dayPaymentIndex, 1)
+      // Remove all related payments from local payments array
+      payments.value = payments.value.filter(p =>
+        !(p.type === 'inventory' && p.itemName === editingPayment.value!.itemName)
+      )
+
+      // Remove from selectedDayPayments array if any exist there
+      selectedDayPayments.value = selectedDayPayments.value.filter(p =>
+        !(p.type === 'inventory' && p.itemName === editingPayment.value!.itemName)
+      )
+    } else {
+      // Regular payment deletion
+      await paymentDB.deletePayment(editingPayment.value.id)
+
+      // Remove from local payments array
+      const paymentIndex = payments.value.findIndex(p => p.id === editingPayment.value!.id)
+      if (paymentIndex !== -1) {
+        payments.value.splice(paymentIndex, 1)
+      }
+
+      // Remove all instances of this payment from selectedDayPayments array
+      // (including recurring payment instances with IDs like "123-0", "123-1", etc.)
+      selectedDayPayments.value = selectedDayPayments.value.filter(p =>
+        !p.id.startsWith(`${editingPayment.value!.id}-`)
+      )
     }
 
     closeEditMenu()
@@ -911,6 +969,33 @@ export const addResupply = async (itemName: string) => {
     console.log('Resupply added successfully with date:', dynamicDate)
   } catch (error) {
     console.error('Error adding resupply:', error)
+  }
+}
+
+// Toggle forgo status for a payment instance
+export const toggleForgoPayment = async (payment: Payment) => {
+  try {
+    // For recurring payments, we track specific instances by their generated ID
+    // For one-time payments, we can still use the base payment ID
+    const instanceId = payment.id
+
+    if (forgoneInstances.value.has(instanceId)) {
+      // Remove from forgone instances (unforgo)
+      forgoneInstances.value.delete(instanceId)
+      console.log(`Payment instance "${payment.title}" (${instanceId}) unforgone`)
+    } else {
+      // Add to forgone instances (forgo)
+      forgoneInstances.value.add(instanceId)
+      console.log(`Payment instance "${payment.title}" (${instanceId}) forgone`)
+    }
+
+    // Force reactivity update
+    forgoneInstances.value = new Set(forgoneInstances.value)
+
+    // Note: We don't modify the payment object itself since for recurring payments,
+    // the instances are generated on-the-fly and don't persist in the database
+  } catch (error) {
+    console.error('Error toggling forgo status:', error)
   }
 }
 

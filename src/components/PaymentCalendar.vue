@@ -280,6 +280,7 @@
                   v-model="editForm.date"
                   type="date"
                   class="form-input"
+                  required
                 >
               </div>
             </div>
@@ -477,7 +478,7 @@
           <div v-if="selectedDayPayments.length > 0" class="day-payments-section">
             <h4 class="section-subtitle">Payments for {{ getSelectedDayDate() }}</h4>
             <div class="day-payments-list">
-              <div v-for="payment in selectedDayPayments" :key="payment.id" class="day-payment-item">
+              <div v-for="payment in selectedDayPayments" :key="payment.id" class="day-payment-item" :class="{ 'forgone-payment': forgoneInstances.has(payment.id) }">
                 <div class="payment-avatar">
                   <div :class="`avatar-circle ${payment.type}`">{{ payment.type.charAt(0).toUpperCase() }}</div>
                 </div>
@@ -487,6 +488,13 @@
                   <div class="payment-amount">{{ payment.amount }}</div>
                 </div>
                 <div class="payment-menu">
+                  <button
+                    class="forgo-btn"
+                    @click="toggleForgoPayment(payment)"
+                    :title="payment.forgone ? 'Unforgo this payment' : 'Forgo this payment'"
+                  >
+                    {{ payment.forgone ? '↺' : '⊘' }}
+                  </button>
                   <button class="menu-btn" @click="openEditMenu(payment)">⋯</button>
                 </div>
               </div>
@@ -1194,7 +1202,8 @@ import {
   modalStack,
   isNextPaymentsCollapsed,
   isEarningsCollapsed,
-  isInventoryCollapsed
+  isInventoryCollapsed,
+  forgoneInstances
 } from '../stores/ui-state.store'
 
 // Import composables
@@ -1284,7 +1293,8 @@ import {
   handleAmountInputBlur,
   handleAmountInputKeyUp,
   addResupply,
-  deleteSinglePurchase
+  deleteSinglePurchase,
+  toggleForgoPayment
 } from '../composables/payment-handlers'
 
 // Color presets

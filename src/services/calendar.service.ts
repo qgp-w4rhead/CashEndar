@@ -13,7 +13,8 @@ export class CalendarService {
     payments: Payment[],
     paymentTypes: PaymentType[],
     currentMonth: number,
-    currentYear: number
+    currentYear: number,
+    forgoneInstances?: Set<string>
   ) {
     const year = currentYear
     const month = currentMonth
@@ -95,7 +96,7 @@ export class CalendarService {
       // Get all payments for this day
       const dayPayments = paymentService.getPaymentsForDay(payments, day, currentMonth, currentYear)
       const paymentCount = dayPayments.length
-      const totalAmount = paymentService.calculateNetDailyTotal(dayPayments, paymentTypes)
+      const totalAmount = paymentService.calculateNetDailyTotal(dayPayments, paymentTypes, forgoneInstances)
 
       dates.push({
         day,

@@ -9,7 +9,8 @@ import {
   currentMonth,
   currentYear,
   isNextPaymentsCollapsed,
-  isEarningsCollapsed
+  isEarningsCollapsed,
+  forgoneInstances
 } from '../stores/ui-state.store'
 
 // Month name constants to avoid duplication
@@ -67,7 +68,8 @@ export const calendarDates = computed(() => {
     payments.value,
     paymentTypes.value,
     currentMonth.value,
-    currentYear.value
+    currentYear.value,
+    forgoneInstances.value
   )
 })
 
@@ -83,7 +85,7 @@ export const nextPayments = computed(() => {
 })
 
 export const nextPaymentsTotal = computed(() => {
-  const total = paymentService.calculateTotalAmount(nextPayments.value)
+  const total = paymentService.calculateTotalAmount(nextPayments.value, forgoneInstances.value)
   return paymentService.formatTotalAmount(total)
 })
 
@@ -108,7 +110,7 @@ export const nextEarnings = computed(() => {
 })
 
 export const earningsTotal = computed(() => {
-  const total = paymentService.calculateTotalAmount(nextEarnings.value)
+  const total = paymentService.calculateTotalAmount(nextEarnings.value, forgoneInstances.value)
   return paymentService.formatTotalAmount(total)
 })
 
@@ -340,8 +342,23 @@ export const inventoryItems = computed(() => {
     // Use the most recent purchase as the base for item details
     const latestPurchase = sortedGroup[0]
 
-    // Calculate total cost from all purchases of this item
-    const totalCost = itemGroup.reduce((sum, payment) => {
+    // Get current date for filtering purchases
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Reset time to start of day for accurate date comparison
+
+    // Filter purchases to only include those on or before today
+    const currentAndPastPurchases = itemGroup.filter(purchase => {
+      const parsedDate = paymentService.parsePaymentDate(purchase.date)
+      if (!parsedDate) return false
+
+      const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
+      purchaseDate.setHours(0, 0, 0, 0) // Reset time to start of day
+
+      return purchaseDate.getTime() <= today.getTime()
+    })
+
+    // Calculate total cost from current and past purchases only
+    const totalCost = currentAndPastPurchases.reduce((sum, payment) => {
       return sum + (parseFloat(payment.amount.replace('$', '')) || 0)
     }, 0)
 
@@ -372,11 +389,26 @@ export const getEstimatedPortions = computed(() => {
 
 // Helper function to calculate portions remaining for inventory item
 export const getPortionsRemaining = (item: Payment) => {
-  // Get all purchases for this item
-  const itemPurchases = payments.value.filter(payment =>
-    payment.type === 'inventory' &&
-    payment.itemName === item.itemName
-  )
+  // Get current date for filtering
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Reset time to start of day for accurate date comparison
+
+  // Get all purchases for this item that are on or before today
+  const itemPurchases = payments.value.filter(payment => {
+    if (payment.type !== 'inventory' || payment.itemName !== item.itemName) {
+      return false
+    }
+
+    // Parse purchase date
+    const parsedDate = paymentService.parsePaymentDate(payment.date)
+    if (!parsedDate) return false
+
+    const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
+    purchaseDate.setHours(0, 0, 0, 0) // Reset time to start of day
+
+    // Only include purchases that are on or before today
+    return purchaseDate.getTime() <= today.getTime()
+  })
 
   if (itemPurchases.length === 0) {
     return 0
@@ -400,8 +432,6 @@ export const getPortionsRemaining = (item: Payment) => {
 
   // Calculate consumed portions based on time elapsed since each purchase
   let totalConsumedPortions = 0
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // Reset time to start of day for accurate date comparison
 
   itemPurchases.forEach(purchase => {
     // Parse purchase date

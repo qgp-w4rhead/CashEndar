@@ -23,13 +23,16 @@ the next one would be : 24th
 - [X] The amount of portions should go down by the depletion rate
 
 - [ ] An option to forego or skip the payment
+- When using the forego payment button, it greys out the payment but the payment is still apparent, just greyed and not accounted for in the total
 
-- [ ] Display the payment.amount sum total for the day in question dead center, above the day number [calendar-dates]
+- [x] Display the payment.amount sum total for the day in question dead center, above the day number [calendar-dates]
+- [x] Estimated Next Purchase doesn't refresh when a Resupply is added.
 
 ________________
 
 ### BUGSECTION
 
-- Estimated Next Purchase doesn't refresh when a Resupply is added.
-
 - The slider bar that's behind the slider doesn't follow the slider accuratelly enough
+
+- Portions currently include all future purchase rather than current and past purchase
+- Future inventory purchase should add to previous portion count if its the same item name

@@ -5,6 +5,16 @@ import { paymentDB } from './payment-db.service'
 export class PaymentService {
   // Helper function to parse payment date string
   parsePaymentDate(dateString: string) {
+    // Handle YYYY-MM-DD format (e.g., "2025-10-07")
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-').map(Number)
+      return {
+        month: month - 1, // Convert to 0-indexed
+        day: day,
+        year: year
+      }
+    }
+
     // Handle format like "October 23rd, 2025"
     const parts = dateString.split(' ')
     if (parts.length >= 3) {
@@ -188,10 +198,13 @@ export class PaymentService {
     const checkDate = new Date(currentYear, currentMonth, day)
     checkDate.setHours(0, 0, 0, 0)
 
-    return payments.filter(payment => {
+    const dayPayments: Payment[] = []
+
+    payments.forEach(payment => {
       // Check for regular payments (day-based) - recurring and one-time with day property
       if (payment.day === day) {
-        return true
+        dayPayments.push(payment)
+        return
       }
 
       // Check for weekly payments (7-day interval)
@@ -199,7 +212,7 @@ export class PaymentService {
         const dayOfWeek = checkDate.getDay()
 
         if (payment.dayOfWeek !== dayOfWeek) {
-          return false
+          return
         }
 
         const refDate = new Date(payment.referenceDate)
@@ -209,7 +222,18 @@ export class PaymentService {
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
         // Check if this date is on a 1-week interval (7 days)
-        return diffDays >= 0 && diffDays % 7 === 0
+        if (diffDays >= 0 && diffDays % 7 === 0) {
+          // Calculate occurrence count
+          const occurrenceCount = Math.floor(diffDays / 7)
+          const instancePayment = {
+            ...payment,
+            id: `${payment.id}-${occurrenceCount}`,
+            date: `${this.getMonthNames()[currentMonth]} ${day}${day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}, ${currentYear}`,
+            day: day
+          }
+          dayPayments.push(instancePayment)
+        }
+        return
       }
 
       // Check for bi-monthly payments (14-day interval)
@@ -217,7 +241,7 @@ export class PaymentService {
         const dayOfWeek = checkDate.getDay()
 
         if (payment.dayOfWeek !== dayOfWeek) {
-          return false
+          return
         }
 
         const refDate = new Date(payment.referenceDate)
@@ -227,7 +251,18 @@ export class PaymentService {
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
         // Check if this date is on a 2-week interval (14 days)
-        return diffDays >= 0 && diffDays % 14 === 0
+        if (diffDays >= 0 && diffDays % 14 === 0) {
+          // Calculate occurrence count
+          const occurrenceCount = Math.floor(diffDays / 14)
+          const instancePayment = {
+            ...payment,
+            id: `${payment.id}-${occurrenceCount}`,
+            date: `${this.getMonthNames()[currentMonth]} ${day}${day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}, ${currentYear}`,
+            day: day
+          }
+          dayPayments.push(instancePayment)
+        }
+        return
       }
 
       // Check for one-time payments by date
@@ -235,16 +270,14 @@ export class PaymentService {
         const dateInfo = this.parsePaymentDate(payment.date)
         if (dateInfo) {
           const { month: paymentMonth, day: paymentDay, year: paymentYear } = dateInfo
-          return (
-            paymentDay === day &&
-            paymentMonth === currentMonth &&
-            paymentYear === currentYear
-          )
+          if (paymentDay === day && paymentMonth === currentMonth && paymentYear === currentYear) {
+            dayPayments.push(payment)
+          }
         }
       }
-
-      return false
     })
+
+    return dayPayments
   }
 
   // Get next payments (expenses only) within date range
@@ -384,16 +417,26 @@ export class PaymentService {
   }
 
   // Calculate total amount for payments
-  calculateTotalAmount(payments: Payment[]) {
+  calculateTotalAmount(payments: Payment[], forgoneInstances?: Set<string>) {
     return payments.reduce((sum, payment) => {
+      // Skip forgone payment instances - they don't contribute to totals
+      if (forgoneInstances && forgoneInstances.has(payment.id)) {
+        return sum
+      }
+
       const amount = parseFloat(payment.amount.replace('$', '')) || 0
       return sum + amount
     }, 0)
   }
 
   // Calculate net total amount for a day (earnings positive, expenses negative)
-  calculateNetDailyTotal(payments: Payment[], paymentTypes: PaymentType[]) {
+  calculateNetDailyTotal(payments: Payment[], paymentTypes: PaymentType[], forgoneInstances?: Set<string>) {
     return payments.reduce((sum, payment) => {
+      // Skip forgone payment instances - they don't contribute to the day total
+      if (forgoneInstances && forgoneInstances.has(payment.id)) {
+        return sum
+      }
+
       const amount = parseFloat(payment.amount.replace('$', '')) || 0
       const paymentType = paymentTypes.find(type => type.value === payment.type)
 

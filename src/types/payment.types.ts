@@ -23,6 +23,8 @@ export interface Payment {
   depletionRate?: number; // Numerical depletion rate
   depletionUnit?: 'day' | 'week' | 'month'; // Unit for depletion rate
   depletionTime?: number; // Calculated time in days to deplete inventory (getEstimatedPortions / depletionRate)
+  // Forgo feature - when true, payment is excluded from day-total but still visible
+  forgone?: boolean;
 }
 
 // Earnings interface for TypeScript
