@@ -1971,8 +1971,14 @@ html, body {
   width: 90%;
   max-width: 480px;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   animation: modalSlideIn 0.3s ease-out;
+}
+
+.gear-modal .modal-body {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .settings-section {
