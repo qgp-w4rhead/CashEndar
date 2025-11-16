@@ -19,8 +19,7 @@ export interface Payment {
   portionSize?: number; // Numerical size of each portion
   portionsCount?: number; // How many portions this purchase contains
   itemSize?: number; // Total size of the purchased item
-  itemSizeUnit?: 'gram' | 'kg' | 'ml' | 'liter' | 'portion'; // Unit for item size
-  portionUnit?: 'single' | 'gram' | 'kg' | 'ml' | 'liter' | 'cup' | 'tablespoon' | 'teaspoon' | 'piece' | 'can' | 'bottle'; // Unit for portion size
+  itemSizeUnit?: 'single' | 'gram' | 'kg' | 'ml' | 'liter' | 'cup' | 'tablespoon' | 'teaspoon' | 'piece' | 'can' | 'bottle'; // Unit for item size
   depletionRate?: number; // Numerical depletion rate
   depletionUnit?: 'day' | 'week' | 'month'; // Unit for depletion rate
   depletionTime?: number; // Calculated time in days to deplete inventory (getEstimatedPortions / depletionRate)

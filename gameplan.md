@@ -27,11 +27,16 @@
 - [x] When we click on a item and said item pulsate : 
     - Every payment/item of the same type should pulsate not just the item on which the date was set.
 
-- [ ] When deleting a category of payment
+- [x] When deleting a category of payment
     - Give a warning with the amount of payments related to that category
     - Also give a warning about backing payments up through the "Export Payment" option.
 
 - [x] Add "Portions" to Unit (some items are 1 of 1)
+
+- [ ] Modify "inventory-fields-section" to be a 4-step setup that helps to fast track users toward their objective.
+    - Cost, Name of product in first step (with a space for brand, mark it [optional] just like depletion rate)
+    - Item Size and unit
+
 
 ________________
 
@@ -39,8 +44,6 @@ ________________
 
 - [x] The "filter-btn" currently only affects the items in the "Next payments" section : 
     Instead, it should also affect the calendar to filter out the different categories 
-
-- [ ] Performance issue with Settings menu second layer.
 
 - [X] Portions currently include all future purchase rather than current and past purchase
 - [X] Future inventory purchase should add to previous portion count if its the same item name
@@ -65,3 +68,12 @@ ________________
 
 - [x] Tumbler-icon doesn't work on Inventory Tracker (doesn't go 90 degree like the other ones)
 - [X] Resupply button doesn't resupply anymore
+
+- [X] Instead of using addForm.itemSizeUnit & addForm.portionUnit : 
+
+- We can join them together, using the collection of units from portionUnit which is more extensive and using the name "itemSizeUnit" which is more descriptive (better code)
+
+- We can then display the unit selected in "addForm.itemSizeUnit" instead of having 2 unit selection field. Similar to the following example : <span class="unit-display">{{ addForm.depletionUnit }}s</span>
+
+
+- [ ] Performance issue with Settings menu second layer.

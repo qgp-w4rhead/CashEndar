@@ -435,45 +435,34 @@
                     v-model="editForm.itemSizeUnit"
                     class="form-input unit-select"
                   >
+                    <option value="single">single</option>
                     <option value="gram">grams</option>
                     <option value="kg">kg</option>
                     <option value="ml">ml</option>
                     <option value="liter">liter</option>
-                    <option value="portion">portion</option>
+                    <option value="cup">cups</option>
+                    <option value="tablespoon">tablespoons</option>
+                    <option value="teaspoon">teaspoons</option>
+                    <option value="piece">pieces</option>
+                    <option value="can">cans</option>
+                    <option value="bottle">bottles</option>
                   </select>
+                  <span class="unit-display">{{ editForm.itemSizeUnit }}s</span>
                 </div>
               </div>
 
               <div class="form-group side-by-side">
                 <div class="form-field">
                   <label for="editPortionSize">Portion Size</label>
-                  <div class="value-unit-input">
-                    <input
-                      id="editPortionSize"
-                      v-model.number="editForm.portionSize"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      class="form-input value-input"
-                      placeholder="e.g., 250"
-                    >
-                    <select
-                      v-model="editForm.portionUnit"
-                      class="form-input unit-select"
-                    >
-                      <option value="single">single</option>
-                      <option value="gram">grams</option>
-                      <option value="kg">kg</option>
-                      <option value="ml">ml</option>
-                      <option value="liter">liter</option>
-                      <option value="cup">cups</option>
-                      <option value="tablespoon">tablespoons</option>
-                      <option value="teaspoon">teaspoons</option>
-                      <option value="piece">pieces</option>
-                      <option value="can">cans</option>
-                      <option value="bottle">bottles</option>
-                    </select>
-                  </div>
+                  <input
+                    id="editPortionSize"
+                    v-model.number="editForm.portionSize"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="form-input value-input"
+                    placeholder="e.g., 250"
+                  >
                 </div>
                 <div class="form-field">
                   <label>Estimated Portions</label>
@@ -712,11 +701,17 @@
                     v-model="addForm.itemSizeUnit"
                     class="form-input unit-select"
                   >
+                    <option value="single">single</option>
                     <option value="gram">grams</option>
                     <option value="kg">kg</option>
                     <option value="ml">ml</option>
                     <option value="liter">liter</option>
-                    <option value="portion">portion</option>
+                    <option value="cup">cups</option>
+                    <option value="tablespoon">tablespoons</option>
+                    <option value="teaspoon">teaspoons</option>
+                    <option value="piece">pieces</option>
+                    <option value="can">cans</option>
+                    <option value="bottle">bottles</option>
                   </select>
                 </div>
               </div>
@@ -734,22 +729,7 @@
                       class="form-input value-input"
                       placeholder="e.g., 250"
                     >
-                    <select
-                      v-model="addForm.portionUnit"
-                      class="form-input unit-select"
-                    >
-                      <option value="single">single</option>
-                      <option value="gram">grams</option>
-                      <option value="kg">kg</option>
-                      <option value="ml">ml</option>
-                      <option value="liter">liter</option>
-                      <option value="cup">cups</option>
-                      <option value="tablespoon">tablespoons</option>
-                      <option value="teaspoon">teaspoons</option>
-                      <option value="piece">pieces</option>
-                      <option value="can">cans</option>
-                      <option value="bottle">bottles</option>
-                    </select>
+                    <span class="unit-display">{{ addForm.itemSizeUnit }}s</span>
                   </div>
                 </div>
                 <div class="form-field">
