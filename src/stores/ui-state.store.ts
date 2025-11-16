@@ -40,7 +40,7 @@ export const addForm = reactive({
   amount: '',
   type: 'rent' as Payment['type'],
   day: 1, // Day of month for the payment
-  frequency: 'recurring' as Payment['frequency'], // Default to recurring
+  frequency: 'one-time' as Payment['frequency'], // Default to one-time
   // Inventory-specific fields
   itemName: '',
   itemSize: undefined,
@@ -65,7 +65,7 @@ export const selectedDayPayments = ref<Payment[]>([])
 export const preSelectedDay = ref<number | null>(null)
 
 // Pulsating animation state
-export const pulsatingDay = ref<number | null>(null)
+export const pulsatingDays = ref<Set<number>>(new Set())
 export const pulsatingTimer = ref<NodeJS.Timeout | null>(null)
 
 // Payment type management state
@@ -73,7 +73,8 @@ export const showPaymentTypeModal = ref(false)
 export const editingPaymentType = ref<PaymentType | null>(null)
 export const paymentTypeForm = reactive({
   name: '',
-  color: '#ef4444' // Default to red
+  color: '#ef4444', // Default to red
+  isEarning: false // Default to expense (payment)
 })
 
 // Gear menu state
@@ -82,6 +83,11 @@ export const showGearMenu = ref(false)
 // Sort mode state for payments
 export type SortMode = 'date-asc' | 'date-desc' | 'amount-asc' | 'amount-desc'
 export const sortMode = ref<SortMode>('date-asc')
+
+// Filter state for next payments section
+export const showEarningsInNextPayments = ref(false) // false = show payments, true = show earnings
+export const selectedPaymentTypes = ref<string[]>([]) // empty array means all types selected
+export const isFilteringEnabled = ref(false) // true = filtering is active, false = show all payments
 
 // Pie chart modal state
 export const showPieChartModal = ref(false)

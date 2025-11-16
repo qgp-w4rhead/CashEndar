@@ -105,7 +105,7 @@ export class PaymentTypeService {
   }
 
   // Save new payment type
-  async savePaymentType(paymentTypeForm: { name: string; color: string }, editingPaymentType?: PaymentType) {
+  async savePaymentType(paymentTypeForm: { name: string; color: string; isEarning: boolean }, editingPaymentType?: PaymentType) {
     if (!paymentTypeForm.name.trim()) return
 
     try {
@@ -117,7 +117,8 @@ export class PaymentTypeService {
           ...editingPaymentType,
           label: paymentTypeForm.name.trim(),
           value: typeValue,
-          color: paymentTypeForm.color
+          color: paymentTypeForm.color,
+          isEarning: paymentTypeForm.isEarning
         }
         await paymentDB.updatePaymentType(updatedType)
         return updatedType
@@ -135,7 +136,8 @@ export class PaymentTypeService {
           label: paymentTypeForm.name.trim(),
           value: typeValue,
           color: paymentTypeForm.color,
-          isCustom: true
+          isCustom: true,
+          isEarning: paymentTypeForm.isEarning
         }
         await paymentDB.addPaymentType(newType)
         return newType

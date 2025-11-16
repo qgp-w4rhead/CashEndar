@@ -11,7 +11,10 @@ import {
   isNextPaymentsCollapsed,
   isEarningsCollapsed,
   forgoneInstances,
-  sortMode
+  sortMode,
+  showEarningsInNextPayments,
+  selectedPaymentTypes,
+  isFilteringEnabled
 } from '../stores/ui-state.store'
 
 // Month name constants to avoid duplication
@@ -36,10 +39,31 @@ const getCurrentDateComponents = () => {
   }
 }
 
-// Computed property to sort payments based on current sort mode, excluding inventory items
+// Computed property to sort and filter payments based on current sort mode and filter settings, excluding inventory items
 export const sortedPayments = computed(() => {
   return [...payments.value]
-    .filter(payment => payment.type !== 'inventory') // Exclude inventory items
+    .filter(payment => {
+      // Exclude inventory items
+      if (payment.type === 'inventory') return false
+
+      // If filtering is disabled, show all payments (except inventory)
+      if (!isFilteringEnabled.value) return true
+
+      // Filter by earnings vs payments
+      const paymentType = paymentTypes.value.find(pt => pt.value === payment.type)
+      if (!paymentType) return false
+
+      const isEarning = paymentType.isEarning || false
+      if (showEarningsInNextPayments.value && !isEarning) return false
+      if (!showEarningsInNextPayments.value && isEarning) return false
+
+      // Filter by selected payment types (if any are selected)
+      if (selectedPaymentTypes.value.length > 0) {
+        if (!selectedPaymentTypes.value.includes(payment.type)) return false
+      }
+
+      return true
+    })
     .sort((a, b) => {
       switch (sortMode.value) {
         case 'date-asc': {
@@ -98,8 +122,35 @@ export const currentMonthYear = computed(() => calendarService.getCurrentMonthYe
 
 // Calendar dates computed property
 export const calendarDates = computed(() => {
+  // Apply the same filtering as sortedPayments to ensure calendar dates respect filter settings
+  const filteredPayments = payments.value.filter(payment => {
+    // If filtering is disabled, show all payments (including inventory)
+    if (!isFilteringEnabled.value) return true
+
+    // Handle inventory items - treat them as payments (purchases)
+    if (payment.type === 'inventory') {
+      // Include inventory when showing payments, exclude when showing earnings
+      return !showEarningsInNextPayments.value
+    }
+
+    // Filter by earnings vs payments
+    const paymentType = paymentTypes.value.find(pt => pt.value === payment.type)
+    if (!paymentType) return false
+
+    const isEarning = paymentType.isEarning || false
+    if (showEarningsInNextPayments.value && !isEarning) return false
+    if (!showEarningsInNextPayments.value && isEarning) return false
+
+    // Filter by selected payment types (if any are selected)
+    if (selectedPaymentTypes.value.length > 0) {
+      if (!selectedPaymentTypes.value.includes(payment.type)) return false
+    }
+
+    return true
+  })
+
   return calendarService.getCalendarDates(
-    payments.value,
+    filteredPayments,
     paymentTypes.value,
     currentMonth.value,
     currentYear.value,
@@ -666,7 +717,7 @@ export const getLastPurchases = computed(() => {
     // Find all payments with the same item name - this helps with prediction
     const allItemPurchases = payments.value.filter(payment =>
       payment.type === 'inventory' &&
-      payment.title === itemName
+      payment.itemName === itemName
     )
 
     // For add forms (empty currentItemDate), show all purchases
@@ -757,56 +808,113 @@ export const getAnnualCostFromPurchases = computed(() => {
       payment.itemName === item.itemName
     )
 
-    if (itemPurchases.length < 3) {
-      return null // Need at least 3 purchases for reliable estimate
+    if (itemPurchases.length === 0) {
+      return null // Need at least one purchase
     }
 
-    // Sort by date (oldest to newest)
-    const sortedPurchases = itemPurchases.sort((a, b) => {
-      const dateA = paymentService.parsePaymentDate(a.date)
-      const dateB = paymentService.parsePaymentDate(b.date)
+    // Check if this item has a scheduled recurring frequency
+    const hasRecurringFrequency = ['weekly', 'bi-monthly', 'recurring'].includes(item.frequency)
 
-      if (!dateA || !dateB) return 0
+    if (hasRecurringFrequency) {
+      // Use scheduled frequency approach
+      // Get the most recent purchase amount as the base purchase amount
+      const sortedPurchases = itemPurchases.sort((a, b) => {
+        const dateA = paymentService.parsePaymentDate(a.date)
+        const dateB = paymentService.parsePaymentDate(b.date)
 
-      const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
-      const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
+        if (!dateA || !dateB) return 0
 
-      return dateObjA.getTime() - dateObjB.getTime()
-    })
+        const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
+        const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
 
-    // Get last 3 purchases
-    const lastThreePurchases = sortedPurchases.slice(-3)
+        return dateObjB.getTime() - dateObjA.getTime() // Newest first
+      })
 
-    // Calculate intervals between purchases (in days)
-    const intervals: number[] = []
-    for (let i = 1; i < lastThreePurchases.length; i++) {
-      const prevDate = paymentService.parsePaymentDate(lastThreePurchases[i-1].date)
-      const currDate = paymentService.parsePaymentDate(lastThreePurchases[i].date)
+      const mostRecentPurchase = sortedPurchases[0]
+      const purchaseAmount = parseFloat(mostRecentPurchase.amount.replace('$', '')) || 0
 
-      if (prevDate && currDate) {
-        const prevDateObj = new Date(prevDate.year, prevDate.month, prevDate.day)
-        const currDateObj = new Date(currDate.year, currDate.month, currDate.day)
+      // Calculate frequency multiplier
+      let frequencyMultiplier: number
+      let frequencyDescription: string
 
-        const intervalDays = (currDateObj.getTime() - prevDateObj.getTime()) / (1000 * 60 * 60 * 24)
-        intervals.push(intervalDays)
+      switch (item.frequency) {
+        case 'weekly':
+          frequencyMultiplier = 52 // 52 weeks per year
+          frequencyDescription = 'weekly'
+          break
+        case 'bi-monthly':
+          frequencyMultiplier = 26 // 26 bi-weekly periods per year
+          frequencyDescription = 'bi-monthly'
+          break
+        case 'recurring':
+          frequencyMultiplier = 12 // 12 months per year
+          frequencyDescription = 'monthly'
+          break
+        default:
+          return null // Should not reach here due to hasRecurringFrequency check
       }
-    }
 
-    if (intervals.length === 0) return null
+      // Annual cost = purchase amount × frequency multiplier
+      const annualCost = purchaseAmount * frequencyMultiplier
 
-    // Calculate average interval and cost
-    const averageInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length
-    const averageCost = lastThreePurchases.reduce((sum, purchase) => {
-      return sum + (parseFloat(purchase.amount.replace('$', '')) || 0)
-    }, 0) / lastThreePurchases.length
+      return {
+        cost: annualCost,
+        method: 'Scheduled Frequency',
+        details: `$${purchaseAmount.toFixed(2)} × ${frequencyMultiplier} ${frequencyDescription} purchases/year`
+      }
+    } else {
+      // Fall back to historical purchase rate calculation (original logic)
+      if (itemPurchases.length < 3) {
+        return null // Need at least 3 purchases for reliable estimate
+      }
 
-    // Annual cost = (average cost per purchase / average days between purchases) × 365
-    const annualCost = (averageCost / averageInterval) * 365
+      // Sort by date (oldest to newest)
+      const sortedPurchases = itemPurchases.sort((a, b) => {
+        const dateA = paymentService.parsePaymentDate(a.date)
+        const dateB = paymentService.parsePaymentDate(b.date)
 
-    return {
-      cost: annualCost,
-      method: 'Purchase Rate',
-      details: `Based on ${lastThreePurchases.length} purchases, avg $${averageCost.toFixed(2)} every ${averageInterval.toFixed(1)} days`
+        if (!dateA || !dateB) return 0
+
+        const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
+        const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
+
+        return dateObjA.getTime() - dateObjB.getTime()
+      })
+
+      // Get last 3 purchases
+      const lastThreePurchases = sortedPurchases.slice(-3)
+
+      // Calculate intervals between purchases (in days)
+      const intervals: number[] = []
+      for (let i = 1; i < lastThreePurchases.length; i++) {
+        const prevDate = paymentService.parsePaymentDate(lastThreePurchases[i-1].date)
+        const currDate = paymentService.parsePaymentDate(lastThreePurchases[i].date)
+
+        if (prevDate && currDate) {
+          const prevDateObj = new Date(prevDate.year, prevDate.month, prevDate.day)
+          const currDateObj = new Date(currDate.year, currDate.month, currDate.day)
+
+          const intervalDays = (currDateObj.getTime() - prevDateObj.getTime()) / (1000 * 60 * 60 * 24)
+          intervals.push(intervalDays)
+        }
+      }
+
+      if (intervals.length === 0) return null
+
+      // Calculate average interval and cost
+      const averageInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length
+      const averageCost = lastThreePurchases.reduce((sum, purchase) => {
+        return sum + (parseFloat(purchase.amount.replace('$', '')) || 0)
+      }, 0) / lastThreePurchases.length
+
+      // Annual cost = (average cost per purchase / average days between purchases) × 365
+      const annualCost = (averageCost / averageInterval) * 365
+
+      return {
+        cost: annualCost,
+        method: 'Purchase Rate',
+        details: `Based on ${lastThreePurchases.length} purchases, avg $${averageCost.toFixed(2)} every ${averageInterval.toFixed(1)} days`
+      }
     }
   }
 })
@@ -871,7 +979,7 @@ export const getAnnualCostFromDepletion = computed(() => {
         portionsPerYear = item.depletionRate * 52 // Approximate weeks per year
         break
       case 'month':
-        portionsPerYear = item.depletionRate * 12
+        portionsPerYear = item.depletionRate * 12 // This is actually correct - depletion rate is per month, so ×12 for annual
         break
       default:
         portionsPerYear = item.depletionRate * 365
@@ -915,6 +1023,6 @@ export const getCurrentAnnualCost = (item: Payment, useDepletionCost: boolean): 
 // Computed property to get current annual cost for an item with reactive preferences
 // This will be used in the component to ensure reactivity
 export const getCurrentAnnualCostReactive = (item: Payment, itemCostMethodPrefs: Record<string, boolean>) => {
-  const useDepletionCost = itemCostMethodPrefs[item.id] || false
+  const useDepletionCost = itemCostMethodPrefs[item.id] ?? true
   return getCurrentAnnualCost(item, useDepletionCost)
 }

@@ -51,13 +51,67 @@
               </button>
             </div>
           </div>
+          <div class="filter-btn-container">
+            <button class="filter-btn" title="Filter payments">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"></polygon>
+              </svg>
+            </button>
+            <div class="filter-dropdown">
+              <div class="filter-section">
+                <div class="filter-section-header">
+                  <h5 class="filter-section-title">Show</h5>
+                  <button
+                    class="filter-toggle-btn"
+                    :class="{ 'filter-on': isFilteringEnabled, 'filter-off': !isFilteringEnabled }"
+                    @click="isFilteringEnabled = !isFilteringEnabled"
+                    :title="isFilteringEnabled ? 'Disable filtering' : 'Enable filtering'"
+                  ></button>
+                </div>
+                <div class="toggle-switch">
+                  <div class="toggle-container two-options">
+                    <button
+                      :class="['toggle-option', { active: !showEarningsInNextPayments }]"
+                      @click="switchToPayments"
+                    >
+                      Payments
+                    </button>
+                    <button
+                      :class="['toggle-option', { active: showEarningsInNextPayments }]"
+                      @click="switchToEarnings"
+                    >
+                      Earnings
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Type Checkboxes -->
+              <div class="filter-section">
+                <h5 class="filter-section-title">Payment Types</h5>
+                <div class="checkbox-list">
+                  <label v-for="type in availablePaymentTypes" :key="type.value" class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      :value="type.value"
+                      v-model="selectedPaymentTypes"
+                      class="checkbox-input"
+                    >
+                    <span class="checkbox-label">{{ type.label }}</span>
+                  </label>
+                </div>
+              </div>
+
+
+            </div>
+          </div>
           <button class="add-btn" @click="openAddMenu">+</button>
         </div>
       </div>
 
       <div v-for="payment in sortedPayments" :key="payment.id" class="payment-item" @click="highlightPaymentDay(payment)">
         <div class="payment-avatar">
-          <div :class="`avatar-circle ${payment.type}`">{{ payment.type.charAt(0).toUpperCase() }}</div>
+          <div :class="`avatar-circle ${payment.type}`" :style="getAvatarStyle(payment.type)">{{ payment.type.charAt(0).toUpperCase() }}</div>
         </div>
         <div class="payment-details">
           <div class="payment-title">{{ payment.title }}</div>
@@ -179,18 +233,18 @@
                       <div class="toggle-switch">
                         <div class="toggle-container two-options">
                           <button
-                            :class="['toggle-option small', { active: !itemCostMethodPrefs[item.id], disabled: getLastPurchases(item.itemName, item.date).length < 3 }]"
-                            :disabled="getLastPurchases(item.itemName, item.date).length < 3"
-                            :title="getLastPurchases(item.itemName, item.date).length < 3 ? 'Insufficient data' : ''"
-                            @click.stop="itemCostMethodPrefs[item.id] = false"
-                          >
-                            Purchase
-                          </button>
-                          <button
                             :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] !== false }]"
                             @click.stop="itemCostMethodPrefs[item.id] = true"
                           >
                             Depletion
+                          </button>
+                          <button
+                            :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] === false, disabled: !canUsePurchaseMethod(item) }]"
+                            :disabled="!canUsePurchaseMethod(item)"
+                            :title="!canUsePurchaseMethod(item) ? 'No purchases available' : ''"
+                            @click.stop="itemCostMethodPrefs[item.id] = false"
+                          >
+                            Purchase
                           </button>
                         </div>
                       </div>
@@ -269,7 +323,7 @@
               'selected': selectedDate && selectedDate.getDate() === dateInfo.day &&
                          selectedDate.getMonth() === currentMonth &&
                          selectedDate.getFullYear() === currentYear,
-              'pulsating': pulsatingDay === dateInfo.day && dateInfo.isCurrentMonth,
+              'pulsating': pulsatingDays.has(dateInfo.day) && dateInfo.isCurrentMonth,
               'pre-selected': preSelectedDay === dateInfo.day && dateInfo.isCurrentMonth,
               [getPaymentTypeClassForDay(dateInfo.day)]: dateInfo.hasPayment && getPaymentTypeClassForDay(dateInfo.day)
             }"
@@ -459,7 +513,7 @@
               <div class="last-purchase-section">
                 <div class="section-divider">Last Purchase</div>
                 <div class="resupply-section">
-                  <button class="resupply-btn" @click="addResupply(editingPayment.title)" title="Add new purchase today (resupply)">+1</button>
+                  <button class="resupply-btn" @click="addResupply(addForm.title)" title="Add new purchase today (resupply)">+1</button>
                   <span class="resupply-label">Resupply</span>
                 </div>
 
@@ -467,6 +521,7 @@
                 <div class="last-purchases-list">
                   <div v-for="purchase in getLastPurchases(editForm.title, editForm.date)" :key="purchase.id" class="purchase-item">
                     <span class="purchase-date">{{ purchase.date }}</span>
+                    <span class="purchase-frequency">{{ getFrequencyDisplay(purchase.frequency) }}</span>
                     <span class="purchase-cost">{{ purchase.amount }}</span>
                     <button class="purchase-delete-btn" @click.stop="deleteSinglePurchase(purchase)" title="Delete this purchase entry">[x]</button>
                   </div>
@@ -553,7 +608,7 @@
             <div class="day-payments-list">
               <div v-for="payment in selectedDayPayments" :key="payment.id" class="day-payment-item" :class="{ 'forgone-payment': forgoneInstances.has(payment.id) }">
                 <div class="payment-avatar">
-                  <div :class="`avatar-circle ${payment.type}`">{{ payment.type.charAt(0).toUpperCase() }}</div>
+                  <div :class="`avatar-circle ${payment.type}`" :style="getAvatarStyle(payment.type)">{{ payment.type.charAt(0).toUpperCase() }}</div>
                 </div>
                 <div class="payment-details">
                   <div class="payment-title">{{ payment.title }}</div>
@@ -712,7 +767,7 @@
               <div class="last-purchase-section">
                 <div class="section-divider">Last Purchase</div>
                 <div class="resupply-section">
-                  <button class="resupply-btn" @click="addResupply(editingPayment.title)" title="Add new purchase today (resupply)">+1</button>
+                  <button class="resupply-btn" @click="addResupply(addForm.title)" title="Add new purchase today (resupply)">+1</button>
                   <span class="resupply-label">Resupply</span>
                 </div>
 
@@ -720,6 +775,7 @@
                 <div class="last-purchases-list">
                   <div v-for="purchase in getLastPurchases(addForm.title, '')" :key="purchase.id" class="purchase-item">
                     <span class="purchase-date">{{ purchase.date }}</span>
+                    <span class="purchase-frequency">{{ getFrequencyDisplay(purchase.frequency) }}</span>
                     <span class="purchase-cost">{{ purchase.amount }}</span>
                   </div>
                   <div v-if="getLastPurchases(addForm.title, '').length === 0" class="no-purchases">
@@ -850,22 +906,45 @@
           <div class="add-type-section">
             <h4 class="section-subtitle">Add New Payment Type</h4>
 
-            <div class="form-group">
-              <label for="typeName">Payment Type Name</label>
-              <input
-                id="typeName"
-                v-model="paymentTypeForm.name"
-                type="text"
-                class="form-input"
-                placeholder="Enter payment type name"
-                maxlength="30"
-              >
-              <div class="char-count">{{ paymentTypeForm.name.length }}/30</div>
+            <div class="form-group side-by-side">
+              <div class="form-field">
+                <div class="label-with-char-count">
+                  <label for="typeName">Payment Type Name</label>
+                  <div class="char-count">{{ paymentTypeForm.name.length }}/30</div>
+                </div>
+                <input
+                  id="typeName"
+                  v-model="paymentTypeForm.name"
+                  type="text"
+                  class="form-input full"
+                  placeholder="Enter payment type name"
+                  maxlength="30"
+                >
+              </div>
+              <div class="form-field">
+                <label>Type</label>
+                <div class="toggle-switch">
+                  <div class="toggle-container two-options">
+                    <button
+                      :class="['toggle-option', { active: !paymentTypeForm.isEarning }]"
+                      @click="paymentTypeForm.isEarning = false"
+                    >
+                      Payment
+                    </button>
+                    <button
+                      :class="['toggle-option', { active: paymentTypeForm.isEarning }]"
+                      @click="paymentTypeForm.isEarning = true"
+                    >
+                      Earning
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="form-group">
               <label>Color</label>
-              <div class="color-picker">
+              <div class="color-picker side-by-side">
                 <div class="color-presets">
                   <button
                     v-for="preset in colorPresets"
@@ -875,14 +954,14 @@
                     @click="paymentTypeForm.color = preset.color"
                     :title="preset.name"
                   ></button>
-                  <div class="custom-color-input">
-                    <input
-                      type="color"
-                      v-model="paymentTypeForm.color"
-                      class="color-input"
-                    >
-                    <span class="color-value">{{ paymentTypeForm.color }}</span>
-                  </div>
+                </div>
+                <div class="custom-color-input">
+                  <input
+                    type="color"
+                    v-model="paymentTypeForm.color"
+                    class="color-input"
+                  >
+                  <span class="color-value">{{ paymentTypeForm.color }}</span>
                 </div>
               </div>
             </div>
@@ -1236,7 +1315,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import './PaymentCalendar.css'
 
 // Import types
@@ -1267,7 +1346,7 @@ import {
   selectedDate,
   selectedDayPayments,
   preSelectedDay,
-  pulsatingDay,
+  pulsatingDays,
   pulsatingTimer,
   showPaymentTypeModal,
   editingPaymentType,
@@ -1281,7 +1360,10 @@ import {
   isNextPaymentsCollapsed,
   isEarningsCollapsed,
   isInventoryCollapsed,
-  forgoneInstances
+  forgoneInstances,
+  showEarningsInNextPayments,
+  selectedPaymentTypes,
+  isFilteringEnabled
 } from '../stores/ui-state.store'
 
 // Import composables
@@ -1387,8 +1469,7 @@ const colorPresets = [
   { name: 'Green', color: '#10b981' },
   { name: 'Purple', color: '#8b5cf6' },
   { name: 'Pink', color: '#ec4899' },
-  { name: 'Orange', color: '#f97316' },
-  { name: 'Teal', color: '#14b8a6' }
+  { name: 'Orange', color: '#f97316' }
 ]
 
 // Reactive state for annual cost method preferences (item ID -> boolean)
@@ -1421,6 +1502,71 @@ const getSortButtonTitle = () => {
     default:
       return 'Sort payments'
   }
+}
+
+// Helper function to check if purchase method can be used for an item
+const canUsePurchaseMethod = (item: Payment) => {
+  // Can use purchase method if item has at least 1 purchase (always calculate from last purchase)
+  const hasPurchases = getLastPurchases.value(item.itemName, item.date).length >= 1
+
+  return hasPurchases
+}
+
+// Helper function to display frequency in a user-friendly format
+const getFrequencyDisplay = (frequency: string) => {
+  switch (frequency) {
+    case 'one-time':
+      return 'One-Time'
+    case 'weekly':
+      return 'Weekly'
+    case 'bi-monthly':
+      return 'Bi-Monthly'
+    case 'recurring':
+      return 'Monthly'
+    default:
+      return frequency
+  }
+}
+
+// Computed property for available payment types based on current filter mode
+const availablePaymentTypes = computed(() => {
+  if (showEarningsInNextPayments.value) {
+    // Show earning types
+    return paymentTypes.value.filter(type => type.isEarning)
+  } else {
+    // Show payment/expense types
+    return paymentTypes.value.filter(type => !type.isEarning)
+  }
+})
+
+// Helper function to get avatar style for custom payment types
+const getAvatarStyle = (paymentTypeValue: string) => {
+  const paymentType = paymentTypes.value.find(type => type.value === paymentTypeValue)
+  if (paymentType && paymentType.isCustom) {
+    return { background: `linear-gradient(135deg, ${paymentType.color}, ${paymentType.color}dd)` }
+  }
+  return {}
+}
+
+// Filter methods
+const clearFilters = () => {
+  showEarningsInNextPayments.value = false
+  selectedPaymentTypes.value = []
+}
+
+const applyFilters = () => {
+  // Filters are applied automatically through reactive computed properties
+  // This method can be used for any additional filter logic if needed
+}
+
+const switchToPayments = () => {
+  showEarningsInNextPayments.value = false
+  selectedPaymentTypes.value = []
+}
+
+const switchToEarnings = () => {
+  showEarningsInNextPayments.value = true
+  selectedPaymentTypes.value = []
 }
 
 // Initialize component on mount

@@ -1,4 +1,5 @@
 // Payment handlers for event handling and user interactions
+import { watch } from 'vue'
 import { Payment } from '../types/payment.types'
 import { paymentDB } from '../services/payment-db.service'
 import { paymentService } from '../services/payment.service'
@@ -20,7 +21,7 @@ import {
   selectedDate,
   selectedDayPayments,
   preSelectedDay,
-  pulsatingDay,
+  pulsatingDays,
   pulsatingTimer,
   showPaymentTypeModal,
   editingPaymentType,
@@ -177,10 +178,12 @@ export const openPaymentTypeModal = (type?: any) => {
     editingPaymentType.value = type
     paymentTypeForm.name = type.label
     paymentTypeForm.color = type.color
+    paymentTypeForm.isEarning = type.isEarning || false
   } else {
     editingPaymentType.value = null
     paymentTypeForm.name = ''
     paymentTypeForm.color = '#ef4444'
+    paymentTypeForm.isEarning = false
   }
   showPaymentTypeModal.value = true
   openModal('paymentType')
@@ -236,6 +239,7 @@ export const saveNewPaymentType = async () => {
     // Reset form
     paymentTypeForm.name = ''
     paymentTypeForm.color = '#ef4444'
+    paymentTypeForm.isEarning = false
 
     console.log('New payment type added:', newType)
   } catch (error: any) {
@@ -438,47 +442,65 @@ export const deletePayment = async () => {
   if (!editingPayment.value) return
 
   try {
-    // Special handling for inventory items - delete all purchases of the same item
-    if (editingPayment.value.type === 'inventory' && editingPayment.value.itemName) {
-      // Find all payments with the same item name and type
-      const relatedPayments = payments.value.filter(p =>
-        p.type === 'inventory' && p.itemName === editingPayment.value!.itemName
-      )
+    // Delete the specific payment (works for both regular payments and inventory items)
+    await paymentDB.deletePayment(editingPayment.value.id)
 
-      // Delete all related payments from database
-      for (const payment of relatedPayments) {
-        await paymentDB.deletePayment(payment.id)
-      }
-
-      // Remove all related payments from local payments array
-      payments.value = payments.value.filter(p =>
-        !(p.type === 'inventory' && p.itemName === editingPayment.value!.itemName)
-      )
-
-      // Remove from selectedDayPayments array if any exist there
-      selectedDayPayments.value = selectedDayPayments.value.filter(p =>
-        !(p.type === 'inventory' && p.itemName === editingPayment.value!.itemName)
-      )
-    } else {
-      // Regular payment deletion
-      await paymentDB.deletePayment(editingPayment.value.id)
-
-      // Remove from local payments array
-      const paymentIndex = payments.value.findIndex(p => p.id === editingPayment.value!.id)
-      if (paymentIndex !== -1) {
-        payments.value.splice(paymentIndex, 1)
-      }
-
-      // Remove all instances of this payment from selectedDayPayments array
-      // (including recurring payment instances with IDs like "123-0", "123-1", etc.)
-      selectedDayPayments.value = selectedDayPayments.value.filter(p =>
-        !p.id.startsWith(`${editingPayment.value!.id}-`)
-      )
+    // Remove from local payments array
+    const paymentIndex = payments.value.findIndex(p => p.id === editingPayment.value!.id)
+    if (paymentIndex !== -1) {
+      payments.value.splice(paymentIndex, 1)
     }
+
+    // Remove the deleted payment from selectedDayPayments array
+    selectedDayPayments.value = selectedDayPayments.value.filter(p => p.id !== editingPayment.value!.id)
+
+    // Re-populate selectedDayPayments to ensure it reflects the current state
+    if (selectedDate.value) {
+      const day = selectedDate.value.getDate()
+      const dayPaymentList = paymentService.getPaymentsForDay(payments.value, day, currentMonth.value, currentYear.value)
+      selectedDayPayments.value = dayPaymentList
+    }
+
+    // Force reactivity update for inventory section and other computed properties
+    payments.value = [...payments.value]
 
     closeEditMenu()
   } catch (error) {
     console.error('Error deleting payment:', error)
+  }
+}
+
+// Find most recent inventory item by name
+export const findMostRecentInventoryItem = (itemName: string): Payment | null => {
+  const inventoryItems = payments.value.filter(p => p.type === 'inventory' && p.itemName === itemName)
+
+  if (inventoryItems.length === 0) return null
+
+  // Sort by date (most recent first)
+  const sortedItems = inventoryItems.sort((a, b) => {
+    const dateA = paymentService.parsePaymentDate(a.date)
+    const dateB = paymentService.parsePaymentDate(b.date)
+    if (!dateA || !dateB) return 0
+    const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
+    const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
+    return dateObjB.getTime() - dateObjA.getTime()
+  })
+
+  return sortedItems[0]
+}
+
+// Pre-fill inventory fields from most recent item
+export const prefillInventoryFields = (itemName: string) => {
+  const mostRecentItem = findMostRecentInventoryItem(itemName)
+
+  if (mostRecentItem) {
+    addForm.itemSize = mostRecentItem.itemSize
+    addForm.itemSizeUnit = mostRecentItem.itemSizeUnit || 'gram'
+    addForm.portionSize = mostRecentItem.portionSize
+    addForm.portionsCount = mostRecentItem.portionsCount
+    addForm.depletionRate = mostRecentItem.depletionRate
+    addForm.depletionUnit = mostRecentItem.depletionUnit || 'day'
+    console.log(`Pre-filled inventory fields for "${itemName}" from previous item`)
   }
 }
 
@@ -666,7 +688,7 @@ export const saveNewPayment = async () => {
       addForm.amount = ''
       addForm.type = 'rent'
       addForm.day = 1
-      addForm.frequency = 'recurring'
+      addForm.frequency = 'one-time'
 
       // Clear messages and loading state
       isSavingPayment.value = false
@@ -698,40 +720,36 @@ export const showMessage = (message: string, type: 'success' | 'error') => {
 
 // Highlight payment day with pulsating animation
 export const highlightPaymentDay = (payment: any) => {
-  // Try to get the day from the payment object
-  let targetDay = payment.day
+  // Clear any existing timer to prevent interruptions
+  if (pulsatingTimer.value) {
+    clearTimeout(pulsatingTimer.value)
+    pulsatingTimer.value = null
+  }
 
-  // If no day is set, try to parse it from the date string
-  if (!targetDay) {
-    const dateInfo = paymentService.parsePaymentDate(payment.date)
-    if (dateInfo && dateInfo.day) {
-      targetDay = dateInfo.day
+  // Clear existing pulsating days
+  pulsatingDays.value.clear()
+
+  // Get the base payment ID (remove instance suffix like "-0", "-1", etc.)
+  const basePaymentId = payment.id.split('-')[0]
+
+  // Loop through all days in the current month to find days with this specific payment
+  for (let day = 1; day <= 31; day++) {
+    // Check if this day has the specific payment (or its instances)
+    const dayPayments = paymentService.getPaymentsForDay(payments.value, day, currentMonth.value, currentYear.value)
+
+    // Check if any of the payments on this day match the base payment ID
+    const hasMatchingPayment = dayPayments.some(p => p.id.startsWith(basePaymentId + '-') || p.id === basePaymentId)
+
+    if (hasMatchingPayment) {
+      pulsatingDays.value.add(day)
     }
   }
 
-  // If we still don't have a day, try to calculate it for recurring payments
-  if (!targetDay && payment.referenceDate) {
-    const refDate = new Date(payment.referenceDate)
-    targetDay = refDate.getDate()
-  }
-
-  // If we have a valid day, trigger the animation
-  if (targetDay && targetDay > 0 && targetDay <= 31) {
-    // Clear any existing timer to prevent interruptions
-    if (pulsatingTimer.value) {
-      clearTimeout(pulsatingTimer.value)
-      pulsatingTimer.value = null
-    }
-
-    // Set the new pulsating day
-    pulsatingDay.value = targetDay
-
-    // Stop the animation after 3 seconds
-    pulsatingTimer.value = setTimeout(() => {
-      pulsatingDay.value = null
-      pulsatingTimer.value = null
-    }, 3000)
-  }
+  // Stop the animation after 3 seconds
+  pulsatingTimer.value = setTimeout(() => {
+    pulsatingDays.value.clear()
+    pulsatingTimer.value = null
+  }, 3000)
 }
 
 // Calendar navigation functions
@@ -950,6 +968,9 @@ export const addResupply = async (itemName: string) => {
       date: dynamicDate,
       type: 'inventory',
       frequency: 'one-time' as const, // Resupply entries are one-time
+      day: day, // Set day to today's day for one-time payment
+      dayOfWeek: undefined, // Not needed for one-time payments
+      referenceDate: undefined, // Not needed for one-time payments
       itemName: itemName,
       itemSize: mostRecentItem.itemSize,
       itemSizeUnit: mostRecentItem.itemSizeUnit,
@@ -1003,4 +1024,26 @@ export const toggleForgoPayment = async (payment: Payment) => {
 export const initializeComponent = async () => {
   await loadPaymentTypes()
   await loadPayments()
+
+  // Set up reactive watcher for inventory pre-filling
+  watch(() => addForm.title, (newTitle) => {
+    if (addForm.type === 'inventory' && newTitle.trim()) {
+      prefillInventoryFields(newTitle.trim())
+    }
+  })
+
+  watch(() => addForm.type, (newType) => {
+    // Clear inventory fields when type changes away from inventory
+    if (newType !== 'inventory') {
+      addForm.itemSize = undefined
+      addForm.itemSizeUnit = 'gram'
+      addForm.portionSize = undefined
+      addForm.portionsCount = undefined
+      addForm.depletionRate = undefined
+      addForm.depletionUnit = 'day'
+    } else if (addForm.title.trim()) {
+      // Pre-fill if switching to inventory and title is already set
+      prefillInventoryFields(addForm.title.trim())
+    }
+  })
 }
