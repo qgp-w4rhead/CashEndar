@@ -2099,6 +2099,10 @@ html, body {
   transform: rotate(0deg);
 }
 
+.inventory-header.collapsed .tumbler-icon {
+  transform: rotate(0deg);
+}
+
 .next-payments-toggle {
   background: none;
   border: none;

@@ -655,10 +655,19 @@ export const getPortionsCountRange = () => {
 // Item chart items computed property
 export const itemChartItems = computed((): ItemChartItem[] => {
   return inventoryItems.value.map(item => {
-    // Format portion size as display string (using itemSizeUnit for both)
+    // Format portion size as display string (using portionUnit)
     let formattedPortionSize = ''
-    if (item.portionSize && item.itemSizeUnit) {
-      formattedPortionSize = `${item.portionSize} ${item.itemSizeUnit}${item.portionSize === 1 ? '' : 's'}`
+    if (item.portionSize && item.portionUnit) {
+      let unitDisplay: string
+      if (item.portionUnit === 'single') {
+        unitDisplay = 'single'
+      } else if (item.portionSize === 1) {
+        unitDisplay = item.portionUnit
+      } else {
+        // Pluralize the unit (simple approach - could be enhanced)
+        unitDisplay = item.portionUnit
+      }
+      formattedPortionSize = `${item.portionSize} ${unitDisplay}`.trim()
     } else if (item.portionSize) {
       formattedPortionSize = item.portionSize.toString()
     }
@@ -675,7 +684,7 @@ export const itemChartItems = computed((): ItemChartItem[] => {
   })
 })
 
-// Computed property to calculate depletion time in days
+// Computed property to calculate depletion time in the selected unit
 export const getDepletionTimeInDays = computed(() => {
   return (item: Payment): number => {
     const estimatedPortions = getEstimatedPortions.value(item)
@@ -683,31 +692,15 @@ export const getDepletionTimeInDays = computed(() => {
       return 0
     }
 
-    // Convert depletion rate to portions per day
-    let portionsPerDay: number
-    switch (item.depletionUnit.toLowerCase()) {
-      case 'day':
-        portionsPerDay = item.depletionRate
-        break
-      case 'week':
-        portionsPerDay = item.depletionRate / 7 // portions/week to portions/day
-        break
-      case 'month':
-        portionsPerDay = item.depletionRate / 28 // portions/month to portions/day (approx 28 days)
-        break
-      default:
-        portionsPerDay = item.depletionRate
-        break
-    }
-
-    if (portionsPerDay === 0) {
+    if (item.depletionRate === 0) {
       return 0
     }
 
-    // Calculate depletion time in days
-    const depletionTimeDays = estimatedPortions / portionsPerDay
+    // Calculate depletion time in the selected unit (not converting to days)
+    // depletionRate is in portions per depletionUnit
+    const depletionTime = estimatedPortions / item.depletionRate
 
-    return Math.round(depletionTimeDays * 100) / 100 // Round to 2 decimal places
+    return Math.round(depletionTime * 100) / 100 // Round to 2 decimal places
   }
 })
 

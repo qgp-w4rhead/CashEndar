@@ -31,6 +31,8 @@
     - Give a warning with the amount of payments related to that category
     - Also give a warning about backing payments up through the "Export Payment" option.
 
+- [x] Add "Portions" to Unit (some items are 1 of 1)
+
 ________________
 
 ### BUGSECTION / DESIGNFLAWS
@@ -38,7 +40,7 @@ ________________
 - [x] The "filter-btn" currently only affects the items in the "Next payments" section : 
     Instead, it should also affect the calendar to filter out the different categories 
 
-- [ ] The slider bar that's behind the slider doesn't follow the slider accuratelly enough
+- [ ] Performance issue with Settings menu second layer.
 
 - [X] Portions currently include all future purchase rather than current and past purchase
 - [X] Future inventory purchase should add to previous portion count if its the same item name
@@ -54,12 +56,12 @@ ________________
 - [x] Put "char-count" on the same line as "Payment Type Name"
 
 - [x] Instead of pulsating all the items of the same payment type, it should pulsate only for the same "payment-item"
-- [ ] Inventory Items Chart is broken in a few key points.
+- [x] Inventory Items Chart is broken in a few key points.
     - Portion Count Line Indicator (Should be equivalent to getEstimatedPortions/depletionRate)
     - Portion Size Line Indicator (Should be equivalent to itemSize/portionSize)
 
-- [ ] Currently, there is weird calculation being made when the depletionUnit is changed from day to other alternatives.
+- [x] Currently, there is weird calculation being made when the "depletionUnit" is changed from day to other alternatives.
     - Amount should be the same in terms of depletionTime (no math), only the unit should change.
 
-- [ ] Tumbler-icon doesn't work on Inventory Tracker (doesn't go 90 degree like the other ones)
-- [ ] 
+- [x] Tumbler-icon doesn't work on Inventory Tracker (doesn't go 90 degree like the other ones)
+- [X] Resupply button doesn't resupply anymore

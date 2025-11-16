@@ -217,7 +217,7 @@ export const savePaymentType = async () => {
 
 export const deletePaymentType = async (type: any) => {
   try {
-    await paymentTypeService.deletePaymentType(type, payments.value)
+    await paymentTypeService.deletePaymentType(type)
     paymentTypes.value = paymentTypes.value.filter(t => t.id !== type.id)
   } catch (error: any) {
     alert(error.message || 'Error deleting payment type. Please try again.')
@@ -225,7 +225,23 @@ export const deletePaymentType = async (type: any) => {
 }
 
 export const confirmDeletePaymentType = async (type: any) => {
-  await deletePaymentType(type)
+  // Check if any payments use this type
+  const paymentsUsingType = payments.value.filter(p => p.type === type.value)
+  const paymentCount = paymentsUsingType.length
+
+  // Create confirmation message
+  let message = `Are you sure you want to delete the "${type.label}" payment type?`
+
+  if (paymentCount > 0) {
+    message += `\n\n⚠️ Warning: ${paymentCount} payment${paymentCount === 1 ? '' : 's'} are associated with this category.`
+    message += `\n\n💾 Important: Consider backing up your payments first using the "Export Payments" option to avoid losing data.`
+  }
+
+  message += `\n\nThis action cannot be undone.`
+
+  if (confirm(message)) {
+    await deletePaymentType(type)
+  }
 }
 
 export const saveNewPaymentType = async () => {
@@ -299,6 +315,7 @@ export const openEditMenu = (payment: any) => {
   editForm.itemSize = originalPayment.itemSize || null
   editForm.itemSizeUnit = originalPayment.itemSizeUnit || 'gram'
   editForm.portionSize = originalPayment.portionSize || ''
+  editForm.portionUnit = originalPayment.portionUnit || 'gram'
   editForm.portionsCount = originalPayment.portionsCount || null
   editForm.depletionRate = originalPayment.depletionRate || ''
 
@@ -354,6 +371,7 @@ export const savePayment = async () => {
         itemSize: editForm.itemSize,
         itemSizeUnit: editForm.itemSizeUnit,
         portionSize: editForm.portionSize,
+        portionUnit: editForm.portionUnit,
         portionsCount: editForm.portionsCount,
         depletionRate: editForm.depletionRate,
         depletionUnit: editForm.depletionUnit
@@ -497,6 +515,7 @@ export const prefillInventoryFields = (itemName: string) => {
     addForm.itemSize = mostRecentItem.itemSize
     addForm.itemSizeUnit = mostRecentItem.itemSizeUnit || 'gram'
     addForm.portionSize = mostRecentItem.portionSize
+    addForm.portionUnit = mostRecentItem.portionUnit || 'gram'
     addForm.portionsCount = mostRecentItem.portionsCount
     addForm.depletionRate = mostRecentItem.depletionRate
     addForm.depletionUnit = mostRecentItem.depletionUnit || 'day'
@@ -662,6 +681,7 @@ export const saveNewPayment = async () => {
         itemSize: addForm.itemSize,
         itemSizeUnit: addForm.itemSizeUnit,
         portionSize: addForm.portionSize,
+        portionUnit: addForm.portionUnit,
         portionsCount: addForm.portionsCount,
         depletionRate: addForm.depletionRate,
         depletionUnit: addForm.depletionUnit
@@ -974,10 +994,11 @@ export const addResupply = async (itemName: string) => {
       itemName: itemName,
       itemSize: mostRecentItem.itemSize,
       itemSizeUnit: mostRecentItem.itemSizeUnit,
-      portionSize: mostRecentItem.portionSize,
-      portionsCount: mostRecentItem.portionsCount,
-      depletionRate: mostRecentItem.depletionRate,
-      depletionUnit: mostRecentItem.depletionUnit
+        portionSize: mostRecentItem.portionSize,
+        portionUnit: mostRecentItem.portionUnit,
+        portionsCount: mostRecentItem.portionsCount,
+        depletionRate: mostRecentItem.depletionRate,
+        depletionUnit: mostRecentItem.depletionUnit
     }
 
     // Save to IndexedDB
@@ -1038,6 +1059,7 @@ export const initializeComponent = async () => {
       addForm.itemSize = undefined
       addForm.itemSizeUnit = 'gram'
       addForm.portionSize = undefined
+      addForm.portionUnit = 'gram'
       addForm.portionsCount = undefined
       addForm.depletionRate = undefined
       addForm.depletionUnit = 'day'

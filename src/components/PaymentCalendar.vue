@@ -439,6 +439,7 @@
                     <option value="kg">kg</option>
                     <option value="ml">ml</option>
                     <option value="liter">liter</option>
+                    <option value="portion">portion</option>
                   </select>
                 </div>
               </div>
@@ -456,7 +457,22 @@
                       class="form-input value-input"
                       placeholder="e.g., 250"
                     >
-                    <span class="unit-display">{{ editForm.itemSizeUnit }}s</span>
+                    <select
+                      v-model="editForm.portionUnit"
+                      class="form-input unit-select"
+                    >
+                      <option value="single">single</option>
+                      <option value="gram">grams</option>
+                      <option value="kg">kg</option>
+                      <option value="ml">ml</option>
+                      <option value="liter">liter</option>
+                      <option value="cup">cups</option>
+                      <option value="tablespoon">tablespoons</option>
+                      <option value="teaspoon">teaspoons</option>
+                      <option value="piece">pieces</option>
+                      <option value="can">cans</option>
+                      <option value="bottle">bottles</option>
+                    </select>
                   </div>
                 </div>
                 <div class="form-field">
@@ -513,7 +529,7 @@
               <div class="last-purchase-section">
                 <div class="section-divider">Last Purchase</div>
                 <div class="resupply-section">
-                  <button class="resupply-btn" @click="addResupply(addForm.title)" title="Add new purchase today (resupply)">+1</button>
+                  <button class="resupply-btn" @click="addResupply(editForm.title)" title="Add new purchase today (resupply)">+1</button>
                   <span class="resupply-label">Resupply</span>
                 </div>
 
@@ -700,13 +716,14 @@
                     <option value="kg">kg</option>
                     <option value="ml">ml</option>
                     <option value="liter">liter</option>
+                    <option value="portion">portion</option>
                   </select>
                 </div>
               </div>
 
               <div class="form-group side-by-side">
                 <div class="form-field">
-                  <label for="addPortionSize">Portion Size ({{ addForm.itemSizeUnit }}s)</label>
+                  <label for="addPortionSize">Portion Size</label>
                   <div class="value-unit-input">
                     <input
                       id="addPortionSize"
@@ -717,6 +734,22 @@
                       class="form-input value-input"
                       placeholder="e.g., 250"
                     >
+                    <select
+                      v-model="addForm.portionUnit"
+                      class="form-input unit-select"
+                    >
+                      <option value="single">single</option>
+                      <option value="gram">grams</option>
+                      <option value="kg">kg</option>
+                      <option value="ml">ml</option>
+                      <option value="liter">liter</option>
+                      <option value="cup">cups</option>
+                      <option value="tablespoon">tablespoons</option>
+                      <option value="teaspoon">teaspoons</option>
+                      <option value="piece">pieces</option>
+                      <option value="can">cans</option>
+                      <option value="bottle">bottles</option>
+                    </select>
                   </div>
                 </div>
                 <div class="form-field">
@@ -1111,6 +1144,7 @@
                   :min="0"
                   :max="100"
                   :step="0.1"
+                  :disabled="itemChartItems.length <= 1"
                   class="inventory-slider"
                 ></horizontal-slider>
               </div>
@@ -1131,6 +1165,7 @@
                   :min="0"
                   :max="100"
                   :step="0.1"
+                  :disabled="itemChartItems.length <= 1"
                   class="inventory-slider"
                 ></horizontal-slider>
               </div>
@@ -1164,22 +1199,22 @@
                     <div
                       class="bar-fill"
                       :style="{
-                        width: `${Math.min(100, (item.portionSize ? parsePortionSize(item.portionSize) : 0) * portionSizeSliderValue / 50)}%`
+                        width: `${itemChartItems.length <= 1 ? 100 : Math.min(100, (item.item.itemSize && item.item.portionSize ? item.item.itemSize / item.item.portionSize : 0) * portionSizeSliderValue / 50)}%`
                       }"
                     ></div>
                   </div>
-                  <span class="cell-value">{{ item.portionSize || 'N/A' }}</span>
+                  <span class="cell-value">{{ item.item.itemSize && item.item.portionSize ? (item.item.itemSize / item.item.portionSize).toFixed(1) : 'N/A' }}</span>
                 </div>
                 <div class="table-cell portions-count">
                   <div class="comparison-bar">
                     <div
                       class="bar-fill"
                       :style="{
-                        width: `${Math.min(100, (item.portionsCount || 0) * portionsCountSliderValue / 50)}%`
+                        width: `${itemChartItems.length <= 1 ? 100 : Math.min(100, ((item.item.itemSize && item.item.portionSize && item.item.depletionRate ? (item.item.itemSize / item.item.portionSize) / item.item.depletionRate : 0) * portionsCountSliderValue / 50))}%`
                       }"
                     ></div>
                   </div>
-                  <span class="cell-value">{{ item.portionsCount || 0 }}</span>
+                  <span class="cell-value">{{ item.item.itemSize && item.item.portionSize && item.item.depletionRate ? ((item.item.itemSize / item.item.portionSize) / item.item.depletionRate).toFixed(1) : '0.0' }}</span>
                 </div>
                 <div class="table-cell product-cost">
                   <span class="cell-value">{{ item.productCost ? `$${item.productCost.toFixed(2)}` : '$0.00' }}</span>

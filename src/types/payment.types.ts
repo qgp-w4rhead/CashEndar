@@ -16,10 +16,11 @@ export interface Payment {
   frequency: 'one-time' | 'recurring' | 'weekly' | 'bi-monthly';
   // Inventory-specific fields (when type === 'inventory')
   itemName?: string; // The actual product name
-  portionSize?: number; // Numerical size of each portion (same unit as itemSizeUnit)
+  portionSize?: number; // Numerical size of each portion
   portionsCount?: number; // How many portions this purchase contains
   itemSize?: number; // Total size of the purchased item
-  itemSizeUnit?: 'gram' | 'kg' | 'ml' | 'liter'; // Unit for both item size and portion size
+  itemSizeUnit?: 'gram' | 'kg' | 'ml' | 'liter' | 'portion'; // Unit for item size
+  portionUnit?: 'single' | 'gram' | 'kg' | 'ml' | 'liter' | 'cup' | 'tablespoon' | 'teaspoon' | 'piece' | 'can' | 'bottle'; // Unit for portion size
   depletionRate?: number; // Numerical depletion rate
   depletionUnit?: 'day' | 'week' | 'month'; // Unit for depletion rate
   depletionTime?: number; // Calculated time in days to deplete inventory (getEstimatedPortions / depletionRate)

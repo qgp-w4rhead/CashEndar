@@ -149,14 +149,8 @@ export class PaymentTypeService {
   }
 
   // Delete payment type
-  async deletePaymentType(type: PaymentType, payments: any[]) {
+  async deletePaymentType(type: PaymentType) {
     if (!type.isCustom) return // Don't allow deletion of default types
-
-    // Check if any payments use this type
-    const paymentsUsingType = payments.filter(p => p.type === type.value)
-    if (paymentsUsingType.length > 0) {
-      throw new Error(`Cannot delete "${type.label}" because ${paymentsUsingType.length} payment(s) are using this type.`)
-    }
 
     try {
       await paymentDB.deletePaymentType(type.id)
