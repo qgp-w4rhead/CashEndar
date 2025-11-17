@@ -217,14 +217,14 @@
                   <div class="">
                     <div class="inventory-name">{{ item.itemName || 'Unnamed Item' }}</div>
                     <div class="inventory-meta">
-                      <span class="portions-left">{{ getPortionsRemaining(item) }} portions left</span>
-                      <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· Est. depletion: {{ getEstimatedDepletionDate(item) }}</span>
+                      <span class="portions-left">{{ getPortionsRemaining(item).toFixed(2) }} portions left</span>
+                      <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· {{ getEstimatedDepletionDate(item) }} remaining</span>
                     </div>
                     <div class="inventory-amount">{{ item.amount }}</div>
                   </div>
                   <div class="inventory-menu">
                     <button class="menu-btn" @click.stop="openEditMenu(item)">⋯</button>
-                  </div>
+                  </div> 
                 </div>
 
                   <!-- Annual Cost Estimate Section -->
@@ -1177,20 +1177,34 @@
                 <div class="table-cell portion-size">
                   <div class="comparison-bar">
                     <div
-                      class="bar-fill"
+                      :class="'bar-fill'"
                       :style="{
-                        width: `${itemChartItems.length <= 1 ? 100 : Math.min(100, (item.item.itemSize && item.item.portionSize ? item.item.itemSize / item.item.portionSize : 0) * portionSizeSliderValue / 50)}%`
+                        width: `${Math.min(100, ((item.item.itemSize && item.item.portionSize ? item.item.portionSize / item.item.itemSize : 0) * 100))}%`
+                      }"
+                    ></div>
+                    <div
+                      v-if="item.item.itemSize && item.item.portionSize && (item.item.portionSize / item.item.itemSize) > 1"
+                      class="bar-fill-overdraw"
+                      :style="{
+                        width: `${Math.min(100, (((item.item.portionSize - item.item.itemSize) / item.item.itemSize) * 100))}%`
                       }"
                     ></div>
                   </div>
-                  <span class="cell-value">{{ item.item.itemSize && item.item.portionSize ? (item.item.itemSize / item.item.portionSize).toFixed(1) : 'N/A' }}</span>
+                  <span class="cell-value">{{ item.item.itemSize && item.item.portionSize ? getSimplifiedFraction(item.item.portionSize, item.item.itemSize) : 'N/A' }}</span>
                 </div>
                 <div class="table-cell portions-count">
                   <div class="comparison-bar">
                     <div
-                      class="bar-fill"
+                      :class="'bar-fill'"
                       :style="{
-                        width: `${itemChartItems.length <= 1 ? 100 : Math.min(100, ((item.item.itemSize && item.item.portionSize && item.item.depletionRate ? (item.item.itemSize / item.item.portionSize) / item.item.depletionRate : 0) * portionsCountSliderValue / 50))}%`
+                        width: `${Math.min(100, ((getPortionsRemaining(item.item) !== null && getPortionsRemaining(item.item) >= 0 && item.item.itemSize && item.item.portionSize ? (getPortionsRemaining(item.item) / (item.item.itemSize / item.item.portionSize)) : 0) * 100))}%`
+                      }"
+                    ></div>
+                    <div
+                      v-if="getPortionsRemaining(item.item) !== null && getPortionsRemaining(item.item) >= 0 && item.item.itemSize && item.item.portionSize && (getPortionsRemaining(item.item) / (item.item.itemSize / item.item.portionSize)) > 1"
+                      class="bar-fill-overdraw"
+                      :style="{
+                        width: `${Math.min(100, (((getPortionsRemaining(item.item) / (item.item.itemSize / item.item.portionSize)) - 1) * 100))}%`
                       }"
                     ></div>
                   </div>
@@ -1200,9 +1214,9 @@
                   <span class="cell-value">{{ item.productCost ? `$${item.productCost.toFixed(2)}` : '$0.00' }}</span>
                 </div>
                 <div class="table-cell depletion-date">
-                  <span class="cell-value">{{ item.depletionDate || (item.isTracked ? 'Forever' : 'No tracking') }}</span>
+                  <span class="cell-value">{{ item.depletionDate || (getPortionsRemaining(item.item) <= 0 ? 'Depleted' : (item.isTracked ? 'No tracking' : 'No tracking')) }}</span>
                   <hover-text v-if="item.isTracked" :text="`Tracked with: ${item.item.depletionRate}`">
-                    <span class="tracking-indicator">●</span>
+                    <span class="tracking-indicator" :class="{ 'depleted-indicator': getPortionsRemaining(item.item) <= 0 }">●</span>
                   </hover-text>
                 </div>
               </div>
@@ -1415,12 +1429,14 @@ import {
   portionsCountSliderValue,
   selectedChartItem,
   getDepletionTimeInDays,
+  getPortionSizeFraction,
   getLastPurchases,
   getEstimatedNextPurchaseDate,
   getAnnualCostFromPurchases,
   getAnnualCostFromDepletion,
   getCurrentAnnualCost,
-  getCurrentAnnualCostReactive
+  getCurrentAnnualCostReactive,
+  getSimplifiedFraction
 } from '../composables/payment-computables'
 
 // Import handlers

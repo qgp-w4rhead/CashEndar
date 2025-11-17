@@ -1030,7 +1030,7 @@ html, body {
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
   color: white;
 }
 
@@ -1869,6 +1869,7 @@ html, body {
   border-radius: 4px;
   overflow: hidden;
   margin-right: 8px;
+  position: relative;
 }
 
 .bar-fill {
@@ -1878,10 +1879,36 @@ html, body {
   transition: width 0.3s ease;
 }
 
+.bar-fill-overflow {
+  height: 100%;
+  background: linear-gradient(90deg, #f97316, #ea580c);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.bar-fill-overdraw {
+  height: 100%;
+  background: linear-gradient(90deg, #f97316, #ea580c);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+}
+
 .depletion-date .tracking-indicator {
   color: #10b981;
   margin-left: 8px;
   cursor: help;
+}
+
+.depletion-date .tracking-indicator.depleted-indicator {
+  color: #ef4444;
 }
 
 /* Selected Item Details */

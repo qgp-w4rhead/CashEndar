@@ -468,7 +468,7 @@ export const getEstimatedPortions = computed(() => {
     if (!item.itemSize || !item.portionSize || item.portionSize === 0) {
       return 0
     }
-    return Math.floor(item.itemSize / item.portionSize)
+    return Math.round((item.itemSize / item.portionSize) * 100) / 100 // Round to 2 decimal places
   }
 })
 
@@ -634,6 +634,43 @@ export const parsePortionSize = (portionSize: string): number => {
   return 0
 }
 
+// Helper function to simplify fractions
+export const simplifyFraction = (numerator: number, denominator: number): { num: number, den: number } => {
+  if (denominator === 0) return { num: numerator, den: denominator }
+
+  // Function to find greatest common divisor
+  const gcd = (a: number, b: number): number => {
+    while (b !== 0) {
+      const t = b
+      b = a % b
+      a = t
+    }
+    return a
+  }
+
+  const g = gcd(Math.abs(numerator), Math.abs(denominator))
+  return {
+    num: numerator / g,
+    den: denominator / g
+  }
+}
+
+// Helper function to format fraction display
+export const getSimplifiedFraction = (itemSize: number, portionSize: number): string => {
+  if (!itemSize || !portionSize) return 'N/A'
+
+  // For now, show ratio as is but simplified
+  const { num, den } = simplifyFraction(itemSize, portionSize)
+
+  // If denominator is 1, just show the whole number
+  if (den === 1) {
+    return num.toString()
+  }
+
+  // Otherwise show as fraction
+  return `${num}/${den}`
+}
+
 // Helper function to get unique portion sizes for slider comparison
 export const getPortionSizeRange = () => {
   const inventoryItems = payments.value.filter(p => p.type === 'inventory' && p.portionSize)
@@ -655,17 +692,17 @@ export const getPortionsCountRange = () => {
 // Item chart items computed property
 export const itemChartItems = computed((): ItemChartItem[] => {
   return inventoryItems.value.map(item => {
-    // Format portion size as display string (using portionUnit)
+    // Format portion size as display string (using itemSizeUnit)
     let formattedPortionSize = ''
-    if (item.portionSize && item.portionUnit) {
+    if (item.portionSize && item.itemSizeUnit) {
       let unitDisplay: string
-      if (item.portionUnit === 'single') {
+      if (item.itemSizeUnit === 'single') {
         unitDisplay = 'single'
       } else if (item.portionSize === 1) {
-        unitDisplay = item.portionUnit
+        unitDisplay = item.itemSizeUnit
       } else {
         // Pluralize the unit (simple approach - could be enhanced)
-        unitDisplay = item.portionUnit
+        unitDisplay = item.itemSizeUnit
       }
       formattedPortionSize = `${item.portionSize} ${unitDisplay}`.trim()
     } else if (item.portionSize) {
@@ -701,6 +738,46 @@ export const getDepletionTimeInDays = computed(() => {
     const depletionTime = estimatedPortions / item.depletionRate
 
     return Math.round(depletionTime * 100) / 100 // Round to 2 decimal places
+  }
+})
+
+// Computed property to get portion size as fraction (DepletionRate/DepletionTime)
+export const getPortionSizeFraction = computed(() => {
+  return (item: Payment): string | null => {
+    const estimatedPortions = getEstimatedPortions.value(item)
+    if (!estimatedPortions || !item.depletionRate || item.depletionRate === 0) {
+      return null
+    }
+
+    // DepletionTime = totalPortions / depletionRate
+    const depletionTime = estimatedPortions / item.depletionRate
+
+    if (depletionTime === 0) {
+      return null
+    }
+
+    // Fraction = DepletionRate / DepletionTime
+    const fraction = item.depletionRate / depletionTime
+
+    // Round to 2 decimal places and simplify fraction if possible
+    const roundedFraction = Math.round(fraction * 100) / 100
+
+    if (roundedFraction === Math.floor(roundedFraction)) {
+      // Whole number
+      return roundedFraction.toString()
+    } else if (fraction === 0.5 || Math.abs(fraction - 0.5) < 0.01) {
+      return '1/2'
+    } else if (fraction === 0.33 || Math.abs(fraction - 0.33) < 0.01) {
+      return '1/3'
+    } else if (fraction === 0.25 || Math.abs(fraction - 0.25) < 0.01) {
+      return '1/4'
+    } else if (fraction === 0.67 || Math.abs(fraction - 0.67) < 0.01) {
+      return '2/3'
+    } else if (fraction === 0.75 || Math.abs(fraction - 0.75) < 0.01) {
+      return '3/4'
+    } else {
+      return roundedFraction.toString()
+    }
   }
 })
 

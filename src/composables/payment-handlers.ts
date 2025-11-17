@@ -315,9 +315,9 @@ export const openEditMenu = (payment: any) => {
   editForm.itemSize = originalPayment.itemSize || null
   editForm.itemSizeUnit = originalPayment.itemSizeUnit || 'gram'
   editForm.portionSize = originalPayment.portionSize || ''
-  editForm.portionUnit = originalPayment.portionUnit || 'gram'
   editForm.portionsCount = originalPayment.portionsCount || null
   editForm.depletionRate = originalPayment.depletionRate || ''
+  editForm.depletionUnit = originalPayment.depletionUnit || 'day'
 
   showEditMenu.value = true
   openModal('edit')
@@ -371,7 +371,6 @@ export const savePayment = async () => {
         itemSize: editForm.itemSize,
         itemSizeUnit: editForm.itemSizeUnit,
         portionSize: editForm.portionSize,
-        portionUnit: editForm.portionUnit,
         portionsCount: editForm.portionsCount,
         depletionRate: editForm.depletionRate,
         depletionUnit: editForm.depletionUnit
@@ -515,7 +514,6 @@ export const prefillInventoryFields = (itemName: string) => {
     addForm.itemSize = mostRecentItem.itemSize
     addForm.itemSizeUnit = mostRecentItem.itemSizeUnit || 'gram'
     addForm.portionSize = mostRecentItem.portionSize
-    addForm.portionUnit = mostRecentItem.portionUnit || 'gram'
     addForm.portionsCount = mostRecentItem.portionsCount
     addForm.depletionRate = mostRecentItem.depletionRate
     addForm.depletionUnit = mostRecentItem.depletionUnit || 'day'
@@ -681,7 +679,6 @@ export const saveNewPayment = async () => {
         itemSize: addForm.itemSize,
         itemSizeUnit: addForm.itemSizeUnit,
         portionSize: addForm.portionSize,
-        portionUnit: addForm.portionUnit,
         portionsCount: addForm.portionsCount,
         depletionRate: addForm.depletionRate,
         depletionUnit: addForm.depletionUnit
@@ -995,7 +992,6 @@ export const addResupply = async (itemName: string) => {
       itemSize: mostRecentItem.itemSize,
       itemSizeUnit: mostRecentItem.itemSizeUnit,
         portionSize: mostRecentItem.portionSize,
-        portionUnit: mostRecentItem.portionUnit,
         portionsCount: mostRecentItem.portionsCount,
         depletionRate: mostRecentItem.depletionRate,
         depletionUnit: mostRecentItem.depletionUnit
@@ -1059,7 +1055,6 @@ export const initializeComponent = async () => {
       addForm.itemSize = undefined
       addForm.itemSizeUnit = 'gram'
       addForm.portionSize = undefined
-      addForm.portionUnit = 'gram'
       addForm.portionsCount = undefined
       addForm.depletionRate = undefined
       addForm.depletionUnit = 'day'

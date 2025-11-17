@@ -37,7 +37,7 @@
     - Cost, Name of product in first step (with a space for brand, mark it [optional] just like depletion rate)
     - Item Size and unit
 
-
+- [ ] Swap the inventory option from the "Add New / Edit Payment" to the Inventory Tracker (inventory-header)
 ________________
 
 ### BUGSECTION / DESIGNFLAWS
@@ -75,5 +75,31 @@ ________________
 
 - We can then display the unit selected in "addForm.itemSizeUnit" instead of having 2 unit selection field. Similar to the following example : <span class="unit-display">{{ addForm.depletionUnit }}s</span>
 
+- [x] Limit "portions-left" to .00 (2 position behind the dot)
+
+- [x] The default option selected for : "editForm.depletionUnit" when opening the "Edit Payment" modal should be the same as the payment we are currently editing.
 
 - [ ] Performance issue with Settings menu second layer.
+
+- [x] Portion size should be 1/2 because you eat 1 every day and there is 2 count in a pack :
+    - Represent the portion size as a fraction instead
+    - The fraction should be "DepletionRate/DepletionTime"
+
+- [x] Estimated Portions : "getEstimatedPortions" should be able to count below 0 when it needs to display decimal
+
+- [x] The bar fill should display the fraction instead of a full bar
+    - Display the fraction on the bar-fill, filling only a portion of the bar relative to the fraction in decimal.
+
+- [x] When the unit for portion size is higher than 1, make the bar-fill overdraw on top of itself with a second class (bar-fill-overdraw) that draws over the bar-fill with orange to indicate that the Portion Count is multiple time the amount of 1 
+    - Example : The portionSize is 4 but the itemSize is 2, meaning the portionSize bar-fill display will display 2 (4/2)
+    - That means, the bar-fill should be completelly overdrawed with bar-fill-overdraw
+    - overdraw should use the following math to calculate how much it should fill : 
+
+(portionSize-itemSize) / itemSize = overdraw
+
+- [x] The "depletionDate" should be calculated at all time and never say "Forever"
+
+- [x] The count must be in decimal
+
+- [ ] Additionally the count must represent : 
+        A. idk
