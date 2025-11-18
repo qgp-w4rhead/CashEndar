@@ -680,6 +680,39 @@ export const getPortionSizeRange = () => {
   return { min, max }
 }
 
+// Helper function to calculate total portions for an item
+export const getTotalPortions = computed(() => {
+  return (item: Payment): number => {
+    // Get all purchases for this item on or before today
+    const itemPurchases = payments.value.filter(payment => {
+      if (payment.type !== 'inventory' || payment.itemName !== item.itemName) return false
+
+      const parsedDate = paymentService.parsePaymentDate(payment.date)
+      if (!parsedDate) return false
+
+      const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
+      purchaseDate.setHours(0, 0, 0, 0)
+
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      return purchaseDate.getTime() <= today.getTime()
+    })
+
+    // Calculate total portions from all purchases
+    let totalPortions = 0
+    itemPurchases.forEach(purchase => {
+      if (purchase.portionsCount !== null && purchase.portionsCount !== undefined) {
+        totalPortions += purchase.portionsCount
+      } else if (purchase.itemSize && purchase.portionSize && purchase.portionSize > 0) {
+        totalPortions += Math.floor(purchase.itemSize / purchase.portionSize)
+      }
+    })
+
+    return totalPortions
+  }
+})
+
 // Helper function to get portions count range
 export const getPortionsCountRange = () => {
   const inventoryItems = payments.value.filter(p => p.type === 'inventory' && p.portionsCount)

@@ -292,7 +292,32 @@ export const openEditMenu = (payment: any) => {
 
   editingPayment.value = originalPayment
   editForm.title = originalPayment.title
-  editForm.amount = originalPayment.amount.replace('$', '')
+
+  // For inventory items, autopopulate with average purchase price
+  if (originalPayment.type === 'inventory' && originalPayment.itemName) {
+    // Get all purchases for this item
+    const itemPurchases = payments.value.filter(p =>
+      p.type === 'inventory' &&
+      p.itemName === originalPayment.itemName
+    )
+
+    if (itemPurchases.length > 0) {
+      // Calculate average purchase price
+      const totalAmount = itemPurchases.reduce((sum, purchase) => {
+        return sum + (parseFloat(purchase.amount.replace('$', '')) || 0)
+      }, 0)
+
+      const averageAmount = totalAmount / itemPurchases.length
+      editForm.amount = averageAmount.toFixed(2)
+    } else {
+      // Fallback to original amount if no purchases found
+      editForm.amount = originalPayment.amount.replace('$', '')
+    }
+  } else {
+    // For non-inventory items, use original behavior
+    editForm.amount = originalPayment.amount.replace('$', '')
+  }
+
   editForm.type = originalPayment.type
 
   // Convert payment date from human-readable format to YYYY-MM-DD for date input
@@ -685,8 +710,16 @@ export const saveNewPayment = async () => {
       })
     }
 
-    // Save to IndexedDB
-    await paymentDB.addPayment(newPayment)
+    console.log('Attempting to save new payment:', newPayment)
+
+    try {
+      // Save to IndexedDB
+      await paymentDB.addPayment(newPayment)
+      console.log('Payment saved successfully')
+    } catch (dbError) {
+      console.error('Database addPayment failed:', dbError)
+      throw dbError // Re-throw to be caught by outer catch
+    }
 
     // Add to local payments array
     payments.value.push(newPayment)
@@ -940,20 +973,26 @@ export const addResupply = async (itemName: string) => {
     const sequentialId = await paymentDB.getNextPaymentId()
     const newId = sequentialId.toString()
 
-    // Create today's date in the payment format - use CURRENT actual date
-    const today = new Date()
-    console.log('Current date for resupply:', today.toString()) // Debug log
+    // Use selected date if available (when modal is open for a specific day), otherwise use today
+    let paymentDate: Date
+    if (selectedDate.value) {
+      paymentDate = selectedDate.value
+      console.log('Using selected date for resupply:', paymentDate.toString())
+    } else {
+      paymentDate = new Date()
+      console.log('Using today\'s date for resupply:', paymentDate.toString())
+    }
 
     const monthNames = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ]
-    const monthName = monthNames[today.getMonth()]
-    const day = today.getDate()
+    const monthName = monthNames[paymentDate.getMonth()]
+    const day = paymentDate.getDate()
     console.log('Day extracted:', day) // Debug log
 
     const daySuffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'
-    const dynamicDate = `${monthName} ${day}${daySuffix}, ${today.getFullYear()}`
+    const dynamicDate = `${monthName} ${day}${daySuffix}, ${paymentDate.getFullYear()}`
 
     console.log('Generated resupply date:', dynamicDate) // Debug log
 

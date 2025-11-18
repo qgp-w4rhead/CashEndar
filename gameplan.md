@@ -101,5 +101,12 @@ ________________
 
 - [x] The count must be in decimal
 
-- [ ] Additionally the count must represent : 
-        A. idk
+- [ ] Additionally the count must represent portion-left / totalPortions :
+    1. Display the division in count `table-cell portions-count` (bar-fill).
+    2. Display a fraction like in `portion-size` for `cell-value`.
+    3. Instead of a pure fraction, it shows ("portion remaining" / "bought total")
+
+
+- [ ] Instead of Edit Payment Amount being the total amount spent for a particular item, the amount value that is contained within the field {addPaymentAmount} should be autopopulated with : 
+    - The average of all purchase price for an item
+    - It should pre-fill as the answer for field : editForm.amount

@@ -397,9 +397,12 @@
                   type="number"
                   step="0.01"
                   class="form-input"
+                  :class="{ 'readonly-field': editForm.type === 'inventory' }"
                   placeholder="0.00"
                   @blur="handleAmountInputBlur"
                   @keyup.enter="handleAmountInputKeyUp"
+                  :readonly="editForm.type === 'inventory'"
+                  :tabindex="editForm.type === 'inventory' ? -1 : 0"
                 >
               </div>
               <div class="form-field">
@@ -1197,18 +1200,11 @@
                     <div
                       :class="'bar-fill'"
                       :style="{
-                        width: `${Math.min(100, ((getPortionsRemaining(item.item) !== null && getPortionsRemaining(item.item) >= 0 && item.item.itemSize && item.item.portionSize ? (getPortionsRemaining(item.item) / (item.item.itemSize / item.item.portionSize)) : 0) * 100))}%`
-                      }"
-                    ></div>
-                    <div
-                      v-if="getPortionsRemaining(item.item) !== null && getPortionsRemaining(item.item) >= 0 && item.item.itemSize && item.item.portionSize && (getPortionsRemaining(item.item) / (item.item.itemSize / item.item.portionSize)) > 1"
-                      class="bar-fill-overdraw"
-                      :style="{
-                        width: `${Math.min(100, (((getPortionsRemaining(item.item) / (item.item.itemSize / item.item.portionSize)) - 1) * 100))}%`
+                        width: `${Math.min(100, (getPortionsRemaining(item.item) / getTotalPortions(item.item)) * 100)}%`
                       }"
                     ></div>
                   </div>
-                  <span class="cell-value">{{ item.item.itemSize && item.item.portionSize && item.item.depletionRate ? ((item.item.itemSize / item.item.portionSize) / item.item.depletionRate).toFixed(1) : '0.0' }}</span>
+                  <span class="cell-value">{{ getPortionsRemaining(item.item) }} / {{ getTotalPortions(item.item) }}</span>
                 </div>
                 <div class="table-cell product-cost">
                   <span class="cell-value">{{ item.productCost ? `$${item.productCost.toFixed(2)}` : '$0.00' }}</span>
@@ -1424,6 +1420,7 @@ import {
   getEstimatedPortions,
   getEstimatedDepletionDate,
   parsePortionSize,
+  getTotalPortions,
   itemChartItems,
   portionSizeSliderValue,
   portionsCountSliderValue,
