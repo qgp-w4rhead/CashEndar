@@ -16,6 +16,8 @@ export interface Payment {
   frequency: 'one-time' | 'recurring' | 'weekly' | 'bi-monthly';
   // Inventory-specific fields (when type === 'inventory')
   itemName?: string; // The actual product name
+  brand?: string; // Brand name for the inventory item
+  quantity?: number; // Number of items purchased (default 1)
   portionSize?: number; // Numerical size of each portion
   portionsCount?: number; // How many portions this purchase contains
   itemSize?: number; // Total size of the purchased item

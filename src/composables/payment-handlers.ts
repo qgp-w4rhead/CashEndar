@@ -67,6 +67,12 @@ export const handleEscapeKey = (event: KeyboardEvent) => {
       case 'gear':
         closeGearMenu()
         break
+      case 'pieChart':
+        closePieChartModal()
+        break
+      case 'itemChart':
+        closeItemChartModal()
+        break
     }
   }
 }
@@ -337,6 +343,7 @@ export const openEditMenu = (payment: any) => {
 
   // Initialize inventory fields
   editForm.itemName = originalPayment.itemName || ''
+  editForm.brand = originalPayment.brand || ''
   editForm.itemSize = originalPayment.itemSize || null
   editForm.itemSizeUnit = originalPayment.itemSizeUnit || 'gram'
   editForm.portionSize = originalPayment.portionSize || ''
@@ -382,17 +389,23 @@ export const savePayment = async () => {
     const daySuffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'
     const humanReadableDate = `${monthName} ${day}${daySuffix}, ${year}`
 
+    // Calculate total amount from cost × quantity (quantity defaults to 1)
+    const costAmount = parseFloat(editForm.amount) || 0;
+    const quantity = Math.max(1, editForm.quantity || 1); // Ensure minimum of 1
+    const totalAmount = costAmount * quantity;
+
     // Create updated payment object
     const updatedPayment = {
       ...editingPayment.value,
       title: editForm.title,
-      amount: `$${editForm.amount}`,
+      amount: `$${totalAmount.toFixed(2)}`,
       type: editForm.type,
       date: humanReadableDate,
       frequency: editForm.frequency,
       // Include inventory fields if type is inventory
       ...(editForm.type === 'inventory' && {
         itemName: editForm.title.trim(),
+        brand: editForm.brand.trim() || undefined,
         itemSize: editForm.itemSize,
         itemSizeUnit: editForm.itemSizeUnit,
         portionSize: editForm.portionSize,
@@ -551,10 +564,11 @@ export const openAddMenu = () => {
   // Reset form to default values
   addForm.title = ''
   addForm.amount = ''
-  addForm.type = 'rent'
+  addForm.type = 'credit'
   // Set default day to current day when no days are selected
   addForm.day = new Date().getDate()
   showAddMenu.value = true
+  openModal('unified')
 }
 
 // Close add menu
@@ -593,13 +607,14 @@ export const handleDayClick = (dateInfo: any) => {
     if (hasPayments) {
       // If day has payments, show the day payments modal
       showDayPaymentsForDay(dateInfo.day)
-    } else {
-      // If no payments, open the add menu
-      addForm.title = ''
-      addForm.amount = ''
-      addForm.type = 'rent'
-      showAddMenu.value = true
-    }
+  } else {
+    // If no payments, open the add menu
+    addForm.title = ''
+    addForm.amount = ''
+    addForm.type = 'credit'
+    showAddMenu.value = true
+    openModal('unified')
+  }
   } else {
     // First click - just pre-select the day
     preSelectedDay.value = dateInfo.day
@@ -613,10 +628,12 @@ export const showDayPaymentsForDay = async (day: number) => {
     const dayPaymentList = paymentService.getPaymentsForDay(payments.value, day, currentMonth.value, currentYear.value)
     selectedDayPayments.value = dayPaymentList
     showAddMenu.value = true // Open the unified modal
+    openModal('unified')
   } catch (error) {
     console.error('Error loading day payments:', error)
     selectedDayPayments.value = []
     showAddMenu.value = true
+    openModal('unified')
   }
 }
 
@@ -687,11 +704,16 @@ export const saveNewPayment = async () => {
     const daySuffix = addForm.day === 1 ? 'st' : addForm.day === 2 ? 'nd' : addForm.day === 3 ? 'rd' : 'th'
     const dynamicDate = `${monthName} ${addForm.day}${daySuffix}, ${paymentDate.getFullYear()}`
 
+    // Calculate total amount from cost × quantity (quantity defaults to 1)
+    const costAmount = parseFloat(addForm.amount) || 0;
+    const quantity = Math.max(1, addForm.quantity || 1); // Ensure minimum of 1
+    const totalAmount = costAmount * quantity;
+
     // Create new payment object
     const newPayment = {
       id: newId,
       title: addForm.title.trim(),
-      amount: `$${parseFloat(addForm.amount).toFixed(2)}`,
+      amount: `$${totalAmount.toFixed(2)}`,
       date: dynamicDate,
       type: addForm.type,
       day: (addForm.frequency === 'bi-monthly' || addForm.frequency === 'weekly') ? undefined : addForm.day, // Don't set day for weekly/bi-monthly
@@ -701,6 +723,7 @@ export const saveNewPayment = async () => {
       // Include inventory fields if type is inventory
       ...(addForm.type === 'inventory' && {
         itemName: addForm.title.trim(),
+        brand: addForm.brand.trim() || undefined,
         itemSize: addForm.itemSize,
         itemSizeUnit: addForm.itemSizeUnit,
         portionSize: addForm.portionSize,
@@ -736,7 +759,7 @@ export const saveNewPayment = async () => {
       // Reset form
       addForm.title = ''
       addForm.amount = ''
-      addForm.type = 'rent'
+      addForm.type = 'credit'
       addForm.day = 1
       addForm.frequency = 'one-time'
 
@@ -1074,6 +1097,18 @@ export const toggleForgoPayment = async (payment: Payment) => {
   } catch (error) {
     console.error('Error toggling forgo status:', error)
   }
+}
+
+// Open add menu with inventory type pre-selected (for purple button)
+export const openInventoryAddMenu = () => {
+  // Reset form to default values but set type to 'inventory'
+  addForm.title = ''
+  addForm.amount = ''
+  addForm.type = 'inventory'
+  // Set default day to current day when no days are selected
+  addForm.day = new Date().getDate()
+  showAddMenu.value = true
+  openModal('unified')
 }
 
 // Initialize component data

@@ -371,6 +371,29 @@ html, body {
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
+.add-btn-purple {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.add-btn-purple:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
 .payment-item {
   display: flex;
   align-items: center;
@@ -867,6 +890,11 @@ html, body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.modal-toggle {
+  margin-left: auto;
+  margin-right: 16px;
+}
+
 .modal-header h3 {
   color: white;
   margin: 0;
@@ -939,6 +967,18 @@ html, body {
   padding-left: 16px;
 }
 
+/* Three fields layout - separators appear between fields, not after the last field */
+.form-group.side-by-side.three-fields .form-field:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 60%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .form-group label {
   display: block;
   color: white;
@@ -976,9 +1016,6 @@ html, body {
   color: rgba(224, 224, 224, 0.5);
 }
 
-.form-input.amount {
-  
-}
 
 .btn-group {
   display: flex;
@@ -1130,7 +1167,7 @@ html, body {
   color: white;
   height: 2px;
   background: rgba(16, 185, 129, 0.2);
-  margin: 24px -10px;
+  margin-bottom: 40px;
 }
 
 .add-payment-section {
@@ -2362,9 +2399,15 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  cursor: pointer;
   transition: all 0.2s ease;
   background: rgba(139, 92, 246, 0.02);
+}
+
+.inventory-title-area {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  cursor: pointer;
 }
 
 .inventory-header:hover {
@@ -2391,7 +2434,7 @@ html, body {
   border: 1px solid rgba(180,130, 246, 0.9);}
 
 .inventory-content {
-  max-height: 280px;
+  max-height: 290px;
   opacity: 1;
   transition: all 0.3s ease;
   overflow: auto;
@@ -2815,6 +2858,7 @@ html, body {
 
 /* Resupply Button Section */
 .resupply-section {
+  padding: 10px;
   margin-bottom: 8px;
   display: flex;
   align-items: center;

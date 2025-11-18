@@ -195,15 +195,15 @@
 
       <!-- Inventory Tracker Section -->
       <div class="inventory-section">
-        <div
-          :class="['inventory-header', { collapsed: isInventoryCollapsed }]"
-          @click="toggleInventorySection"
-        >
-          <h4 class="inventory-title">
-            <span class="tumbler-icon">▶</span>
-            Inventory Tracker
-          </h4>
-          <span class="inventory-total">{{ inventoryItems.length }} items</span>
+        <div :class="['inventory-header', { collapsed: isInventoryCollapsed }]">
+          <div class="inventory-title-area" @click="toggleInventorySection">
+            <h4 class="inventory-title">
+              <span class="tumbler-icon">▶</span>
+              Inventory Tracker
+            </h4>
+          </div>
+          <span style="margin-right: 10px;" class="inventory-total">{{ inventoryItems.length }} items</span>
+          <button class="add-btn-purple" @click.stop="openInventoryAddMenu">+</button>
         </div>
         <div class="inventory-content">
           <div class="inventory-body">
@@ -361,195 +361,84 @@
         </div>
 
         <div class="modal-body">
-          <div class="form-group">
-            <div class="label-with-button">
-              <label for="paymentType">Payment Type</label>
-              <button class="add-type-btn" @click="addPaymentTypeFromEdit" title="Add new payment type">+</button>
-            </div>
-            <select
-              id="paymentType"
-              v-model="editForm.type"
-              class="form-input"
-            >
-              <option v-for="type in paymentTypes" :key="type.value" :value="type.value">
-                {{ type.label }}
-              </option>
-            </select>
-          </div>
 
-          <div class="form-group">
-            <label for="paymentTitle">{{ editForm.type === 'inventory' ? 'Item Name' : 'Payment Title' }}</label>
-            <input
-              id="paymentTitle"
-              v-model="editForm.title"
-              type="text"
-              class="form-input"
-              :placeholder="editForm.type === 'inventory' ? 'Enter item name' : 'Enter payment title'"
-            >
-          </div>
-
-            <div class="form-group side-by-side">
-              <div class="form-field">
-                <label for="paymentAmount">Amount</label>
-                <input
-                  id="paymentAmount"
-                  v-model="editForm.amount"
-                  type="number"
-                  step="0.01"
-                  class="form-input"
-                  :class="{ 'readonly-field': editForm.type === 'inventory' }"
-                  placeholder="0.00"
-                  @blur="handleAmountInputBlur"
-                  @keyup.enter="handleAmountInputKeyUp"
-                  :readonly="editForm.type === 'inventory'"
-                  :tabindex="editForm.type === 'inventory' ? -1 : 0"
-                >
-              </div>
-              <div class="form-field">
-                <label for="paymentDate">Payment Date</label>
-                <input
-                  id="paymentDate"
-                  v-model="editForm.date"
-                  type="date"
-                  class="form-input"
-                  required
-                >
-              </div>
+            <!-- Inventory Stepper (only show when inventory type) -->
+            <div v-if="editForm.type === 'inventory'">
+              <InventoryFieldsSectionStepper
+                :form-data="editForm"
+                :get-estimated-portions="getEstimatedPortions"
+                :get-depletion-time-in-days="getDepletionTimeInDays"
+                :get-last-purchases="getLastPurchases"
+                :get-estimated-next-purchase-date="getEstimatedNextPurchaseDate"
+                @add-resupply="addResupply"
+                @delete-purchase="deleteSinglePurchase"
+                @save="savePayment"
+              />
             </div>
 
-            <!-- Inventory-specific fields (only show when inventory type) -->
-            <div v-if="editForm.type === 'inventory'" class="inventory-fields-section">
-              <div class="section-divider">Inventory Details</div>
+            <!-- Regular form fields (hidden when inventory stepper is active) -->
 
-              <!-- Single field for item size with unit -->
+            
+            <div v-else>
+              
               <div class="form-group">
-                <label for="editItemSize">Item Size (Total Amount)</label>
-                <div class="value-unit-input">
+	              <div class="label-with-button">
+            		<label for="paymentType">Payment Type</label>
+            		<button class="add-type-btn" @click="addPaymentTypeFromEdit" title="Add new payment type">+</button>
+            	</div>
+            	<select
+            		id="paymentType"
+            		v-model="editForm.type"
+            		class="form-input"
+            	>
+            		<option v-for="type in paymentTypes.filter(t => t.value !== 'inventory')" :key="type.value" :value="type.value">
+            		{{ type.label }}
+            		</option>
+            	</select>
+              </div>
+
+              <div class="form-group">
+                <div class="form-field">
+                  <label for="paymentTitle">Payment Title</label>
                   <input
-                    id="editItemSize"
-                    v-model.number="editForm.itemSize"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    class="form-input value-input"
-                    placeholder="e.g., 500"
+                    id="paymentTitle"
+                    v-model="editForm.title"
+                    type="text"
+                    class="form-input"
+                    placeholder="Enter payment title"
                   >
-                  <select
-                    v-model="editForm.itemSizeUnit"
-                    class="form-input unit-select"
-                  >
-                    <option value="single">single</option>
-                    <option value="gram">grams</option>
-                    <option value="kg">kg</option>
-                    <option value="ml">ml</option>
-                    <option value="liter">liter</option>
-                    <option value="cup">cups</option>
-                    <option value="tablespoon">tablespoons</option>
-                    <option value="teaspoon">teaspoons</option>
-                    <option value="piece">pieces</option>
-                    <option value="can">cans</option>
-                    <option value="bottle">bottles</option>
-                  </select>
-                  <span class="unit-display">{{ editForm.itemSizeUnit }}s</span>
                 </div>
               </div>
 
               <div class="form-group side-by-side">
                 <div class="form-field">
-                  <label for="editPortionSize">Portion Size</label>
+                  <label for="paymentAmount">Amount</label>
                   <input
-                    id="editPortionSize"
-                    v-model.number="editForm.portionSize"
+                    id="paymentAmount"
+                    v-model="editForm.amount"
                     type="number"
                     step="0.01"
-                    min="0"
-                    class="form-input value-input"
-                    placeholder="e.g., 250"
+                    class="form-input"
+                    placeholder="0.00"
+                    @blur="handleAmountInputBlur"
+                    @keyup.enter="handleAmountInputKeyUp"
                   >
                 </div>
                 <div class="form-field">
-                  <label>Estimated Portions</label>
+                  <label for="paymentDate">Date</label>
                   <input
-                    :value="getEstimatedPortions({ itemSize: editForm.itemSize, portionSize: editForm.portionSize } as any)"
-                    type="number"
-                    readonly
-                    class="form-input readonly-field"
-                    placeholder="Auto-calculated"
+                    id="paymentDate"
+                    v-model="editForm.date"
+                    type="date"
+                    class="form-input"
+                    required
                   >
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="editDepletionRate">Depletion Rate (optional)</label>
-                <div class="value-unit-input">
-                  <input
-                    id="editDepletionRate"
-                    v-model.number="editForm.depletionRate"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    class="form-input value-input"
-                    placeholder="e.g., 2"
-                  >
-                  <select
-                    v-model="editForm.depletionUnit"
-                    class="form-input unit-select"
-                  >
-                    <option value="day">portions/day</option>
-                    <option value="week">portions/week</option>
-                    <option value="month">portions/month</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label>Depletion Time</label>
-                <div class="value-unit-input">
-                  <input
-                    :value="getDepletionTimeInDays({ depletionRate: editForm.depletionRate, depletionUnit: editForm.depletionUnit, ...({ getEstimatedPortions: getEstimatedPortions, itemSize: editForm.itemSize, portionSize: editForm.portionSize } as any) } as any)"
-                    type="number"
-                    readonly
-                    class="form-input readonly-field value-input"
-                    placeholder="Time until depletion"
-                    step="0.01"
-                  >
-                  <span class="unit-display">{{ editForm.depletionUnit }}s</span>
-                </div>
-              </div>
-
-              <!-- Last Purchase Section -->
-              <div class="last-purchase-section">
-                <div class="section-divider">Last Purchase</div>
-                <div class="resupply-section">
-                  <button class="resupply-btn" @click="addResupply(editForm.title)" title="Add new purchase today (resupply)">+1</button>
-                  <span class="resupply-label">Resupply</span>
-                </div>
-
-                <!-- Last 3 Purchases List -->
-                <div class="last-purchases-list">
-                  <div v-for="purchase in getLastPurchases(editForm.title, editForm.date)" :key="purchase.id" class="purchase-item">
-                    <span class="purchase-date">{{ purchase.date }}</span>
-                    <span class="purchase-frequency">{{ getFrequencyDisplay(purchase.frequency) }}</span>
-                    <span class="purchase-cost">{{ purchase.amount }}</span>
-                    <button class="purchase-delete-btn" @click.stop="deleteSinglePurchase(purchase)" title="Delete this purchase entry">[x]</button>
-                  </div>
-                  <div v-if="getLastPurchases(editForm.title, editForm.date).length === 0" class="no-purchases">
-                    No previous purchases found for this item
-                  </div>
-                </div>
-
-                <!-- Estimated Next Purchase Date -->
-                <div v-if="getLastPurchases(editForm.title, editForm.date).length >= 3" class="next-purchase-info">
-                  <label>Estimated Next Purchase:</label>
-                  <div class="next-purchase-date">{{ getEstimatedNextPurchaseDate(getLastPurchases(editForm.title, editForm.date)) || 'No data available' }}</div>
-                </div>
-                <div v-else class="next-purchase-info">
-                  <label>Need 3+ purchases to estimate next date</label>
                 </div>
               </div>
             </div>
 
-          <div class="form-group">
+          <!-- Payment Frequency (hidden when editing inventory items) -->
+          <div v-if="editForm.type !== 'inventory'" class="form-group">
             <label>Payment Frequency</label>
             <div class="toggle-switch">
               <div class="toggle-container four-options">
@@ -587,9 +476,6 @@
 
         <div class="modal-footer">
           <div class="btn-group">
-            <button class="btn btn-primary" @click="closeEditMenu">
-              Cancel
-            </button>
             <button class="btn btn-success" @click="savePayment">
               Save Changes
             </button>
@@ -606,6 +492,24 @@
       <div class="add-modal" @click.stop>
         <div class="modal-header">
           <h3>{{ selectedDayPayments.length > 0 ? 'Add New / Edit Payment' : 'Add New Payment' }}</h3>
+          <div class="modal-toggle">
+            <div class="toggle-switch">
+              <div class="toggle-container two-options">
+                <button
+                  :class="['toggle-option', { active: addForm.type !== 'inventory' }]"
+                  @click="setPaymentMode"
+                >
+                  Payment
+                </button>
+                <button
+                  :class="['toggle-option', { active: addForm.type === 'inventory' }]"
+                  @click="setInventoryMode"
+                >
+                  Inventory
+                </button>
+              </div>
+            </div>
+          </div>
           <button class="close-btn" @click="closeAddMenu">×</button>
         </div>
 
@@ -639,8 +543,8 @@
 
           <!-- Add New Payment Section -->
           <div class="add-payment-section">
-            <h4 class="section-divider">{{ selectedDayPayments.length > 0 ? 'Add Another Payment' :  `Payment Details for ${getSelectedDayDate()}` }}</h4>
-            <div class="form-group">
+            <h4 class="section-divider">{{ selectedDayPayments.length > 0 ? (addForm.type === 'inventory' ? 'Add Inventory Item' : 'Add Another Payment') :  `Payment Details for ${getSelectedDayDate()}` }}</h4>
+            <div v-if="addForm.type !== 'inventory'" class="form-group">
               <div class="label-with-button">
                 <label for="addPaymentType">Payment Type</label>
                 <button class="add-type-btn" @click="addPaymentTypeFromAdd" title="Add new payment type">+</button>
@@ -650,167 +554,60 @@
                 v-model="addForm.type"
                 class="form-input"
               >
-                <option v-for="type in paymentTypes" :key="type.value" :value="type.value">
+                <option v-for="type in paymentTypes.filter(t => t.value !== 'inventory')" :key="type.value" :value="type.value">
                   {{ type.label }}
                 </option>
               </select>
             </div>
 
-            <div class="form-group">
-              <label for="addPaymentTitle">{{ addForm.type === 'inventory' ? 'Item Name' : 'Payment Title' }}</label>
-              <input
-                id="addPaymentTitle"
-                v-model="addForm.title"
-                type="text"
-                class="form-input"
-                :placeholder="addForm.type === 'inventory' ? 'Enter item name' : 'Enter payment title'"
-              >
+            <!-- Inventory Stepper (only show when inventory type) -->
+            <div v-if="addForm.type === 'inventory'">
+              <InventoryFieldsSectionStepper
+                :form-data="addForm"
+                :get-estimated-portions="getEstimatedPortionsFromData"
+                :get-depletion-time-in-days="getDepletionTimeInDaysFromData"
+                :get-last-purchases="getLastPurchases"
+                :get-estimated-next-purchase-date="getEstimatedNextPurchaseDate"
+                @add-resupply="addResupply"
+                @delete-purchase="deleteSinglePurchase"
+                @save="saveNewPayment"
+              />
             </div>
 
-            <div class="form-group side-by-side">
-              <div class="form-field">
-                <label for="addPaymentAmount">Cost</label>
-                <input
-                  id="addPaymentAmount"
-                  v-model="addForm.amount"
-                  type="number"
-                  step="0.01"
-                  class="form-input"
-                  placeholder="0.00$"
-                  @blur="handleAmountInputBlur"
-                  @keyup.enter="handleAmountInputKeyUp"
-                >
-              </div>
-            </div>
-
-            <!-- Remaining Inventory-specific fields (only show when inventory type) -->
-            <div v-if="addForm.type === 'inventory'" class="inventory-fields-section">
-              <div class="section-divider">Inventory Details</div>
-
-              <!-- Item Size field moved to Inventory Details section -->
+            <!-- Regular form fields (hidden when inventory stepper is active) -->
+            <div v-else>
               <div class="form-group">
-                <label for="addItemSize">Item Size (Total Amount)</label>
-                <div class="value-unit-input">
-                  <input
-                    id="addItemSize"
-                    v-model.number="addForm.itemSize"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    class="form-input value-input"
-                    placeholder="e.g., 250"
-                  >
-                  <select
-                    v-model="addForm.itemSizeUnit"
-                    class="form-input unit-select"
-                  >
-                    <option value="single">single</option>
-                    <option value="gram">grams</option>
-                    <option value="kg">kg</option>
-                    <option value="ml">ml</option>
-                    <option value="liter">liter</option>
-                    <option value="cup">cups</option>
-                    <option value="tablespoon">tablespoons</option>
-                    <option value="teaspoon">teaspoons</option>
-                    <option value="piece">pieces</option>
-                    <option value="can">cans</option>
-                    <option value="bottle">bottles</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-group side-by-side">
                 <div class="form-field">
-                  <label for="addPortionSize">Portion Size</label>
-                  <div class="value-unit-input">
-                    <input
-                      id="addPortionSize"
-                      v-model.number="addForm.portionSize"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      class="form-input value-input"
-                      placeholder="e.g., 250"
-                    >
-                    <span class="unit-display">{{ addForm.itemSizeUnit }}s</span>
-                  </div>
-                </div>
-                <div class="form-field">
-                  <label>Estimated Portions</label>
+                  <label for="addPaymentTitle">Payment Title</label>
                   <input
-                    :value="getEstimatedPortions({ itemSize: addForm.itemSize, portionSize: addForm.portionSize } as any)"
-                    type="number"
-                    readonly
-                    class="form-input readonly-field"
-                    placeholder="Auto-calculated"
+                    id="addPaymentTitle"
+                    v-model="addForm.title"
+                    type="text"
+                    class="form-input"
+                    placeholder="Enter payment title"
                   >
                 </div>
               </div>
 
               <div class="form-group">
-                <label for="addDepletionRate">Depletion Rate (optional)</label>
-                <div class="value-unit-input">
+                <div class="form-field">
+                  <label for="addPaymentAmount">Amount</label>
                   <input
-                    id="addDepletionRate"
-                    v-model.number="addForm.depletionRate"
+                    id="addPaymentAmount"
+                    v-model="addForm.amount"
                     type="number"
                     step="0.01"
-                    min="0"
-                    class="form-input value-input"
-                    placeholder="e.g., 2"
+                    class="form-input"
+                    placeholder="0.00"
+                    @blur="handleAmountInputBlur"
+                    @keyup.enter="handleAmountInputKeyUp"
                   >
-                  <select
-                    v-model="addForm.depletionUnit"
-                    class="form-input unit-select"
-                  >
-                    <option value="day">portions/day</option>
-                    <option value="week">portions/week</option>
-                    <option value="month">portions/month</option>
-                  </select>
-                  <input
-                    :value="getDepletionTimeInDays({ depletionRate: addForm.depletionRate, depletionUnit: addForm.depletionUnit, ...({ getEstimatedPortions: getEstimatedPortions, itemSize: addForm.itemSize, portionSize: addForm.portionSize } as any) } as any)"
-                    type="number"
-                    readonly
-                    class="form-input readonly-field value-input"
-                    placeholder="Time until depletion"
-                    step="0.01"
-                  >
-                  <span class="unit-display">{{ addForm.depletionUnit }}s</span>
-                </div>
-              </div>
-
-              <!-- Last Purchase Section -->
-              <div class="last-purchase-section">
-                <div class="section-divider">Last Purchase</div>
-                <div class="resupply-section">
-                  <button class="resupply-btn" @click="addResupply(addForm.title)" title="Add new purchase today (resupply)">+1</button>
-                  <span class="resupply-label">Resupply</span>
-                </div>
-
-                <!-- Last 3 Purchases List -->
-                <div class="last-purchases-list">
-                  <div v-for="purchase in getLastPurchases(addForm.title, '')" :key="purchase.id" class="purchase-item">
-                    <span class="purchase-date">{{ purchase.date }}</span>
-                    <span class="purchase-frequency">{{ getFrequencyDisplay(purchase.frequency) }}</span>
-                    <span class="purchase-cost">{{ purchase.amount }}</span>
-                  </div>
-                  <div v-if="getLastPurchases(addForm.title, '').length === 0" class="no-purchases">
-                    No previous purchases found for this item
-                  </div>
-                </div>
-
-                <!-- Estimated Next Purchase Date -->
-                <div v-if="getLastPurchases(addForm.title, '').length >= 3" class="next-purchase-info">
-                  <label>Estimated Next Purchase:</label>
-                  <div class="next-purchase-date">{{ getEstimatedNextPurchaseDate(getLastPurchases(addForm.title, '')) || 'No data available' }}</div>
-                </div>
-                <div v-else class="next-purchase-info">
-                  <label>Need 3+ purchases to estimate next date</label>
                 </div>
               </div>
             </div>
 
-            <div class="form-group">
+            <!-- Payment Frequency (hidden when inventory stepper is active) -->
+            <div v-if="addForm.type !== 'inventory'" class="form-group">
               <label>Payment Frequency</label>
               <div class="toggle-switch">
                 <div class="toggle-container four-options">
@@ -850,10 +647,7 @@
             {{ saveMessage }}
           </div>
 
-          <div class="btn-group">
-            <button class="btn btn-primary" @click="closeAddMenu" :disabled="isSavingPayment">
-              Cancel
-            </button>
+          <div v-if="addForm.type !== 'inventory'" class="btn-group">
             <button
               class="btn btn-success"
               @click="saveNewPayment"
@@ -1346,6 +1140,9 @@ import './PaymentCalendar.css'
 // Import types
 import { Payment, PaymentType } from '../types/payment.types'
 
+// Import components
+import InventoryFieldsSectionStepper from './inventory-fields-section-stepper.vue'
+
 // Import services
 import { paymentDB } from '../services/payment-db.service'
 import { paymentService } from '../services/payment.service'
@@ -1418,6 +1215,7 @@ import {
   inventoryItems,
   getPortionsRemaining,
   getEstimatedPortions,
+  getEstimatedPortionsFromData,
   getEstimatedDepletionDate,
   parsePortionSize,
   getTotalPortions,
@@ -1426,6 +1224,7 @@ import {
   portionsCountSliderValue,
   selectedChartItem,
   getDepletionTimeInDays,
+  getDepletionTimeInDaysFromData,
   getPortionSizeFraction,
   getLastPurchases,
   getEstimatedNextPurchaseDate,
@@ -1461,6 +1260,7 @@ import {
   savePayment,
   deletePayment,
   openAddMenu,
+  openInventoryAddMenu,
   closeAddMenu,
   handleDayClick,
   showDayPaymentsForDay,
@@ -1595,6 +1395,27 @@ const switchToPayments = () => {
 const switchToEarnings = () => {
   showEarningsInNextPayments.value = true
   selectedPaymentTypes.value = []
+}
+
+// Toggle between payment and inventory modes in add modal
+const setPaymentMode = () => {
+  // Switch to regular payment mode - prefer credit card, fallback to first available
+  const regularPaymentTypes = paymentTypes.value.filter(t => t.value !== 'inventory')
+  const creditType = regularPaymentTypes.find(t => t.value === 'credit')
+
+  if (creditType) {
+    addForm.type = creditType.value
+  } else if (regularPaymentTypes.length > 0) {
+    addForm.type = regularPaymentTypes[0].value
+  } else {
+    // Fallback if no regular payment types exist
+    addForm.type = 'utility' // Default fallback
+  }
+}
+
+const setInventoryMode = () => {
+  // Switch to inventory mode
+  addForm.type = 'inventory'
 }
 
 // Initialize component on mount

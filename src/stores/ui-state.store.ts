@@ -22,8 +22,10 @@ export const editForm = reactive({
     frequency: 'recurring' as Payment['frequency'],
     date: '',
     day: 1,
+    quantity: 1, // Number of items/units (defaults to 1 if not inventory)
     // Inventory fields
     itemName: '',
+    brand: '',
     itemSize: undefined,
     itemSizeUnit: 'gram' as Payment['itemSizeUnit'],
     portionSize: undefined,
@@ -41,8 +43,10 @@ export const addForm = reactive({
   type: 'rent' as Payment['type'],
   day: 1, // Day of month for the payment
   frequency: 'one-time' as Payment['frequency'], // Default to one-time
+  quantity: 1, // Number of items/units (defaults to 1 if not inventory)
   // Inventory-specific fields
   itemName: '',
+  brand: '',
   itemSize: undefined,
   itemSizeUnit: 'gram' as Payment['itemSizeUnit'],
   portionSize: undefined,

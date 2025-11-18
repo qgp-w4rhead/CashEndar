@@ -33,12 +33,15 @@
 
 - [x] Add "Portions" to Unit (some items are 1 of 1)
 
-- [ ] Modify "inventory-fields-section" to be a 4-step setup that helps to fast track users toward their objective.
-    - Cost, Name of product in first step (with a space for brand, mark it [optional] just like depletion rate)
+- [X] Add the field "brand" that only shows when selecting "Inventory" and make it (optional).
+
+- [X] Modify "inventory-fields-section" to be a 4-step setup that helps to fast track users toward their objective.
+    - Name of product, cost in first step (with a space for brand, mark it [optional] just like depletion rate)
     - Item Size and unit
 
-- [ ] Swap the inventory option from the "Add New / Edit Payment" to the Inventory Tracker (inventory-header)
-________________
+- [X] Swap the inventory option from the "Add New / Edit Payment" to the Inventory Tracker (inventory-header)
+
+- [X] We need to reuse the "add-btn" styling in purple to place in the top of the "inventory-section"
 
 ### BUGSECTION / DESIGNFLAWS
 
@@ -101,12 +104,32 @@ ________________
 
 - [x] The count must be in decimal
 
-- [ ] Additionally the count must represent portion-left / totalPortions :
+- [X] Additionally the count must represent portion-left / totalPortions :
     1. Display the division in count `table-cell portions-count` (bar-fill).
     2. Display a fraction like in `portion-size` for `cell-value`.
     3. Instead of a pure fraction, it shows ("portion remaining" / "bought total")
 
 
-- [ ] Instead of Edit Payment Amount being the total amount spent for a particular item, the amount value that is contained within the field {addPaymentAmount} should be autopopulated with : 
+- [X] Instead of Edit Payment Amount being the total amount spent for a particular item, the amount value that is contained within the field {addPaymentAmount} should be autopopulated with : 
     - The average of all purchase price for an item
     - It should pre-fill as the answer for field : editForm.amount
+
+
+
+
+
+
+
+
+
+
+__________________________
+
+## COMMIT TERMINOLOGY : 
+
+MODIFIED : Previous feature/style or file change that result in noticeable changes
+ADDED : New Features that are worth mentionning to the user and develloper alike
+FIXED : Bugfixes affecting specific area of the codebase.
+REFACTORED : Refactoring of code, must include the name and short description of what was refactored.
+
+**In effect since 11/18/2025, anything after this date that doesn't match the above spec is considered a mistake and should be reported, the specification will evolve over time.**

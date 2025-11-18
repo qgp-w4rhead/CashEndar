@@ -468,7 +468,21 @@ export const getEstimatedPortions = computed(() => {
     if (!item.itemSize || !item.portionSize || item.portionSize === 0) {
       return 0
     }
-    return Math.round((item.itemSize / item.portionSize) * 100) / 100 // Round to 2 decimal places
+    // Account for quantity if available, default to 1 if not provided
+    const quantity = item.quantity || 1
+    return Math.round((item.itemSize / item.portionSize) * quantity * 100) / 100 // Round to 2 decimal places
+  }
+})
+
+// Variant that accepts data object (for stepper component usage)
+export const getEstimatedPortionsFromData = computed(() => {
+  return (data: { itemSize?: number | null, portionSize?: number | null, quantity?: number | null }): number => {
+    if (!data.itemSize || !data.portionSize || data.portionSize === 0) {
+      return 0
+    }
+    // Account for quantity if available, default to 1 if not provided
+    const quantity = data.quantity || 1
+    return Math.round((data.itemSize / data.portionSize) * quantity * 100) / 100 // Round to 2 decimal places
   }
 })
 
@@ -769,6 +783,26 @@ export const getDepletionTimeInDays = computed(() => {
     // Calculate depletion time in the selected unit (not converting to days)
     // depletionRate is in portions per depletionUnit
     const depletionTime = estimatedPortions / item.depletionRate
+
+    return Math.round(depletionTime * 100) / 100 // Round to 2 decimal places
+  }
+})
+
+// Variant that accepts data object (for stepper component usage)
+export const getDepletionTimeInDaysFromData = computed(() => {
+  return (data: { depletionRate?: number | null, depletionUnit?: string, itemSize?: number | null, portionSize?: number | null, quantity?: number | null }): number => {
+    const estimatedPortions = getEstimatedPortionsFromData.value(data)
+    if (!estimatedPortions || !data.depletionRate || !data.depletionUnit) {
+      return 0
+    }
+
+    if (data.depletionRate === 0) {
+      return 0
+    }
+
+    // Calculate depletion time in the selected unit (not converting to days)
+    // depletionRate is in portions per depletionUnit
+    const depletionTime = estimatedPortions / data.depletionRate
 
     return Math.round(depletionTime * 100) / 100 // Round to 2 decimal places
   }
