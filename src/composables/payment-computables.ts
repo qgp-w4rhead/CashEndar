@@ -685,14 +685,7 @@ export const getSimplifiedFraction = (itemSize: number, portionSize: number): st
   return `${num}/${den}`
 }
 
-// Helper function to get unique portion sizes for slider comparison
-export const getPortionSizeRange = () => {
-  const inventoryItems = payments.value.filter(p => p.type === 'inventory' && p.portionSize)
-  const sizes = inventoryItems.map(item => item.portionSize || 0)
-  const min = Math.min(...sizes) || 0
-  const max = Math.max(...sizes) || 100
-  return { min, max }
-}
+
 
 // Helper function to calculate total portions for an item
 export const getTotalPortions = computed(() => {
@@ -727,14 +720,7 @@ export const getTotalPortions = computed(() => {
   }
 })
 
-// Helper function to get portions count range
-export const getPortionsCountRange = () => {
-  const inventoryItems = payments.value.filter(p => p.type === 'inventory' && p.portionsCount)
-  const counts = inventoryItems.map(item => item.portionsCount || 0)
-  const min = Math.min(...counts) || 1
-  const max = Math.max(...counts) || 20
-  return { min, max }
-}
+
 
 // Item chart items computed property
 export const itemChartItems = computed((): ItemChartItem[] => {
@@ -927,11 +913,7 @@ export const getEstimatedNextPurchaseDate = computed(() => {
   }
 })
 
-// Slider value for portion size comparison (0-100 range)
-export const portionSizeSliderValue = ref(50)
 
-// Slider value for portions count comparison (0-100 range)
-export const portionsCountSliderValue = ref(50)
 
 // Selected item for detailed comparison
 export const selectedChartItem = ref<ItemChartItem | null>(null)

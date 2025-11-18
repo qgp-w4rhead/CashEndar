@@ -903,50 +903,7 @@
               </div>
             </div>
 
-            <!-- Interactive Sliders -->
-            <div class="slider-controls">
-              <div class="slider-group">
-                <div class="slider-header">
-                  <label>Portion Size Comparison</label>
-                  <hover-text text="Move slider to compare portion sizes across items">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    </svg>
-                  </hover-text>
-                </div>
-                <horizontal-slider
-                  v-model="portionSizeSliderValue"
-                  :min="0"
-                  :max="100"
-                  :step="0.1"
-                  :disabled="itemChartItems.length <= 1"
-                  class="inventory-slider"
-                ></horizontal-slider>
-              </div>
-
-              <div class="slider-group">
-                <div class="slider-header">
-                  <label>Portions Count Comparison</label>
-                  <hover-text text="Move slider to compare total portions across items">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    </svg>
-                  </hover-text>
-                </div>
-                <horizontal-slider
-                  v-model="portionsCountSliderValue"
-                  :min="0"
-                  :max="100"
-                  :step="0.1"
-                  :disabled="itemChartItems.length <= 1"
-                  class="inventory-slider"
-                ></horizontal-slider>
-              </div>
-            </div>
+            <!-- Items Comparison Table -->
 
             <!-- Items Comparison Table -->
             <div class="item-comparison-table">
@@ -1220,8 +1177,6 @@ import {
   parsePortionSize,
   getTotalPortions,
   itemChartItems,
-  portionSizeSliderValue,
-  portionsCountSliderValue,
   selectedChartItem,
   getDepletionTimeInDays,
   getDepletionTimeInDaysFromData,

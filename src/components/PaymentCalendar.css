@@ -1849,6 +1849,7 @@ html, body {
   grid-template-columns: 25% 15% 15% 15% 30%;
   gap: 12px;
   padding: 16px 16px;
+  margin-top: 16px;
   background: rgba(255, 255, 255, 0.02);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.05);

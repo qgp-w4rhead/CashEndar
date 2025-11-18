@@ -43,6 +43,10 @@
 
 - [X] We need to reuse the "add-btn" styling in purple to place in the top of the "inventory-section"
 
+- [ ] Portion Size Comparison
+
+- [ ] Portion Count Comparison
+
 ### BUGSECTION / DESIGNFLAWS
 
 - [x] The "filter-btn" currently only affects the items in the "Next payments" section : 
@@ -131,5 +135,6 @@ MODIFIED : Previous feature/style or file change that result in noticeable chang
 ADDED : New Features that are worth mentionning to the user and develloper alike
 FIXED : Bugfixes affecting specific area of the codebase.
 REFACTORED : Refactoring of code, must include the name and short description of what was refactored.
+REMOVED : idem
 
 **In effect since 11/18/2025, anything after this date that doesn't match the above spec is considered a mistake and should be reported, the specification will evolve over time.**
