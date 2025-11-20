@@ -1,6 +1,5 @@
 <template>
   <div class="payment-calendar">
-    <!-- Left Sidebar - Next Payments -->
     <div class="payments-sidebar">
       <div class="section-header">
         <h2 class="section-title">Next payments</h2>
@@ -86,7 +85,6 @@
                 </div>
               </div>
 
-              <!-- Payment Type Checkboxes -->
               <div class="filter-section">
                 <h5 class="filter-section-title">Payment Types</h5>
                 <div class="checkbox-list">
@@ -123,7 +121,6 @@
         </div>
       </div>
 
-      <!-- Collapsible Next Payments Section -->
       <div class="next-payments-section">
         <div
           :class="['next-payments-header', { collapsed: isNextPaymentsCollapsed }]"
@@ -154,7 +151,6 @@
         </div>
       </div>
 
-      <!-- Collapsible Earnings Section -->
       <div class="earnings-section">
         <div
           :class="['earnings-header', { collapsed: isEarningsCollapsed }]"
@@ -185,7 +181,6 @@
         </div>
       </div>
 
-      <!-- Total Summary Section -->
       <div class="total-remaining-section">
         <div class="total-remaining-header">
           <h4 class="total-remaining-title">Total Remaining Summary</h4>
@@ -193,7 +188,6 @@
         </div>
       </div>
 
-      <!-- Inventory Tracker Section -->
       <div class="inventory-section">
         <div :class="['inventory-header', { collapsed: isInventoryCollapsed }]">
           <div class="inventory-title-area" @click="toggleInventorySection">
@@ -227,7 +221,6 @@
                   </div> 
                 </div>
 
-                  <!-- Annual Cost Estimate Section -->
                   <div class="cost-section" v-if="getAnnualCostFromPurchases(item) || getAnnualCostFromDepletion(item)">
                     <div class="cost-toggle">
                       <div class="toggle-switch">
@@ -268,7 +261,6 @@
         </div>
       </div>
 
-      <!-- Total Section -->
       <div class="total-section">
         <div class="total-header">
           <h4 class="total-title">Total</h4>
@@ -277,7 +269,6 @@
       </div>
     </div>
 
-    <!-- Right Side - Calendar -->
     <div class="calendar-container">
       <div class="calendar-header">
         <button class="nav-btn prev" @click="goToPrevMonth">‹</button>
@@ -331,12 +322,10 @@
             :data-payment-type="getPaymentTypeClassForDay(dateInfo.day) || undefined"
             @click="handleDayClick(dateInfo)"
           >
-            <!-- Display total amount above day number -->
             <div v-if="dateInfo.totalAmount !== 0" class="day-total" :class="{ 'day-total-positive': dateInfo.totalAmount > 0, 'day-total-negative': dateInfo.totalAmount < 0 }">
               {{ dateInfo.totalAmount > 0 ? '+' : '-' }}${{ Math.abs(dateInfo.totalAmount).toFixed(2) }}
             </div>
             {{ dateInfo.day }}
-            <!-- Render multiple dots based on payment count -->
             <div v-if="dateInfo.paymentCount > 0" class="payment-dots">
               <span
                 v-for="n in Math.min(dateInfo.paymentCount, 5)"
@@ -344,7 +333,6 @@
                 class="payment-dot"
                 :style="{ backgroundColor: getPaymentTypeClassForDay(dateInfo.day) ? 'var(--payment-color, #10b981)' : '#10b981' }"
               ></span>
-              <!-- Show + indicator if more than 5 payments -->
               <span v-if="dateInfo.paymentCount > 5" class="payment-dot-plus">+</span>
             </div>
           </div>
@@ -352,7 +340,6 @@
       </div>
     </div>
 
-    <!-- Edit Payment Modal -->
     <div v-if="showEditMenu" class="modal-overlay edit-modal-overlay">
       <div class="edit-modal" @click.stop>
         <div class="modal-header">
@@ -362,7 +349,6 @@
 
         <div class="modal-body">
 
-            <!-- Inventory Stepper (only show when inventory type) -->
             <div v-if="editForm.type === 'inventory'">
               <InventoryFieldsSectionStepper
                 :form-data="editForm"
@@ -376,7 +362,6 @@
               />
             </div>
 
-            <!-- Regular form fields (hidden when inventory stepper is active) -->
 
             
             <div v-else>
@@ -436,7 +421,6 @@
               </div>
             </div>
 
-          <!-- Payment Frequency (hidden when editing inventory items) -->
           <div v-if="editForm.type !== 'inventory'" class="form-group">
             <label>Payment Frequency</label>
             <div class="toggle-switch">
@@ -470,7 +454,6 @@
           </div>
         </div>
 
-        <!-- Separator between toggle-switch and btn-group -->
         <div class="form-separator"></div>
 
         <div class="modal-footer">
@@ -486,7 +469,6 @@
       </div>
     </div>
 
-    <!-- Unified Payment Modal (Add + Day Payments) -->
     <div v-if="showAddMenu" class="modal-overlay">
       <div class="add-modal" @click.stop>
         <div class="modal-header">
@@ -513,7 +495,6 @@
         </div>
 
         <div class="modal-body">
-          <!-- Day Payments Section (only show if there are payments for this day) -->
           <div v-if="selectedDayPayments.length > 0" class="day-payments-section">
             <h4 class="section-subtitle">Payments for {{ getSelectedDayDate() }}</h4>
             <h4 class="underline-subtitle"></h4>
@@ -541,10 +522,9 @@
             </div>
           </div>
 
-          <!-- Add New Payment Section -->
           <div class="add-payment-section">
             <h4 class="section-divider">{{ selectedDayPayments.length > 0 ? (addForm.type === 'inventory' ? 'Add Inventory Item' : 'Add Another Payment') :  `Payment Details for ${getSelectedDayDate()}` }}</h4>
-            <!-- Inventory Stepper (only show when inventory type) -->
+
             <div v-if="addForm.type === 'inventory'">
               <InventoryFieldsSectionStepper
                 :form-data="addForm"
@@ -558,7 +538,6 @@
               />
             </div>
 
-            <!-- Regular form fields (hidden when inventory stepper is active) -->
             <div v-else>
               <div v-if="addForm.type !== 'inventory'" class="form-group side-by-side">
                 <div class="form-field">
@@ -605,7 +584,6 @@
               </div>
             </div>
 
-            <!-- Payment Frequency (hidden when inventory stepper is active) -->
             <div v-if="addForm.type !== 'inventory'" class="form-group">
               <label>Payment Frequency</label>
               <div class="toggle-switch">
@@ -641,7 +619,6 @@
         </div>
 
         <div class="modal-footer">
-          <!-- Status Messages -->
           <div v-if="saveMessage" class="save-message" :class="saveMessageType">
             {{ saveMessage }}
           </div>
@@ -661,7 +638,6 @@
       </div>
     </div>
 
-    <!-- Payment Type Management Modal -->
     <div v-if="showPaymentTypeModal" class="modal-overlay payment-type-modal-overlay">
       <div class="payment-type-modal" @click.stop>
         <div class="modal-header">
@@ -802,7 +778,6 @@
       </div>
     </div>
 
-    <!-- Pie Chart Modal -->
     <div v-if="showPieChartModal" class="modal-overlay">
       <div class="pie-chart-modal" @click.stop>
         <div class="modal-header">
@@ -821,7 +796,7 @@
 
             <div class="pie-chart-wrapper">
               <svg class="pie-chart-svg" viewBox="0 0 200 200">
-                <!-- Pie chart slices -->
+
                 <g v-for="(slice, index) in chartData" :key="slice.type">
                   <path
                     :d="getSlicePath(slice, index)"
@@ -834,16 +809,14 @@
                     @mouseleave="hoveredSlice = null"
                   />
                 </g>
-                <!-- Center circle for donut effect -->
+
                 <circle cx="100" cy="100" r="40" fill="var(--bg-color)" opacity="0.75"/>
               </svg>
 
-              <!-- No data message overlay -->
               <div v-if="chartData.length === 0" class="stat-value">
                 <p>No information for this month</p>
               </div>
 
-              <!-- Chart Legend -->
               <div class="chart-legend-list">
                 <div
                   v-for="slice in chartData"
@@ -884,7 +857,6 @@
       </div>
     </div>
 
-    <!-- Item Chart Modal -->
     <div v-if="showItemChartModal" class="modal-overlay">
       <div class="item-chart-modal" @click.stop>
         <div class="modal-header">
@@ -901,9 +873,6 @@
               </div>
             </div>
 
-            <!-- Items Comparison Table -->
-
-            <!-- Items Comparison Table -->
             <div class="item-comparison-table">
               <div class="table-header">
                 <div class="header-cell">Item</div>
@@ -967,7 +936,6 @@
               </div>
             </div>
 
-            <!-- Selected Item Details -->
             <div v-if="selectedChartItem" class="selected-item-details">
               <h4 class="details-title">Selected Item : {{ selectedChartItem.itemName }}</h4>
               <div class="details-flex">
@@ -994,7 +962,6 @@
               </div>
             </div>
 
-            <!-- Chart Summary -->
             <div class="chart-summary">
               <div class="summary-stats">
                 <div class="stat-item">
@@ -1016,7 +983,6 @@
       </div>
     </div>
 
-    <!-- Gear Settings Menu Modal -->
     <div v-if="showGearMenu" class="modal-overlay">
       <div class="gear-modal" @click.stop>
         <div class="modal-header">
@@ -1092,19 +1058,15 @@
 import { onMounted, ref, computed } from 'vue'
 import './PaymentCalendar.css'
 
-// Import types
 import { Payment, PaymentType } from '../types/payment.types'
 
-// Import components
-import InventoryFieldsSectionStepper from './inventory-fields-section-stepper.vue'
+import InventoryFieldsSectionStepper from './primitives/inventoryStepper.vue'
 
-// Import services
 import { paymentDB } from '../services/payment-db.service'
 import { paymentService } from '../services/payment.service'
 import { paymentTypeService } from '../services/payment-type.service'
 import { calendarService } from '../services/calendar.service'
 
-// Import stores
 import {
   currentDate,
   currentMonth,
@@ -1143,7 +1105,6 @@ import {
   isFilteringEnabled
 } from '../stores/ui-state.store'
 
-// Import composables
 import {
   sortedPayments,
   currentMonthName,
@@ -1188,7 +1149,6 @@ import {
   getSimplifiedFraction
 } from '../composables/payment-computables'
 
-// Import handlers
 import {
   openModal,
   closeModal,

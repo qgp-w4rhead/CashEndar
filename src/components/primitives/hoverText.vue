@@ -147,7 +147,6 @@ const hideTooltip = () => {
   transform: translateX(-50%) translateY(2px);
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .hover-tooltip {
     max-width: 280px;
@@ -166,7 +165,6 @@ const hideTooltip = () => {
   }
 }
 
-/* Animation keyframes for better UX */
 @keyframes tooltipFadeIn {
   from {
     opacity: 0;
@@ -182,8 +180,6 @@ const hideTooltip = () => {
   animation: tooltipFadeIn 0.1s ease-out;
 }
 
-/* Handle edge cases - reposition tooltip if it goes off screen */
 .tooltip-visible {
-  /* Additional positioning logic would go here for more complex positioning */
 }
 </style>

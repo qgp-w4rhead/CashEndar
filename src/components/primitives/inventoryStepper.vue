@@ -1,6 +1,5 @@
 <template>
   <div class="inventory-stepper">
-    <!-- Steps -->
     <div class="stepper-steps" :data-current-step="currentStep">
       <div
         v-for="step in steps"
@@ -12,16 +11,13 @@
       </div>
     </div>
 
-    <!-- Progress Bar -->
     <div class="stepper-progress">
       <div class="stepper-progress-bar" :data-current-step="currentStep">
         <div class="progress-fill"></div>
       </div>
     </div>
 
-    <!-- Step Content -->
     <div class="stepper-content">
-      <!-- Step 1: Basic Item Info -->
       <div v-if="currentStep === 1" class="step-content">
         <div class="section-header">
           <h3 class="section-title">What is your Item?</h3>
@@ -78,7 +74,6 @@
         </div>
       </div>
 
-      <!-- Step 2: Inventory Details -->
       <div v-if="currentStep === 2" class="step-content">
         <div class="section-header">
           <h3 class="section-title">Inventory Details</h3>
@@ -141,7 +136,6 @@
         </div>
       </div>
 
-      <!-- Step 3: Depletion Tracking -->
       <div v-if="currentStep === 3" class="step-content">
         <div class="section-header">
           <h3 class="section-title">How fast do you go through?</h3>
@@ -183,7 +177,6 @@
         </div>
       </div>
 
-      <!-- Step 4: Purchase History -->
       <div v-if="currentStep === 4" class="step-content">
         <div class="last-purchase-section">
           <div class="section-divider">Last Purchase</div>
@@ -197,7 +190,6 @@
             <span class="resupply-label">Resupply</span>
           </div>
 
-          <!-- Last 3 Purchases List -->
           <div class="last-purchases-list">
             <div v-for="purchase in getLastPurchases(formData.title, formData.date)" :key="purchase.id" class="purchase-item">
               <span class="purchase-date">{{ purchase.date }}</span>
@@ -210,7 +202,6 @@
             </div>
           </div>
 
-          <!-- Estimated Next Purchase Date -->
           <div v-if="getLastPurchases(formData.title, formData.date).length >= 3" class="next-purchase-info">
             <label>Estimated Next Purchase:</label>
             <div class="next-purchase-date">{{ getEstimatedNextPurchaseDate(getLastPurchases(formData.title, formData.date)) || 'No data available' }}</div>
@@ -222,7 +213,6 @@
       </div>
     </div>
 
-    <!-- Step Navigation -->
     <div class="stepper-navigation">
       <button
         :class="['nav-btn btn btn-primary', { disabled: currentStep <= 1 }]"
@@ -271,7 +261,6 @@ interface FormData {
   date?: string
 }
 
-// Props
 const props = defineProps<{
   formData: FormData
   getEstimatedPortions: (data: any) => number
@@ -280,17 +269,14 @@ const props = defineProps<{
   getEstimatedNextPurchaseDate: (purchases: any[]) => string
 }>()
 
-// Emits
 const emit = defineEmits<{
   save: []
   'add-resupply': [title: string]
   'delete-purchase': [purchase: any]
 }>()
 
-// Reactive state
 const currentStep = ref(1)
 
-// Steps definition
 const steps: Step[] = [
   { id: 1, title: 'Basic Info' },
   { id: 2, title: 'Item Details' },
@@ -298,14 +284,12 @@ const steps: Step[] = [
   { id: 4, title: 'Purchase History' }
 ]
 
-// Computed props for helper functions
 const getEstimatedPortionsProps = computed(() => ({
   itemSize: props.formData.itemSize,
   portionSize: props.formData.portionSize,
   quantity: props.formData.quantity
 }))
 
-// Methods
 const goToStep = (step: number) => {
   if (step >= 1 && step <= steps.length) {
     currentStep.value = step
@@ -313,7 +297,6 @@ const goToStep = (step: number) => {
 }
 
 const handleAmountInputBlur = () => {
-  // Format amount as currency if needed
   if (props.formData.amount !== null && props.formData.amount !== '') {
     const numValue = typeof props.formData.amount === 'string' ? parseFloat(props.formData.amount) : props.formData.amount
     props.formData.amount = parseFloat(numValue.toFixed(2))
@@ -344,7 +327,6 @@ const getFrequencyDisplay = (frequency: string) => {
   margin-top: 24px;
 }
 
-/* Stepper Steps */
 .stepper-steps {
   display: flex;
   justify-content: space-between;
@@ -352,7 +334,6 @@ const getFrequencyDisplay = (frequency: string) => {
   position: relative;
 }
 
-/* Stepper Progress Bar */
 .stepper-progress {
   margin: 16px 0;
   display: flex;
@@ -376,7 +357,6 @@ const getFrequencyDisplay = (frequency: string) => {
   transition: width 0.3s ease;
 }
 
-/* Progress bar animation based on current step */
 .stepper-progress-bar[data-current-step="1"] .progress-fill { width: 12.5%; }
 .stepper-progress-bar[data-current-step="2"] .progress-fill { width: 37.5%; }
 .stepper-progress-bar[data-current-step="3"] .progress-fill { width: 62.5%; }
@@ -435,7 +415,6 @@ const getFrequencyDisplay = (frequency: string) => {
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* Step Content */
 .stepper-content {
 }
 
@@ -460,7 +439,6 @@ const getFrequencyDisplay = (frequency: string) => {
   -webkit-text-fill-color: transparent;
 }
 
-/* Step Navigation */
 .stepper-navigation {
   display: flex;
   justify-content: space-between;
@@ -486,7 +464,6 @@ const getFrequencyDisplay = (frequency: string) => {
   opacity: 0.6;
 }
 
-/* Apply existing CSS classes for styling consistency */
 .form-group {
   margin-top: 16px;
 }

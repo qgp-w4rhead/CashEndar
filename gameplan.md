@@ -43,9 +43,9 @@
 
 - [X] We need to reuse the "add-btn" styling in purple to place in the top of the "inventory-section"
 
-- [ ] Portion Size Comparison
+- [x] remove Portion Size Comparison
 
-- [ ] Portion Count Comparison
+- [x] remove Portion Count Comparison
 
 ### BUGSECTION / DESIGNFLAWS
 
@@ -86,8 +86,6 @@
 
 - [x] The default option selected for : "editForm.depletionUnit" when opening the "Edit Payment" modal should be the same as the payment we are currently editing.
 
-- [ ] Performance issue with Settings menu second layer.
-
 - [x] Portion size should be 1/2 because you eat 1 every day and there is 2 count in a pack :
     - Represent the portion size as a fraction instead
     - The fraction should be "DepletionRate/DepletionTime"
@@ -118,7 +116,7 @@
     - The average of all purchase price for an item
     - It should pre-fill as the answer for field : editForm.amount
 
-
+- [ ] Performance issue with Settings menu second layer.
 
 
 
