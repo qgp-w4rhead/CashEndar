@@ -932,7 +932,7 @@ html, body {
 .form-separator {
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
-  margin: 24px 0;
+  margin-top: 20px;
   position: relative;
 }
 
@@ -1096,15 +1096,20 @@ html, body {
 }
 
 .section-subtitle {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  width: fit-content;
+  background: linear-gradient(160deg, #1d4ed8, #3b82f6);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 16px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #1d4ed84d;
+}
+
+hr {
+  border: none;
+  border-bottom: 1px solid #1d4fd8ef;
+  width: 100%;
 }
 
 .day-payments-list {
@@ -1179,7 +1184,6 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
 }
 
 /* Label with char count */
@@ -1306,6 +1310,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   transition: all 0.2s ease;
+  max-width: 90%;
 }
 
 .payment-type-item:hover {
@@ -1446,6 +1451,10 @@ html, body {
   padding-top: 24px;
 }
 
+.existing-types-section {
+  margin-top: 16px;
+}
+
 .char-count {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
@@ -1577,8 +1586,9 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 24px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .chart-title {
@@ -1965,8 +1975,9 @@ html, body {
   margin: 0 0 16px 0;
 }
 
-.details-grid {
-  display: grid;
+.details-flex {
+  display: flex;
+  justify-content: space-between ;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
 }

@@ -381,23 +381,7 @@
             
             <div v-else>
               
-              <div class="form-group">
-	              <div class="label-with-button">
-            		<label for="paymentType">Payment Type</label>
-            		<button class="add-type-btn" @click="addPaymentTypeFromEdit" title="Add new payment type">+</button>
-            	</div>
-            	<select
-            		id="paymentType"
-            		v-model="editForm.type"
-            		class="form-input"
-            	>
-            		<option v-for="type in paymentTypes.filter(t => t.value !== 'inventory')" :key="type.value" :value="type.value">
-            		{{ type.label }}
-            		</option>
-            	</select>
-              </div>
-
-              <div class="form-group">
+              <div class="form-group side-by-side">
                 <div class="form-field">
                   <label for="paymentTitle">Payment Title</label>
                   <input
@@ -407,6 +391,21 @@
                     class="form-input"
                     placeholder="Enter payment title"
                   >
+                </div>
+                <div class="form-field">
+                  <div class="label-with-button">
+                    <label for="paymentType">Payment Type</label>
+                    <button class="add-type-btn" @click="addPaymentTypeFromEdit" title="Add new payment type">+</button>
+                  </div>
+                  <select
+                    id="paymentType"
+                    v-model="editForm.type"
+                    class="form-input"
+                  >
+                    <option v-for="type in paymentTypes.filter(t => t.value !== 'inventory')" :key="type.value" :value="type.value">
+                    {{ type.label }}
+                    </option>
+                  </select>
                 </div>
               </div>
 
@@ -517,6 +516,7 @@
           <!-- Day Payments Section (only show if there are payments for this day) -->
           <div v-if="selectedDayPayments.length > 0" class="day-payments-section">
             <h4 class="section-subtitle">Payments for {{ getSelectedDayDate() }}</h4>
+            <h4 class="underline-subtitle"></h4>
             <div class="day-payments-list">
               <div v-for="payment in selectedDayPayments" :key="payment.id" class="day-payment-item" :class="{ 'forgone-payment': forgoneInstances.has(payment.id) }">
                 <div class="payment-avatar">
@@ -544,22 +544,6 @@
           <!-- Add New Payment Section -->
           <div class="add-payment-section">
             <h4 class="section-divider">{{ selectedDayPayments.length > 0 ? (addForm.type === 'inventory' ? 'Add Inventory Item' : 'Add Another Payment') :  `Payment Details for ${getSelectedDayDate()}` }}</h4>
-            <div v-if="addForm.type !== 'inventory'" class="form-group">
-              <div class="label-with-button">
-                <label for="addPaymentType">Payment Type</label>
-                <button class="add-type-btn" @click="addPaymentTypeFromAdd" title="Add new payment type">+</button>
-              </div>
-              <select
-                id="addPaymentType"
-                v-model="addForm.type"
-                class="form-input"
-              >
-                <option v-for="type in paymentTypes.filter(t => t.value !== 'inventory')" :key="type.value" :value="type.value">
-                  {{ type.label }}
-                </option>
-              </select>
-            </div>
-
             <!-- Inventory Stepper (only show when inventory type) -->
             <div v-if="addForm.type === 'inventory'">
               <InventoryFieldsSectionStepper
@@ -576,7 +560,22 @@
 
             <!-- Regular form fields (hidden when inventory stepper is active) -->
             <div v-else>
-              <div class="form-group">
+              <div v-if="addForm.type !== 'inventory'" class="form-group side-by-side">
+                <div class="form-field">
+                  <div class="label-with-button">
+                    <label for="addPaymentType">Payment Type</label>
+                    <button class="add-type-btn" @click="addPaymentTypeFromAdd" title="Add new payment type">+</button>
+                  </div>
+                  <select
+                    id="addPaymentType"
+                    v-model="addForm.type"
+                    class="form-input"
+                  >
+                    <option v-for="type in paymentTypes.filter(t => t.value !== 'inventory')" :key="type.value" :value="type.value">
+                      {{ type.label }}
+                    </option>
+                  </select>
+                </div>
                 <div class="form-field">
                   <label for="addPaymentTitle">Payment Title</label>
                   <input
@@ -671,50 +670,9 @@
         </div>
 
         <div class="modal-body">
-          <!-- Existing Payment Types Section -->
-          <div class="existing-types-section">
-            <h4 class="section-subtitle">Existing Payment Types</h4>
-            <div class="payment-types-list">
-              <div v-for="type in paymentTypes" :key="type.id" class="payment-type-item">
-                <div class="type-info">
-                  <div class="type-preview">
-                    <div
-                      class="type-circle"
-                      :style="{ backgroundColor: type.color }"
-                    >
-                      {{ type.label.charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="type-details">
-                      <div class="type-label">{{ type.label }}</div>
-                      <div class="type-value">{{ type.value }}</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="type-actions">
-                  <button
-                    v-if="type.isCustom"
-                    class="btn btn-danger btn-sm"
-                    @click="confirmDeletePaymentType(type)"
-                    title="Delete payment type"
-                  >
-                    Delete
-                  </button>
-                  <button
-                    v-else
-                    class="btn btn-secondary btn-sm"
-                    disabled
-                    title="Cannot delete default payment types"
-                  >
-                    Default
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Add New Payment Type Section -->
           <div class="add-type-section">
             <h4 class="section-subtitle">Add New Payment Type</h4>
+            <hr></hr>
 
             <div class="form-group side-by-side">
               <div class="form-field">
@@ -786,6 +744,46 @@
                   {{ paymentTypeForm.name.charAt(0).toUpperCase() || 'A' }}
                 </div>
                 <span class="preview-text">{{ paymentTypeForm.name || 'Preview' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="existing-types-section">
+            <h4 class="section-subtitle">Existing Payment Types</h4>
+            <hr></hr>
+            <div class="payment-types-list">
+              <div v-for="type in paymentTypes" :key="type.id" class="payment-type-item">
+                <div class="type-info">
+                  <div class="type-preview">
+                    <div
+                      class="type-circle"
+                      :style="{ backgroundColor: type.color }"
+                    >
+                      {{ type.label.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="type-details">
+                      <div class="type-label">{{ type.label }}</div>
+                      <div class="type-value">{{ type.value }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="type-actions">
+                  <button
+                    v-if="type.isCustom"
+                    class="btn btn-danger btn-sm"
+                    @click="confirmDeletePaymentType(type)"
+                    title="Delete payment type"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    v-else
+                    class="btn btn-secondary btn-sm"
+                    disabled
+                    title="Cannot delete default payment types"
+                  >
+                    Default
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -971,8 +969,8 @@
 
             <!-- Selected Item Details -->
             <div v-if="selectedChartItem" class="selected-item-details">
-              <h4 class="details-title">Selected Item Details: {{ selectedChartItem.itemName }}</h4>
-              <div class="details-grid">
+              <h4 class="details-title">Selected Item : {{ selectedChartItem.itemName }}</h4>
+              <div class="details-flex">
                 <div class="detail-item">
                   <label>Portion Size:</label>
                   <span>{{ selectedChartItem.portionSize || 'Not specified' }}</span>
