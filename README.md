@@ -156,7 +156,7 @@ If you find CashEndar helpful for managing your finances, consider supporting co
 - **Report Issues** for bugs or feature requests
 
 ### Financial Support
-<a href="https://www.buymeacoffee.com/qgp-w4rhead" target="_blank">
+<a href="https://www.buymeacoffee.com/qgp.w4rhead" target="_blank">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
 </a>
 
