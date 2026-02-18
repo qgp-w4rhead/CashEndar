@@ -47,6 +47,12 @@
 
 - [x] remove Portion Count Comparison
 
+- [ ] Graph usage over time
+- [ ] Current item price in favorite store
+- [ ] Expiration date (Drops "totalCount" to 0 once reached)
+
+- [ ] Mobile mode! Allows to use the app on restricted width device use media queries
+
 ### BUGSECTION / DESIGNFLAWS
 
 - [x] The "filter-btn" currently only affects the items in the "Next payments" section : 
@@ -117,12 +123,6 @@
     - It should pre-fill as the answer for field : editForm.amount
 
 - [ ] Performance issue with Settings menu second layer.
-
-
-
-
-
-
 
 
 __________________________
