@@ -1,13 +1,17 @@
 // Calendar service for calendar logic and date management
 import { Payment, PaymentType } from '../types/payment.types'
 import { paymentService } from './payment.service'
+import { MONTH_NAMES_FULL } from '../utils/constants'
+import { parseAmount } from '../utils/date-utils'
+
+// Find the highest-amount payment from a list
+function highestAmountPayment(items: Payment[]): Payment {
+  return items.reduce((prev, current) => {
+    return parseAmount(current.amount) > parseAmount(prev.amount) ? current : prev
+  })
+}
 
 export class CalendarService {
-  private monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
-
   // Get calendar dates for current month
   getCalendarDates(
     payments: Payment[],
@@ -43,56 +47,6 @@ export class CalendarService {
 
     // Add days of current month
     for (let day = 1; day <= lastDay.getDate(); day++) {
-      const date = new Date(year, month, day)
-
-      // Check for regular payments (day-based)
-      let payment = payments.find(p => p.day === day)
-
-      // If no regular payment found, check for weekly/bi-monthly payments
-      if (!payment) {
-        const dayOfWeek = date.getDay()
-
-        // Check for weekly payments (7-day interval)
-        payment = payments.find(p => {
-          if (p.frequency !== 'weekly' || p.dayOfWeek !== dayOfWeek || !p.referenceDate) {
-            return false
-          }
-
-          const refDate = new Date(p.referenceDate)
-          refDate.setHours(0, 0, 0, 0)
-
-          const checkDate = new Date(date)
-          checkDate.setHours(0, 0, 0, 0)
-
-          const diffTime = checkDate.getTime() - refDate.getTime()
-          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-
-          // Check if this date is on a 1-week interval (7 days)
-          return diffDays >= 0 && diffDays % 7 === 0
-        })
-
-        // If no weekly payment found, check for bi-monthly payments (14-day interval)
-        if (!payment) {
-          payment = payments.find(p => {
-            if (p.frequency !== 'bi-monthly' || p.dayOfWeek !== dayOfWeek || !p.referenceDate) {
-              return false
-            }
-
-            const refDate = new Date(p.referenceDate)
-            refDate.setHours(0, 0, 0, 0)
-
-            const checkDate = new Date(date)
-            checkDate.setHours(0, 0, 0, 0)
-
-            const diffTime = checkDate.getTime() - refDate.getTime()
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-
-            // Check if this date is on a 2-week interval (14 days)
-            return diffDays >= 0 && diffDays % 14 === 0
-          })
-        }
-      }
-
       // Get all payments for this day
       const dayPayments = paymentService.getPaymentsForDay(payments, day, currentMonth, currentYear)
       const paymentCount = dayPayments.length
@@ -101,7 +55,7 @@ export class CalendarService {
       dates.push({
         day,
         isCurrentMonth: true,
-        date,
+        date: new Date(year, month, day),
         hasPayment: paymentCount > 0,
         paymentCount,
         totalAmount
@@ -127,13 +81,12 @@ export class CalendarService {
 
   // Get current month name
   getCurrentMonthName(currentMonth: number) {
-    return this.monthNames[currentMonth]
+    return MONTH_NAMES_FULL[currentMonth]
   }
 
   // Get current month year string
   getCurrentMonthYear(currentMonth: number, currentYear: number) {
-    const monthName = this.getCurrentMonthName(currentMonth)
-    return `${monthName} ${currentYear}`
+    return `${MONTH_NAMES_FULL[currentMonth]} ${currentYear}`
   }
 
   // Navigate to next/previous month
@@ -174,21 +127,9 @@ export class CalendarService {
     })
 
     if (nonEarningPayments.length > 0) {
-      // Return the type of the highest amount non-earning payment
-      const highestPayment = nonEarningPayments.reduce((prev, current) => {
-        const prevAmount = parseFloat(prev.amount.replace('$', '')) || 0
-        const currentAmount = parseFloat(current.amount.replace('$', '')) || 0
-        return currentAmount > prevAmount ? current : prev
-      })
-      return highestPayment.type
+      return highestAmountPayment(nonEarningPayments).type
     } else {
-      // If only earnings, return the type of the highest amount earning
-      const highestEarning = dayPayments.reduce((prev, current) => {
-        const prevAmount = parseFloat(prev.amount.replace('$', '')) || 0
-        const currentAmount = parseFloat(current.amount.replace('$', '')) || 0
-        return currentAmount > prevAmount ? current : prev
-      })
-      return highestEarning.type
+      return highestAmountPayment(dayPayments).type
     }
   }
 

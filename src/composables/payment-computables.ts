@@ -16,28 +16,8 @@ import {
   selectedPaymentTypes,
   isFilteringEnabled
 } from '../stores/ui-state.store'
-
-// Month name constants to avoid duplication
-const MONTH_NAMES_FULL = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-]
-
-const MONTH_NAMES_SHORT = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-]
-
-// Helper function to get current date components
-const getCurrentDateComponents = () => {
-  const today = new Date()
-  return {
-    today,
-    currentDay: today.getDate(),
-    currentMonth: today.getMonth(),
-    currentYear: today.getFullYear()
-  }
-}
+import { MONTH_NAMES_FULL, MONTH_NAMES_SHORT } from '../utils/constants'
+import { getCurrentDateComponents, parsePaymentDate, parseAmount, formatNetAmount, depletionRateToPortionsPerDay, todayMidnight } from '../utils/date-utils'
 
 // Computed property to sort and filter payments based on current sort mode and filter settings, excluding inventory items
 export const sortedPayments = computed(() => {
@@ -68,8 +48,8 @@ export const sortedPayments = computed(() => {
       switch (sortMode.value) {
         case 'date-asc': {
           // Sort by date ascending (earliest first)
-          const dateA = paymentService.parsePaymentDate(a.date)
-          const dateB = paymentService.parsePaymentDate(b.date)
+          const dateA = parsePaymentDate(a.date)
+          const dateB = parsePaymentDate(b.date)
 
           if (!dateA || !dateB) {
             return a.date.localeCompare(b.date)
@@ -83,8 +63,8 @@ export const sortedPayments = computed(() => {
 
         case 'date-desc': {
           // Sort by date descending (latest first)
-          const dateA = paymentService.parsePaymentDate(a.date)
-          const dateB = paymentService.parsePaymentDate(b.date)
+          const dateA = parsePaymentDate(a.date)
+          const dateB = parsePaymentDate(b.date)
 
           if (!dateA || !dateB) {
             return b.date.localeCompare(a.date)
@@ -98,16 +78,12 @@ export const sortedPayments = computed(() => {
 
         case 'amount-asc': {
           // Sort by amount ascending (lowest first)
-          const amountA = parseFloat(a.amount.replace(/[$,]/g, '')) || 0
-          const amountB = parseFloat(b.amount.replace(/[$,]/g, '')) || 0
-          return amountA - amountB
+          return parseAmount(a.amount) - parseAmount(b.amount)
         }
 
         case 'amount-desc': {
           // Sort by amount descending (highest first)
-          const amountA = parseFloat(a.amount.replace(/[$,]/g, '')) || 0
-          const amountB = parseFloat(b.amount.replace(/[$,]/g, '')) || 0
-          return amountB - amountA
+          return parseAmount(b.amount) - parseAmount(a.amount)
         }
 
         default:
@@ -160,11 +136,23 @@ export const calendarDates = computed(() => {
 
 // Next payments computed properties (expenses only)
 export const nextPayments = computed(() => {
-  const { today, currentDay, currentMonth, currentYear } = getCurrentDateComponents()
+  const today = new Date()
+  const currentDay = today.getDate()
+  const currentMonthToday = today.getMonth()
+  const currentYearToday = today.getFullYear()
 
-  // Define the range: from today to end of month
-  const startDate = new Date(currentYear, currentMonth, currentDay)
-  const endDate = new Date(currentYear, currentMonth + 1, 0) // Last day of current month
+  // Define the range: from today to end of selected calendar month
+  // But if we're looking at a different month, show from the 1st of that month
+  let startDate: Date
+  if (currentMonth.value === currentMonthToday && currentYear.value === currentYearToday) {
+    // Same month as today: start from today
+    startDate = new Date(currentYear.value, currentMonth.value, currentDay)
+  } else {
+    // Different month: start from 1st of selected month
+    startDate = new Date(currentYear.value, currentMonth.value, 1)
+  }
+  
+  const endDate = new Date(currentYear.value, currentMonth.value + 1, 0) // Last day of selected month
 
   return paymentService.getNextPayments(payments.value, paymentTypes.value, startDate, endDate)
 })
@@ -175,21 +163,43 @@ export const nextPaymentsTotal = computed(() => {
 })
 
 export const nextPaymentsPeriod = computed(() => {
-  const { currentDay, currentMonth, currentYear } = getCurrentDateComponents()
+  const today = new Date()
+  const currentDay = today.getDate()
+  const currentMonthToday = today.getMonth()
+  const currentYearToday = today.getFullYear()
+  
+  const monthName = MONTH_NAMES_FULL[currentMonth.value]
+  const year = currentYear.value
+  const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
 
-  const monthName = MONTH_NAMES_FULL[currentMonth]
-  const year = currentYear
-
-  return `${monthName} ${currentDay} - ${monthName} 31, ${year}`
+  if (currentMonth.value === currentMonthToday && currentYear.value === currentYearToday) {
+    // Same month as today: show from today to end of month
+    return `${monthName} ${currentDay} - ${monthName} ${lastDay}, ${year}`
+  } else {
+    // Different month: show full month
+    return `${monthName} 1 - ${monthName} ${lastDay}, ${year}`
+  }
 })
 
 // Earnings computed properties (earnings only)
 export const nextEarnings = computed(() => {
-  const { currentDay, currentMonth, currentYear } = getCurrentDateComponents()
+  const today = new Date()
+  const currentDay = today.getDate()
+  const currentMonthToday = today.getMonth()
+  const currentYearToday = today.getFullYear()
 
-  // Define the range: from today to end of month
-  const startDate = new Date(currentYear, currentMonth, currentDay)
-  const endDate = new Date(currentYear, currentMonth + 1, 0) // Last day of current month
+  // Define the range: from today to end of selected calendar month
+  // But if we're looking at a different month, show from the 1st of that month
+  let startDate: Date
+  if (currentMonth.value === currentMonthToday && currentYear.value === currentYearToday) {
+    // Same month as today: start from today
+    startDate = new Date(currentYear.value, currentMonth.value, currentDay)
+  } else {
+    // Different month: start from 1st of selected month
+    startDate = new Date(currentYear.value, currentMonth.value, 1)
+  }
+  
+  const endDate = new Date(currentYear.value, currentMonth.value + 1, 0) // Last day of selected month
 
   return paymentService.getNextEarnings(payments.value, paymentTypes.value, startDate, endDate)
 })
@@ -200,42 +210,46 @@ export const earningsTotal = computed(() => {
 })
 
 export const earningsPeriod = computed(() => {
-  const { currentDay, currentMonth, currentYear } = getCurrentDateComponents()
+  const today = new Date()
+  const currentDay = today.getDate()
+  const currentMonthToday = today.getMonth()
+  const currentYearToday = today.getFullYear()
+  
+  const monthName = MONTH_NAMES_FULL[currentMonth.value]
+  const year = currentYear.value
+  const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
 
-  const monthName = MONTH_NAMES_FULL[currentMonth]
-  const year = currentYear
-
-  return `${monthName} ${currentDay} - ${monthName} 31, ${year}`
+  if (currentMonth.value === currentMonthToday && currentYear.value === currentYearToday) {
+    // Same month as today: show from today to end of month
+    return `${monthName} ${currentDay} - ${monthName} ${lastDay}, ${year}`
+  } else {
+    // Different month: show full month
+    return `${monthName} 1 - ${monthName} ${lastDay}, ${year}`
+  }
 })
 
 // Total summary computed property
 export const totalRemainingSummary = computed(() => {
-  const paymentsAmount = parseFloat(nextPaymentsTotal.value.replace(/[$,]/g, '')) || 0
-  const earningsAmount = parseFloat(earningsTotal.value.replace(/[$,]/g, '')) || 0
+  const paymentsAmount = parseAmount(nextPaymentsTotal.value)
+  const earningsAmount = parseAmount(earningsTotal.value)
 
-  const netTotal = earningsAmount - paymentsAmount // earnings minus payments (money in minus money out)
-
-  return netTotal >= 0 ? `$${netTotal.toFixed(2)}` : `-$${Math.abs(netTotal).toFixed(2)}`
+  return formatNetAmount(earningsAmount - paymentsAmount)
 })
 
-// All payments in current month (entire month, not just from current date)
+// All payments in selected calendar month (entire month, not just from current date)
 export const allMonthPayments = computed(() => {
-  const { currentMonth, currentYear } = getCurrentDateComponents()
-
-  // Define the range: entire current month
-  const startDate = new Date(currentYear, currentMonth, 1)
-  const endDate = new Date(currentYear, currentMonth + 1, 0) // Last day of current month
+  // Define the range: entire selected calendar month
+  const startDate = new Date(currentYear.value, currentMonth.value, 1)
+  const endDate = new Date(currentYear.value, currentMonth.value + 1, 0) // Last day of selected month
 
   return paymentService.getNextPayments(payments.value, paymentTypes.value, startDate, endDate)
 })
 
-// All earnings in current month (entire month, not just from current date)
+// All earnings in selected calendar month (entire month, not just from current date)
 export const allMonthEarnings = computed(() => {
-  const { currentMonth, currentYear } = getCurrentDateComponents()
-
-  // Define the range: entire current month
-  const startDate = new Date(currentYear, currentMonth, 1)
-  const endDate = new Date(currentYear, currentMonth + 1, 0) // Last day of current month
+  // Define the range: entire selected calendar month
+  const startDate = new Date(currentYear.value, currentMonth.value, 1)
+  const endDate = new Date(currentYear.value, currentMonth.value + 1, 0) // Last day of selected month
 
   return paymentService.getNextEarnings(payments.value, paymentTypes.value, startDate, endDate)
 })
@@ -245,10 +259,7 @@ export const totalAmount = computed(() => {
   const paymentsAmount = paymentService.calculateTotalAmount(allMonthPayments.value)
   const earningsAmount = paymentService.calculateTotalAmount(allMonthEarnings.value)
 
-  // Net total: earnings minus payments (payments are treated as negative)
-  const netTotal = earningsAmount - paymentsAmount
-
-  return netTotal >= 0 ? `$${netTotal.toFixed(2)}` : `-$${Math.abs(netTotal).toFixed(2)}`
+  return formatNetAmount(earningsAmount - paymentsAmount)
 })
 
 // Chart data computed properties
@@ -274,7 +285,7 @@ export const chartData = computed((): ChartSlice[] => {
       return
     }
 
-    const amount = parseFloat(payment.amount.replace('$', '')) || 0
+    const amount = parseAmount(payment.amount)
     const currentTotal = typeTotals.get(payment.type) || 0
     typeTotals.set(payment.type, currentTotal + amount)
   })
@@ -308,9 +319,8 @@ export const chartTotal = computed(() => {
 })
 
 export const chartPeriod = computed(() => {
-  const { currentMonth, currentYear } = getCurrentDateComponents()
-  const monthName = MONTH_NAMES_FULL[currentMonth]
-  const year = currentYear
+  const monthName = MONTH_NAMES_FULL[currentMonth.value]
+  const year = currentYear.value
   return `${monthName} ${year}`
 })
 
@@ -333,26 +343,34 @@ export const getPaymentTypeClass = (paymentType: string) => {
 }
 
 // Helper function to get the dominant payment type class for a specific day
-export const getPaymentTypeClassForDay = (day: number) => {
+export const getPaymentTypeClassForDay = (day: number, date?: Date) => {
   const params = getCalendarParams()
+  // If date is provided, use its month/year, otherwise use selected month/year
+  const month = date ? date.getMonth() : params.currentMonth
+  const year = date ? date.getFullYear() : params.currentYear
+  
   return calendarService.getPaymentTypeClassForDay(
     params.payments,
     params.paymentTypes,
     day,
-    params.currentMonth,
-    params.currentYear
+    month,
+    year
   )
 }
 
 // Helper function to get the style for a specific day based on payment types
-export const getDayStyle = (day: number) => {
+export const getDayStyle = (day: number, date?: Date) => {
   const params = getCalendarParams()
+  // If date is provided, use its month/year, otherwise use selected month/year
+  const month = date ? date.getMonth() : params.currentMonth
+  const year = date ? date.getFullYear() : params.currentYear
+  
   return calendarService.getDayStyle(
     params.payments,
     params.paymentTypes,
     day,
-    params.currentMonth,
-    params.currentYear
+    month,
+    year
   )
 }
 
@@ -416,8 +434,8 @@ export const inventoryItems = computed(() => {
 
     // Sort by date (newest first) to get the most recent item details
     const sortedGroup = itemGroup.sort((a, b) => {
-      const dateA = paymentService.parsePaymentDate(a.date)
-      const dateB = paymentService.parsePaymentDate(b.date)
+      const dateA = parsePaymentDate(a.date)
+      const dateB = parsePaymentDate(b.date)
       if (!dateA || !dateB) return 0
       const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
       const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
@@ -433,7 +451,7 @@ export const inventoryItems = computed(() => {
 
     // Filter purchases to only include those on or before today
     const currentAndPastPurchases = itemGroup.filter(purchase => {
-      const parsedDate = paymentService.parsePaymentDate(purchase.date)
+      const parsedDate = parsePaymentDate(purchase.date)
       if (!parsedDate) return false
 
       const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
@@ -444,7 +462,7 @@ export const inventoryItems = computed(() => {
 
     // Calculate total cost from current and past purchases only
     const totalCost = currentAndPastPurchases.reduce((sum, payment) => {
-      return sum + (parseFloat(payment.amount.replace('$', '')) || 0)
+      return sum + parseAmount(payment.amount)
     }, 0)
 
     // Create aggregated item with latest details and total cost
@@ -499,7 +517,7 @@ export const getPortionsRemaining = (item: Payment) => {
     }
 
     // Parse purchase date
-    const parsedDate = paymentService.parsePaymentDate(payment.date)
+    const parsedDate = parsePaymentDate(payment.date)
     if (!parsedDate) return false
 
     const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
@@ -534,7 +552,7 @@ export const getPortionsRemaining = (item: Payment) => {
 
   itemPurchases.forEach(purchase => {
     // Parse purchase date
-    const parsedDate = paymentService.parsePaymentDate(purchase.date)
+    const parsedDate = parsePaymentDate(purchase.date)
     if (!parsedDate) return
 
     const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
@@ -694,7 +712,7 @@ export const getTotalPortions = computed(() => {
     const itemPurchases = payments.value.filter(payment => {
       if (payment.type !== 'inventory' || payment.itemName !== item.itemName) return false
 
-      const parsedDate = paymentService.parsePaymentDate(payment.date)
+      const parsedDate = parsePaymentDate(payment.date)
       if (!parsedDate) return false
 
       const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
@@ -747,7 +765,7 @@ export const itemChartItems = computed((): ItemChartItem[] => {
       itemName: item.itemName || 'Unnamed Item',
       portionSize: formattedPortionSize,
       portionsCount: getPortionsRemaining(item),
-      productCost: parseFloat(item.amount.replace('$', '')) || 0,
+      productCost: parseAmount(item.amount),
       depletionDate: getEstimatedDepletionDate(item),
       isTracked: Boolean(item.depletionRate)
     }
@@ -850,8 +868,8 @@ export const getLastPurchases = computed(() => {
 
     // Sort by date (most recent first)
     const sortedPurchases = allItemPurchases.sort((a, b) => {
-      const dateA = paymentService.parsePaymentDate(a.date)
-      const dateB = paymentService.parsePaymentDate(b.date)
+      const dateA = parsePaymentDate(a.date)
+      const dateB = parsePaymentDate(b.date)
 
       if (!dateA || !dateB) return 0
 
@@ -875,7 +893,7 @@ export const getEstimatedNextPurchaseDate = computed(() => {
     // Parse dates and convert to timestamps for calculation
     const purchaseDates: number[] = []
     for (const purchase of lastPurchases) {
-      const parsedDate = paymentService.parsePaymentDate(purchase.date)
+      const parsedDate = parsePaymentDate(purchase.date)
       if (parsedDate) {
         const dateObj = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
         purchaseDates.push(dateObj.getTime())
@@ -938,8 +956,8 @@ export const getAnnualCostFromPurchases = computed(() => {
       // Use scheduled frequency approach
       // Get the most recent purchase amount as the base purchase amount
       const sortedPurchases = itemPurchases.sort((a, b) => {
-        const dateA = paymentService.parsePaymentDate(a.date)
-        const dateB = paymentService.parsePaymentDate(b.date)
+        const dateA = parsePaymentDate(a.date)
+        const dateB = parsePaymentDate(b.date)
 
         if (!dateA || !dateB) return 0
 
@@ -950,7 +968,7 @@ export const getAnnualCostFromPurchases = computed(() => {
       })
 
       const mostRecentPurchase = sortedPurchases[0]
-      const purchaseAmount = parseFloat(mostRecentPurchase.amount.replace('$', '')) || 0
+      const purchaseAmount = parseAmount(mostRecentPurchase.amount)
 
       // Calculate frequency multiplier
       let frequencyMultiplier: number
@@ -989,8 +1007,8 @@ export const getAnnualCostFromPurchases = computed(() => {
 
       // Sort by date (oldest to newest)
       const sortedPurchases = itemPurchases.sort((a, b) => {
-        const dateA = paymentService.parsePaymentDate(a.date)
-        const dateB = paymentService.parsePaymentDate(b.date)
+        const dateA = parsePaymentDate(a.date)
+        const dateB = parsePaymentDate(b.date)
 
         if (!dateA || !dateB) return 0
 
@@ -1006,8 +1024,8 @@ export const getAnnualCostFromPurchases = computed(() => {
       // Calculate intervals between purchases (in days)
       const intervals: number[] = []
       for (let i = 1; i < lastThreePurchases.length; i++) {
-        const prevDate = paymentService.parsePaymentDate(lastThreePurchases[i-1].date)
-        const currDate = paymentService.parsePaymentDate(lastThreePurchases[i].date)
+        const prevDate = parsePaymentDate(lastThreePurchases[i-1].date)
+        const currDate = parsePaymentDate(lastThreePurchases[i].date)
 
         if (prevDate && currDate) {
           const prevDateObj = new Date(prevDate.year, prevDate.month, prevDate.day)
@@ -1023,7 +1041,7 @@ export const getAnnualCostFromPurchases = computed(() => {
       // Calculate average interval and cost
       const averageInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length
       const averageCost = lastThreePurchases.reduce((sum, purchase) => {
-        return sum + (parseFloat(purchase.amount.replace('$', '')) || 0)
+        return sum + parseAmount(purchase.amount)
       }, 0) / lastThreePurchases.length
 
       // Annual cost = (average cost per purchase / average days between purchases) × 365
@@ -1053,7 +1071,7 @@ export const getAnnualCostFromDepletion = computed(() => {
         return false
       }
 
-      const parsedDate = paymentService.parsePaymentDate(payment.date)
+      const parsedDate = parsePaymentDate(payment.date)
       if (!parsedDate) return false
 
       const purchaseDate = new Date(parsedDate.year, parsedDate.month, parsedDate.day)
@@ -1069,7 +1087,7 @@ export const getAnnualCostFromDepletion = computed(() => {
     let totalCost = 0
 
     itemPurchases.forEach(purchase => {
-      const purchaseCost = parseFloat(purchase.amount.replace('$', '')) || 0
+      const purchaseCost = parseAmount(purchase.amount)
       totalCost += purchaseCost
 
       // Calculate portions for this purchase

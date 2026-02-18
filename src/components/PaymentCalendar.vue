@@ -11,98 +11,8 @@
               <circle cx="12" cy="12" r="1"/>
             </svg>
           </button>
-          <div class="sort-btn-container">
-            <button class="sort-btn" :title="getSortButtonTitle()">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="8" y1="6" x2="21" y2="6"></line>
-                <line x1="8" y1="12" x2="19" y2="12"></line>
-                <line x1="8" y1="18" x2="16" y2="18"></line>
-              </svg>
-            </button>
-            <div class="sort-dropdown">
-              <button
-                class="sort-option"
-                :class="{ active: sortMode === 'date-asc' }"
-                @click="setSortMode('date-asc')"
-              >
-                Date (Earliest First)
-              </button>
-              <button
-                class="sort-option"
-                :class="{ active: sortMode === 'date-desc' }"
-                @click="setSortMode('date-desc')"
-              >
-                Date (Latest First)
-              </button>
-              <button
-                class="sort-option"
-                :class="{ active: sortMode === 'amount-asc' }"
-                @click="setSortMode('amount-asc')"
-              >
-                Amount (Lowest First)
-              </button>
-              <button
-                class="sort-option"
-                :class="{ active: sortMode === 'amount-desc' }"
-                @click="setSortMode('amount-desc')"
-              >
-                Amount (Highest First)
-              </button>
-            </div>
-          </div>
-          <div class="filter-btn-container">
-            <button class="filter-btn" title="Filter payments">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"></polygon>
-              </svg>
-            </button>
-            <div class="filter-dropdown">
-              <div class="filter-section">
-                <div class="filter-section-header">
-                  <h5 class="filter-section-title">Show</h5>
-                  <button
-                    class="filter-toggle-btn"
-                    :class="{ 'filter-on': isFilteringEnabled, 'filter-off': !isFilteringEnabled }"
-                    @click="isFilteringEnabled = !isFilteringEnabled"
-                    :title="isFilteringEnabled ? 'Disable filtering' : 'Enable filtering'"
-                  ></button>
-                </div>
-                <div class="toggle-switch">
-                  <div class="toggle-container two-options">
-                    <button
-                      :class="['toggle-option', { active: !showEarningsInNextPayments }]"
-                      @click="switchToPayments"
-                    >
-                      Payments
-                    </button>
-                    <button
-                      :class="['toggle-option', { active: showEarningsInNextPayments }]"
-                      @click="switchToEarnings"
-                    >
-                      Earnings
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="filter-section">
-                <h5 class="filter-section-title">Payment Types</h5>
-                <div class="checkbox-list">
-                  <label v-for="type in availablePaymentTypes" :key="type.value" class="checkbox-item">
-                    <input
-                      type="checkbox"
-                      :value="type.value"
-                      v-model="selectedPaymentTypes"
-                      class="checkbox-input"
-                    >
-                    <span class="checkbox-label">{{ type.label }}</span>
-                  </label>
-                </div>
-              </div>
-
-
-            </div>
-          </div>
+          <Sort />
+          <Filter />
           <button class="add-btn" @click="openAddMenu">+</button>
         </div>
       </div>
@@ -181,164 +91,14 @@
         </div>
       </div>
 
-      <div class="total-remaining-section">
-        <div class="total-remaining-header">
-          <h4 class="total-remaining-title">Total Remaining Summary</h4>
-          <span class="total-remaining-amount">{{ totalRemainingSummary }}</span>
-        </div>
-      </div>
+      <Remaining />
 
-      <div class="inventory-section">
-        <div :class="['inventory-header', { collapsed: isInventoryCollapsed }]">
-          <div class="inventory-title-area" @click="toggleInventorySection">
-            <h4 class="inventory-title">
-              <span class="tumbler-icon">▶</span>
-              Inventory Tracker
-            </h4>
-          </div>
-          <span style="margin-right: 10px;" class="inventory-total">{{ inventoryItems.length }} items</span>
-          <button class="add-btn-purple" @click.stop="openInventoryAddMenu">+</button>
-        </div>
-        <div class="inventory-content">
-          <div class="inventory-body">
-            <div class="inventory-list">
-              <div v-if="inventoryItems.length === 0" class="inventory-empty">
-                No inventory items to track
-              </div>
-              <div v-for="item in inventoryItems" :key="item.id" class="inventory-item" @click="highlightPaymentDay(item)">
-                <div class="inventory-details">
-                <div class="cost-section">
-                  <div class="">
-                    <div class="inventory-name">{{ item.itemName || 'Unnamed Item' }}</div>
-                    <div class="inventory-meta">
-                      <span class="portions-left">{{ getPortionsRemaining(item).toFixed(2) }} portions left</span>
-                      <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· {{ getEstimatedDepletionDate(item) }} remaining</span>
-                    </div>
-                    <div class="inventory-amount">{{ item.amount }}</div>
-                  </div>
-                  <div class="inventory-menu">
-                    <button class="menu-btn" @click.stop="openEditMenu(item)">⋯</button>
-                  </div> 
-                </div>
+      <Inventory />
 
-                  <div class="cost-section" v-if="getAnnualCostFromPurchases(item) || getAnnualCostFromDepletion(item)">
-                    <div class="cost-toggle">
-                      <div class="toggle-switch">
-                        <div class="toggle-container two-options">
-                          <button
-                            :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] !== false }]"
-                            @click.stop="itemCostMethodPrefs[item.id] = true"
-                          >
-                            Depletion
-                          </button>
-                          <button
-                            :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] === false, disabled: !canUsePurchaseMethod(item) }]"
-                            :disabled="!canUsePurchaseMethod(item)"
-                            :title="!canUsePurchaseMethod(item) ? 'No purchases available' : ''"
-                            @click.stop="itemCostMethodPrefs[item.id] = false"
-                          >
-                            Purchase
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="">
-                      <div class="annual-cost-amount" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
-                        ${{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).cost.toFixed(2) }}/year
-                      </div>
-                      <div class="annual-cost-method" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
-                        {{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).method }}
-                      </div>
-                      <div class="annual-cost-details" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
-                        {{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).details }}
-                      </div> 
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="total-section">
-        <div class="total-header">
-          <h4 class="total-title">Total</h4>
-          <span class="total-amount">{{ totalAmount }}</span>
-        </div>
-      </div>
+      <TotalSection />
     </div>
 
-    <div class="calendar-container">
-      <div class="calendar-header">
-        <button class="nav-btn prev" @click="goToPrevMonth">‹</button>
-        <h3 class="month-title">{{ currentMonthYear }}</h3>
-        <button class="nav-btn next" @click="goToNextMonth">›</button>
-        <button class="pie-chart-btn" @click="togglePieChart" title="View Summary Chart">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-            <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20"/>
-          </svg>
-        </button>
-        <button class="item-chart-btn" @click="toggleItemChart" title="View Inventory Items Chart">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 3v18h18"/>
-            <path d="M9 9h6"/>
-            <path d="M9 12h6"/>
-            <path d="M9 15h6"/>
-            <path d="M3 3l6 6"/>
-          </svg>
-        </button>
-      </div>
-
-      <div class="calendar-grid">
-        <div class="calendar-days">
-          <div class="day-header">S</div>
-          <div class="day-header">M</div>
-          <div class="day-header">T</div>
-          <div class="day-header">W</div>
-          <div class="day-header">T</div>
-          <div class="day-header">F</div>
-          <div class="day-header">S</div>
-        </div>
-
-        <div class="calendar-dates" :style="{ opacity: isTransitioning ? 0 : 1 }">
-          <div
-            v-for="dateInfo in calendarDates"
-            :key="`${dateInfo.date.getFullYear()}-${dateInfo.date.getMonth()}-${dateInfo.day}`"
-            :class="{
-              'date-cell': true,
-              'other-month': !dateInfo.isCurrentMonth,
-              'has-payment': dateInfo.hasPayment,
-              'today': isToday(dateInfo.date),
-              'selected': selectedDate && selectedDate.getDate() === dateInfo.day &&
-                         selectedDate.getMonth() === currentMonth &&
-                         selectedDate.getFullYear() === currentYear,
-              'pulsating': pulsatingDays.has(dateInfo.day) && dateInfo.isCurrentMonth,
-              'pre-selected': preSelectedDay === dateInfo.day && dateInfo.isCurrentMonth,
-              [getPaymentTypeClassForDay(dateInfo.day)]: dateInfo.hasPayment && getPaymentTypeClassForDay(dateInfo.day)
-            }"
-            :style="getDayStyle(dateInfo.day)"
-            :data-payment-type="getPaymentTypeClassForDay(dateInfo.day) || undefined"
-            @click="handleDayClick(dateInfo)"
-          >
-            <div v-if="dateInfo.totalAmount !== 0" class="day-total" :class="{ 'day-total-positive': dateInfo.totalAmount > 0, 'day-total-negative': dateInfo.totalAmount < 0 }">
-              {{ dateInfo.totalAmount > 0 ? '+' : '-' }}${{ Math.abs(dateInfo.totalAmount).toFixed(2) }}
-            </div>
-            {{ dateInfo.day }}
-            <div v-if="dateInfo.paymentCount > 0" class="payment-dots">
-              <span
-                v-for="n in Math.min(dateInfo.paymentCount, 5)"
-                :key="n"
-                class="payment-dot"
-                :style="{ backgroundColor: getPaymentTypeClassForDay(dateInfo.day) ? 'var(--payment-color, #10b981)' : '#10b981' }"
-              ></span>
-              <span v-if="dateInfo.paymentCount > 5" class="payment-dot-plus">+</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Calendar />
 
     <div v-if="showEditMenu" class="modal-overlay edit-modal-overlay">
       <div class="edit-modal" @click.stop>
@@ -382,15 +142,12 @@
                     <label for="paymentType">Payment Type</label>
                     <button class="add-type-btn" @click="addPaymentTypeFromEdit" title="Add new payment type">+</button>
                   </div>
-                  <select
+                  <CustomDropdown
                     id="paymentType"
                     v-model="editForm.type"
-                    class="form-input"
-                  >
-                    <option v-for="type in paymentTypes.filter(t => t.value !== 'inventory')" :key="type.value" :value="type.value">
-                    {{ type.label }}
-                    </option>
-                  </select>
+                    :options="paymentTypeOptions"
+                    placeholder="Select payment type"
+                  />
                 </div>
               </div>
 
@@ -422,33 +179,35 @@
             </div>
 
           <div v-if="editForm.type !== 'inventory'" class="form-group">
-            <label>Payment Frequency</label>
-            <div class="toggle-switch">
-              <div class="toggle-container four-options">
-                <button
-                  :class="['toggle-option', { active: editForm.frequency === 'one-time' }]"
-                  @click="editForm.frequency = 'one-time'"
-                >
-                  One-Time
-                </button>
-                <button
-                  :class="['toggle-option', { active: editForm.frequency === 'weekly' }]"
-                  @click="editForm.frequency = 'weekly'"
-                >
-                  Weekly
-                </button>
-                <button
-                  :class="['toggle-option', { active: editForm.frequency === 'bi-monthly' }]"
-                  @click="editForm.frequency = 'bi-monthly'"
-                >
-                  Bi-Monthly
-                </button>
-                <button
-                  :class="['toggle-option', { active: editForm.frequency === 'recurring' }]"
-                  @click="editForm.frequency = 'recurring'"
-                >
-                  Monthly
-                </button>
+            <div class="form-field">
+              <label>Payment Frequency</label>
+              <div class="toggle-switch">
+                <div class="toggle-container four-options">
+                  <button
+                    :class="['toggle-option', { active: editForm.frequency === 'one-time' }]"
+                    @click="editForm.frequency = 'one-time'"
+                  >
+                    One-Time
+                  </button>
+                  <button
+                    :class="['toggle-option', { active: editForm.frequency === 'weekly' }]"
+                    @click="editForm.frequency = 'weekly'"
+                  >
+                    Weekly
+                  </button>
+                  <button
+                    :class="['toggle-option', { active: editForm.frequency === 'bi-monthly' }]"
+                    @click="editForm.frequency = 'bi-monthly'"
+                  >
+                    Bi-Monthly
+                  </button>
+                  <button
+                    :class="['toggle-option', { active: editForm.frequency === 'recurring' }]"
+                    @click="editForm.frequency = 'recurring'"
+                  >
+                    Monthly
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -472,7 +231,9 @@
     <div v-if="showAddMenu" class="modal-overlay">
       <div class="add-modal" @click.stop>
         <div class="modal-header">
-          <h3>{{ selectedDayPayments.length > 0 ? 'Add New / Edit Payment' : 'Add New Payment' }}</h3>
+          <div v-if="selectedDayPayments.length === 0" class="selected-date-display" @click="openDatePicker">
+            {{ getSelectedDayDate() }}
+          </div>
           <div class="modal-toggle">
             <div class="toggle-switch">
               <div class="toggle-container two-options">
@@ -495,6 +256,7 @@
         </div>
 
         <div class="modal-body">
+          
           <div v-if="selectedDayPayments.length > 0" class="day-payments-section">
             <h4 class="section-subtitle">Payments for {{ getSelectedDayDate() }}</h4>
             <h4 class="underline-subtitle"></h4>
@@ -523,9 +285,9 @@
           </div>
 
           <div class="add-payment-section">
-            <h4 class="section-divider">{{ selectedDayPayments.length > 0 ? (addForm.type === 'inventory' ? 'Add Inventory Item' : 'Add Another Payment') :  `Payment Details for ${getSelectedDayDate()}` }}</h4>
 
             <div v-if="addForm.type === 'inventory'">
+              <h3>{{ 'Add Inventory Item' }}</h3>
               <InventoryFieldsSectionStepper
                 :form-data="addForm"
                 :get-estimated-portions="getEstimatedPortionsFromData"
@@ -539,24 +301,22 @@
             </div>
 
             <div v-else>
-              <div v-if="addForm.type !== 'inventory'" class="form-group side-by-side">
+              <h3>{{ 'Add New Payment' }}</h3>
+              <div class="form-group side-by-side">
                 <div class="form-field">
-                  <div class="label-with-button">
-                    <label for="addPaymentType">Payment Type</label>
-                    <button class="add-type-btn" @click="addPaymentTypeFromAdd" title="Add new payment type">+</button>
+                  <div class="label-with-button payment-type-container">
+                    <label for="addPaymentType" class="payment-type-end payment-type-clickable" @click="addPaymentTypeFromAdd">Payment Type</label>
                   </div>
-                  <select
+                  <CustomDropdown
                     id="addPaymentType"
                     v-model="addForm.type"
-                    class="form-input"
-                  >
-                    <option v-for="type in paymentTypes.filter(t => t.value !== 'inventory')" :key="type.value" :value="type.value">
-                      {{ type.label }}
-                    </option>
-                  </select>
+                    :options="paymentTypeOptions"
+                    placeholder="Select payment type"
+                    class="dropdown-align-end"
+                  />
                 </div>
                 <div class="form-field">
-                  <label for="addPaymentTitle">Payment Title</label>
+                  <label for="addPaymentTitle">Product / Service</label>
                   <input
                     id="addPaymentTitle"
                     v-model="addForm.title"
@@ -568,7 +328,7 @@
               </div>
 
               <div class="form-group">
-                <div class="form-field">
+                <div class="form-field amount-centered">
                   <label for="addPaymentAmount">Amount</label>
                   <input
                     id="addPaymentAmount"
@@ -585,7 +345,7 @@
             </div>
 
             <div v-if="addForm.type !== 'inventory'" class="form-group">
-              <label>Payment Frequency</label>
+              <label class="frequency-centered">Payment Frequency</label>
               <div class="toggle-switch">
                 <div class="toggle-container four-options">
                   <button
@@ -687,39 +447,43 @@
             </div>
 
             <div class="form-group">
-              <label>Color</label>
-              <div class="color-picker side-by-side">
-                <div class="color-presets">
-                  <button
-                    v-for="preset in colorPresets"
-                    :key="preset.color"
-                    :class="['color-preset', { active: paymentTypeForm.color === preset.color }]"
-                    :style="{ backgroundColor: preset.color }"
-                    @click="paymentTypeForm.color = preset.color"
-                    :title="preset.name"
-                  ></button>
-                </div>
-                <div class="custom-color-input">
-                  <input
-                    type="color"
-                    v-model="paymentTypeForm.color"
-                    class="color-input"
-                  >
-                  <span class="color-value">{{ paymentTypeForm.color }}</span>
+              <div class="form-field">
+                <label>Color</label>
+                <div class="color-picker side-by-side">
+                  <div class="color-presets">
+                    <button
+                      v-for="preset in colorPresets"
+                      :key="preset.color"
+                      :class="['color-preset', { active: paymentTypeForm.color === preset.color }]"
+                      :style="{ backgroundColor: preset.color }"
+                      @click="paymentTypeForm.color = preset.color"
+                      :title="preset.name"
+                    ></button>
+                  </div>
+                  <div class="custom-color-input">
+                    <input
+                      type="color"
+                      v-model="paymentTypeForm.color"
+                      class="color-input"
+                    >
+                    <span class="color-value">{{ paymentTypeForm.color }}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div class="form-group">
-              <label>Preview</label>
-              <div class="color-preview">
-                <div
-                  class="preview-circle"
-                  :style="{ backgroundColor: paymentTypeForm.color }"
-                >
-                  {{ paymentTypeForm.name.charAt(0).toUpperCase() || 'A' }}
+              <div class="form-field">
+                <label>Preview</label>
+                <div class="color-preview">
+                  <div
+                    class="preview-circle"
+                    :style="{ backgroundColor: paymentTypeForm.color }"
+                  >
+                    {{ paymentTypeForm.name.charAt(0).toUpperCase() || 'A' }}
+                  </div>
+                  <span class="preview-text">{{ paymentTypeForm.name || 'Preview' }}</span>
                 </div>
-                <span class="preview-text">{{ paymentTypeForm.name || 'Preview' }}</span>
               </div>
             </div>
           </div>
@@ -1052,6 +816,14 @@
       </div>
     </div>
   </div>
+
+    <!-- Custom Date Picker Component -->
+    <DatePicker
+      :is-visible="showDatePicker"
+      :initial-date="selectedDate"
+      @close="closeDatePicker"
+      @select="handleDateSelection"
+    />
 </template>
 
 <script setup lang="ts">
@@ -1061,11 +833,19 @@ import './PaymentCalendar.css'
 import { Payment, PaymentType } from '../types/payment.types'
 
 import InventoryFieldsSectionStepper from './primitives/inventoryStepper.vue'
+import DatePicker from './primitives/DatePicker.vue'
+import Sort from './sidebar/Sort.vue'
+import Filter from './sidebar/Filter.vue'
+import Remaining from './sidebar/Remaining.vue'
+import Inventory from './sidebar/Inventory.vue'
+import TotalSection from './sidebar/TotalSection.vue'
+import Calendar from './calendar/Calendar.vue'
+import CustomDropdown from './primitives/CustomDropdown.vue'
 
-import { paymentDB } from '../services/payment-db.service'
 import { paymentService } from '../services/payment.service'
 import { paymentTypeService } from '../services/payment-type.service'
 import { calendarService } from '../services/calendar.service'
+import { COLOR_PRESETS } from '../utils/constants'
 
 import {
   currentDate,
@@ -1199,59 +979,16 @@ import {
   handleAmountInputKeyUp,
   addResupply,
   deleteSinglePurchase,
-  toggleForgoPayment
+  toggleForgoPayment,
+  openDatePicker,
+  closeDatePicker,
+  handleDateSelection,
+  showDatePicker
 } from '../composables/payment-handlers'
 
-// Color presets
-const colorPresets = [
-  { name: 'Red', color: '#ef4444' },
-  { name: 'Blue', color: '#3b82f6' },
-  { name: 'Yellow', color: '#eab308' },
-  { name: 'Green', color: '#10b981' },
-  { name: 'Purple', color: '#8b5cf6' },
-  { name: 'Pink', color: '#ec4899' },
-  { name: 'Orange', color: '#f97316' }
-]
+// Color presets from shared constants
+const colorPresets = COLOR_PRESETS
 
-// Reactive state for annual cost method preferences (item ID -> boolean)
-const itemCostMethodPrefs = ref<Record<string, boolean>>({})
-
-// Helper function to check if a date is today
-const isToday = (date: Date) => {
-  const today = new Date()
-  return date.getDate() === today.getDate() &&
-         date.getMonth() === today.getMonth() &&
-         date.getFullYear() === today.getFullYear()
-}
-
-// Set sort mode directly
-const setSortMode = (mode: 'date-asc' | 'date-desc' | 'amount-asc' | 'amount-desc') => {
-  sortMode.value = mode
-}
-
-// Get sort button title based on current sort mode
-const getSortButtonTitle = () => {
-  switch (sortMode.value) {
-    case 'date-asc':
-      return 'Sort by date (earliest first)'
-    case 'date-desc':
-      return 'Sort by date (latest first)'
-    case 'amount-asc':
-      return 'Sort by amount (lowest first)'
-    case 'amount-desc':
-      return 'Sort by amount (highest first)'
-    default:
-      return 'Sort payments'
-  }
-}
-
-// Helper function to check if purchase method can be used for an item
-const canUsePurchaseMethod = (item: Payment) => {
-  // Can use purchase method if item has at least 1 purchase (always calculate from last purchase)
-  const hasPurchases = getLastPurchases.value(item.itemName, item.date).length >= 1
-
-  return hasPurchases
-}
 
 // Helper function to display frequency in a user-friendly format
 const getFrequencyDisplay = (frequency: string) => {
@@ -1269,16 +1006,6 @@ const getFrequencyDisplay = (frequency: string) => {
   }
 }
 
-// Computed property for available payment types based on current filter mode
-const availablePaymentTypes = computed(() => {
-  if (showEarningsInNextPayments.value) {
-    // Show earning types
-    return paymentTypes.value.filter(type => type.isEarning)
-  } else {
-    // Show payment/expense types
-    return paymentTypes.value.filter(type => !type.isEarning)
-  }
-})
 
 // Helper function to get avatar style for custom payment types
 const getAvatarStyle = (paymentTypeValue: string) => {
@@ -1289,26 +1016,16 @@ const getAvatarStyle = (paymentTypeValue: string) => {
   return {}
 }
 
-// Filter methods
-const clearFilters = () => {
-  showEarningsInNextPayments.value = false
-  selectedPaymentTypes.value = []
-}
+// Convert paymentTypes to dropdown options format
+const paymentTypeOptions = computed(() => {
+  return paymentTypes.value
+    .filter(t => t.value !== 'inventory')
+    .map(type => ({
+      value: type.value,
+      label: type.label
+    }))
+})
 
-const applyFilters = () => {
-  // Filters are applied automatically through reactive computed properties
-  // This method can be used for any additional filter logic if needed
-}
-
-const switchToPayments = () => {
-  showEarningsInNextPayments.value = false
-  selectedPaymentTypes.value = []
-}
-
-const switchToEarnings = () => {
-  showEarningsInNextPayments.value = true
-  selectedPaymentTypes.value = []
-}
 
 // Toggle between payment and inventory modes in add modal
 const setPaymentMode = () => {

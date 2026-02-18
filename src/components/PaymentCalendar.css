@@ -114,240 +114,6 @@ html, body {
   transform: scale(1.05);
 }
 
-.sort-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.sort-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-}
-
-.sort-btn-container {
-  position: relative;
-}
-
-.sort-dropdown {
-  margin: 10px 0px 0px 0px;
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  min-width: 180px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.2s ease;
-  z-index: 1000;
-}
-
-.sort-btn-container:hover .sort-dropdown {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.filter-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.filter-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-}
-
-.filter-btn-container {
-  position: relative;
-}
-
-.filter-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  min-width: 220px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.2s ease;
-  z-index: 1000;
-  padding: 0px 16px 16px 16px;
-  margin: 8px;
-}
-
-.filter-btn-container:hover .filter-dropdown {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.filter-toggle-btn {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.filter-toggle-btn:hover {
-  transform: scale(1.1);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-.filter-toggle-btn.filter-on {
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
-}
-
-.filter-toggle-btn.filter-off {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
-}
-
-/* Filter Dropdown Sections */
-.filter-section {
-  margin-bottom: 16px;
-}
-
-.filter-section:last-child {
-  margin-bottom: 0;
-}
-
-/* Filter Section Header */
-.filter-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.filter-section-title {
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-/* Checkbox List */
-.checkbox-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 240px;
-  overflow-y: auto;
-}
-
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.checkbox-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.checkbox-input {
-  width: 16px;
-  height: 16px;
-  accent-color: #3b82f6;
-  cursor: pointer;
-}
-
-.checkbox-label {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  user-select: none;
-}
-
-/* Filter Actions */
-.filter-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.sort-option {
-  display: block;
-  width: 100%;
-  padding: 12px 16px;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.8);
-  text-align: left;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 0;
-}
-
-.sort-option:first-child {
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-}
-
-.sort-option:last-child {
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
-
-.sort-option:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.sort-option.active {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
-}
-
-.sort-option:not(:last-child) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .add-btn {
   background: linear-gradient(135deg, #10b981, #059669);
   border: none;
@@ -497,309 +263,6 @@ html, body {
   color: white;
 }
 
-/* Right Side - Calendar */
-.calendar-container {
-  flex: 1;
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-}
-
-.calendar-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  gap: 20px;
-}
-
-.nav-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 80px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 20px;
-  transition: all 0.2s ease;
-}
-
-.nav-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.pie-chart-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s ease;
-}
-
-.pie-chart-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-}
-
-.pie-chart-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.item-chart-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  margin-left: 8px;
-}
-
-.item-chart-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
-}
-
-.item-chart-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.month-title {
-  color: white;
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0;
-  min-width: 150px;
-  text-align: center;
-}
-
-.calendar-grid {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.calendar-days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.day-header {
-  color: rgba(255, 255, 255, 0.7);
-  text-align: center;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 12px;
-}
-
-.calendar-dates {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  flex: 1;
-  transition: opacity 0.15s ease-in-out;
-  opacity: 1;
-}
-
-.date-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  padding: 8px 4px;
-}
-
-/* Day total amount displayed above day number */
-.day-total {
-  color: #d1d5db;
-  font-size: 11px;
-  font-weight: 600;
-  margin-bottom: 0px;
-  text-align: center;
-  line-height: 1;
-}
-
-.day-total-positive {
-  color: #43ffc0 !important; /* green for earnings */
-}
-
-.day-total-negative {
-  color: #ff7575 !important; /* red for expenses */
-}
-
-.date-cell:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.date-cell.has-payment {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
-  color: #10b981;
-}
-
-/* Payment dots container */
-.payment-dots {
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 2px;
-  align-items: center;
-}
-
-/* Individual payment dots */
-.payment-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* Plus indicator for more than 5 payments */
-.payment-dot-plus {
-  font-size: 10px;
-  font-weight: bold;
-  color: #10b981;
-  line-height: 1;
-  margin-left: 1px;
-}
-
-/* Dynamic payment type colors for calendar days */
-.date-cell.rent {
-  background-color: rgba(239, 68, 68, 0.05) !important;
-  border-color: #ef4444 !important;
-  border-width: 2px !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-
-
-.date-cell.utility {
-  background-color: rgba(245, 158, 11, 0.05) !important;
-  border-color: #f59e0b !important;
-  border-width: 2px !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-
-
-.date-cell.credit {
-  background-color: rgba(6, 182, 212, 0.05) !important;
-  border-color: #06b6d4 !important;
-  border-width: 2px !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-
-
-.date-cell.subscription {
-  background-color: rgba(16, 185, 129, 0.05) !important;
-  border-color: #10b981 !important;
-  border-width: 2px !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-
-
-.date-cell.earnings {
-  background-color: rgba(16, 185, 129, 0.05) !important;
-  border-color: #10b981 !important;
-  border-width: 2px !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-
-
-/* Support for custom payment types with dynamic colors */
-.date-cell[data-payment-type] {
-  background-color: rgba(255, 255, 255, 0.02) !important;
-  border-color: var(--payment-color, #10b981) !important;
-  border-width: 2px !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-
-
-.date-cell.other-month {
-  color: rgba(255, 255, 255, 0.3);
-  cursor: default;
-}
-
-.date-cell.other-month:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.date-cell.today {
-  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-  border-color: #0ea5e9;
-  color: white;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.5);
-}
-
-.date-cell.selected {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  border-color: #3b82f6;
-  color: white;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-}
-
-.date-cell.selected:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-}
-
-.date-cell.pulsating {
-  animation: pulse 2s ease-in-out infinite;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  border-color: #3b82f6;
-  color: white;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-}
-
-.date-cell.pre-selected {
-  background: linear-gradient(135deg, #494cff, #1e48c5);
-  border-color: #0b69f5b9;
-  color: white;
-  box-shadow: 0 0 0 2px #0b69f582;
-  transform: scale(1.04);
-}
-
-.date-cell.pre-selected:hover {
-  background: linear-gradient(135deg, #494cff, #123fc5);
-  box-shadow: 0 0 0 3px #0099ffa2;
-}
-
 /* Edit Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -866,21 +329,6 @@ html, body {
   }
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-  }
-}
-
 .modal-header {
   position: static;
   display: flex;
@@ -898,6 +346,13 @@ html, body {
 .modal-header h3 {
   color: white;
   margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.add-payment-section h3 {
+  color: white;
+  margin: 0 0 16px 0;
   font-size: 20px;
   font-weight: 600;
 }
@@ -979,12 +434,86 @@ html, body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.form-group label {
+.form-field label {
   display: block;
   color: white;
   font-weight: 600;
   margin-bottom: 8px;
   font-size: 14px;
+}
+
+.form-field.amount-centered {
+  text-align: center;
+}
+
+.form-field.amount-centered label {
+  text-align: center;
+}
+
+.form-field.amount-centered .form-input {
+  margin: 0 auto;
+  text-align: center;
+  width: auto;
+  max-width: 100px;
+}
+
+/* Hide stepper controls on number inputs */
+.form-field.amount-centered .form-input::-webkit-outer-spin-button,
+.form-field.amount-centered .form-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.form-field.amount-centered .form-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.form-field.amount-centered .form-input:focus::placeholder {
+  color: transparent;
+}
+
+.frequency-centered {
+  text-align: center;
+  display: block;
+  color: white;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.payment-type-end {
+  justify-content: end;
+  display: flex;
+  color: white;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.payment-type-clickable {
+  color: #32ff7e !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: underline;
+  text-decoration-color: rgba(50, 255, 126, 0.3);
+  text-underline-offset: 4px;
+}
+
+.payment-type-clickable:hover {
+  color: #00ff66 !important;
+  text-decoration-color: rgba(0, 255, 102, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Override label-with-button for payment type to align label to end */
+.payment-type-container {
+  justify-content: flex-end !important;
+}
+
+/* Align CustomDropdown to end */
+.dropdown-align-end {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .form-input {
@@ -1175,8 +704,29 @@ hr {
   margin-bottom: 40px;
 }
 
-.add-payment-section {
-  /* Additional styling for the add payment section if needed */
+.selected-date-display {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 16px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  width: fit-content;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selected-date-display:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 /* Label with button */
@@ -1219,7 +769,9 @@ hr {
 .toggle-switch {
   display: flex;
   justify-content: center;
-  margin-top: 2vh;
+  margin-top: 0;
+  height: 48px;
+  align-items: center;
 }
 
 .toggle-container {
@@ -1229,6 +781,8 @@ hr {
   border-radius: 8px;
   padding: 4px;
   gap: 4px;
+  height: 40px;
+  align-items: center;
 }
 
 .toggle-container.three-options {
@@ -1248,6 +802,11 @@ hr {
   flex: 1;
   text-align: center;
   min-width: 80px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .toggle-container.three-options .toggle-option {
@@ -2394,261 +1953,6 @@ hr {
   font-size: 14px;
   padding: 20px 0;
   font-style: italic;
-}
-
-/* Inventory Tracker Section */
-.inventory-section {
-  margin-top: 24px;
-  background: linear-gradient(270deg, #8b5cf886 0%, #a855f7 50%, #8b5cf8 100%);
-  border-radius: 12px;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  overflow: show;
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
-}
-
-.inventory-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
-  transition: all 0.2s ease;
-  background: rgba(139, 92, 246, 0.02);
-}
-
-.inventory-title-area {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  cursor: pointer;
-}
-
-.inventory-header:hover {
-  background: rgba(139, 92, 246, 0.05);
-}
-
-.inventory-title {
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.inventory-total {
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  background: rgba(139, 92, 246, 0.3);
-  padding: 4px 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(180,130, 246, 0.9);}
-
-.inventory-content {
-  max-height: 290px;
-  opacity: 1;
-  transition: all 0.3s ease;
-  overflow: auto;
-}
-
-.inventory-header.collapsed + .inventory-content {
-  max-height: 0;
-  opacity: 0;
-}
-
-.inventory-body {
-  padding: 6px 24px 24px 24px;
-}
-
-.inventory-list {
-  /* Additional spacing if needed */
-}
-
-.inventory-item {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  margin-bottom: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  
-  border: 2px solid rgba(139, 92, 246, 0.1);
-  transition: all 0.2s ease;
-}
-
-.inventory-item:hover {
-  border-color: rgb(168, 131, 255);
-}
-
-.inventory-avatar {
-  margin-right: 16px;
-}
-
-.avatar-circle.inventory {
-  background: linear-gradient(135deg, #8b5cf6, #a855f7);
-  border: 2px solid rgba(139, 92, 246, 0.3);
-}
-
-.inventory-details {
-  flex: 1;
-}
-
-.inventory-name {
-  color: white;
-  font-weight: 600;
-  font-size: 16px;
-  margin-bottom: 4px;
-}
-
-.inventory-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.portions-left {
-  color: #cdb7ff;
-  font-weight: 500;
-}
-
-.depletion-date {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.inventory-amount {
-  font-weight: 700;
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.inventory-empty {
-  text-align: center;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
-  padding: 20px 0;
-  font-style: italic;
-}
-
-.inventory-menu {
-  margin-left: auto;
-  margin-right: 5px;
-}
-
-/* Annual Cost Estimate Section */
-.cost-section {
-  margin-top: 12px;
-  padding: 12px;
-  background: rgba(139, 92, 246, 0.5);
-  border-radius: 8px;
-  border: 2px solid rgba(139, 92, 246, 0.5);
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.cost-section:hover {
-  border-color: rgb(168, 131, 255);
-}
-
-.cost-toggle {
-  margin-bottom: 8px;
-}
-
-.annual-cost-display {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.annual-cost-amount {
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: monospace;
-}
-
-.annual-cost-method {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.annual-cost-details {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1.3;
-}
-
-/* Total Summary Section */
-.total-remaining-section {
-  margin-top: 24px;
-  background: linear-gradient(270deg, #1d4fd886, #494cff 100%);
-  border-radius: 12px;
-  border: 1px solid rgba(124, 58, 237, 0.3);
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.2);
-}
-
-.total-remaining-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
-}
-
-.total-remaining-title {
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.total-remaining-amount {
-  color: white;
-  font-size: 20px;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Total Section */
-.total-section {
-  margin-top: 24px;
-  background: linear-gradient(270deg, #10b98186, #059669 100%);
-  border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
-}
-
-.total-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
-}
-
-.total-title {
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.total-amount {
-  color: white;
-  font-size: 20px;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive design */

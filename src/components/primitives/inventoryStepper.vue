@@ -6,32 +6,26 @@
         :key="step.id"
         :class="['stepper-step', { active: currentStep === step.id, completed: step.id < currentStep }]"
       >
-        <div class="step-number">{{ step.id }}</div>
-        <div class="step-title">{{ step.title }}</div>
+        <div class="step-number" @click="goToStep(step.id)">{{ step.id }}</div>
+        <div class="step-title" @click="goToStep(step.id)">{{ step.title }}</div>
       </div>
     </div>
-
-    <div class="stepper-progress">
-      <div class="stepper-progress-bar" :data-current-step="currentStep">
-        <div class="progress-fill"></div>
-      </div>
-    </div>
-
     <div class="stepper-content">
+      
       <div v-if="currentStep === 1" class="step-content">
         <div class="section-header">
           <h3 class="section-title">What is your Item?</h3>
         </div>
 
         <div class="form-group side-by-side">
-          <div class="form-field">
-            <label for="stepperItemName">Item Name</label>
+          <div class="form-field form-field-right">
+            <label for="stepperItemName">Product Name</label>
             <input
               id="stepperItemName"
               v-model="formData.title"
               type="text"
               class="form-input"
-              placeholder="Enter item name"
+              placeholder="Enter product name"
             >
           </div>
           <div class="form-field">
@@ -47,7 +41,7 @@
         </div>
 
         <div class="form-group side-by-side">
-          <div class="form-field">
+          <div class="form-field form-field-right">
             <label for="stepperCost">Cost</label>
             <input
               id="stepperCost"
@@ -91,37 +85,29 @@
               class="form-input value-input"
               placeholder="e.g., 500"
             >
-            <select
+            <CustomDropdown
               v-model="formData.itemSizeUnit"
-              class="form-input unit-select"
-            >
-              <option value="single">single</option>
-              <option value="gram">grams</option>
-              <option value="kg">kg</option>
-              <option value="ml">ml</option>
-              <option value="liter">liter</option>
-              <option value="cup">cups</option>
-              <option value="tablespoon">tablespoons</option>
-              <option value="teaspoon">teaspoons</option>
-              <option value="piece">pieces</option>
-              <option value="can">cans</option>
-              <option value="bottle">bottles</option>
-            </select>
+              :options="itemSizeUnitOptions"
+              placeholder="Select unit"
+            />
           </div>
         </div>
 
         <div class="form-group side-by-side">
           <div class="form-field">
             <label for="stepperPortionSize">Portion Size</label>
-            <input
-              id="stepperPortionSize"
-              v-model.number="formData.portionSize"
-              type="number"
-              step="0.01"
-              min="0"
-              class="form-input value-input"
-              placeholder="e.g., 250"
-            >
+            <div class="value-unit-input">
+              <input
+                id="stepperPortionSize"
+                v-model.number="formData.portionSize"
+                type="number"
+                step="0.01"
+                min="0"
+                class="form-input value-input"
+                placeholder="e.g., 250"
+              >
+              <span class="unit-mnemonic">{{ getUnitMnemonic(formData.itemSizeUnit) }}</span>
+            </div>
           </div>
           <div class="form-field">
             <label>Estimated Portions</label>
@@ -153,26 +139,49 @@
               class="form-input value-input"
               placeholder="e.g., 2"
             >
-            <select
+            <CustomDropdown
               v-model="formData.depletionUnit"
-              class="form-input unit-select"
-            >
-              <option value="day">portions/day</option>
-              <option value="week">portions/week</option>
-              <option value="month">portions/month</option>
-            </select>
+              :options="depletionUnitOptions"
+              placeholder="Select unit"
+            />
           </div>
+          <div class="section-divider" style="margin-top: 16px; margin-bottom: 16px;"></div>
           <div style="margin-top: 10px;">
             <span class="unit-display">Your supply will last</span>
             <input
-              :value="getDepletionTimeInDays({ depletionRate: formData.depletionRate, depletionUnit: formData.depletionUnit, ...getEstimatedPortionsProps })"
+              :value="getDepletionTimeInDisplayUnit({ depletionRate: formData.depletionRate, depletionUnit: formData.depletionUnit, ...getEstimatedPortionsProps })"
               type="number"
               readonly
               class="form-input readonly-field value-input"
               placeholder="Time until depletion"
               step="0.01"
             >
-            <span class="unit-display">{{ formData.depletionUnit }}s</span>
+            <div class="unit-display-dropdown" @click="toggleUnitDropdown">
+              <span class="unit-display">{{ getDisplayUnit() }}s</span>
+              <div class="dropdown-arrow" :class="{ 'open': showUnitDropdown }">▼</div>
+              <div v-if="showUnitDropdown" class="unit-dropdown">
+                <div 
+                  v-for="unit in availableUnits" 
+                  :key="unit.value"
+                  class="unit-option"
+                  @click.stop="selectDisplayUnit(unit.value)"
+                >
+                  {{ unit.label }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top: 8px;">
+            <span class="unit-display">and cost</span>
+            <input
+              :value="getCostPerPortion()"
+              type="number"
+              readonly
+              class="form-input readonly-field value-input"
+              placeholder="Cost per portion"
+              step="0.01"
+            >
+            <span class="unit-display">per portion</span>
           </div>
         </div>
       </div>
@@ -213,6 +222,12 @@
       </div>
     </div>
 
+    <div class="stepper-progress">
+      <div class="stepper-progress-bar" :data-current-step="currentStep">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+
     <div class="stepper-navigation">
       <button
         :class="['nav-btn btn btn-primary', { disabled: currentStep <= 1 }]"
@@ -221,27 +236,38 @@
       >
         Previous
       </button>
-      <div class="step-indicator">{{ currentStep }} of {{ steps.length }}</div>
-      <button
-        v-if="currentStep < steps.length"
-        class="nav-btn btn btn-success"
-        @click="goToStep(currentStep + 1)"
-      >
-        Next
-      </button>
-      <button
-        v-else
-        class="nav-btn btn btn-success"
-        @click="$emit('save')"
-      >
-        Save Payment
-      </button>
+      <div class="nav-buttons-right">
+        <button
+          v-if="currentStep === 1"
+          class="quick-add-btn"
+          @click="quickAdd"
+          :disabled="!formData.title || !formData.amount"
+          :title="!formData.title || !formData.amount ? 'Product name and cost are required' : 'Quick add using basic info only'"
+        >
+          Quick Add
+        </button>
+        <button
+          v-if="currentStep < steps.length"
+          class="nav-btn btn btn-success"
+          @click="goToStep(currentStep + 1)"
+        >
+          Next
+        </button>
+        <button
+          v-else
+          class="nav-btn btn btn-success"
+          @click="$emit('save')"
+        >
+          Save Payment
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps, defineEmits } from 'vue'
+import { ref, computed, watch } from 'vue'
+import CustomDropdown from './CustomDropdown.vue'
 
 interface Step {
   id: number
@@ -276,6 +302,8 @@ const emit = defineEmits<{
 }>()
 
 const currentStep = ref(1)
+const showUnitDropdown = ref(false)
+const displayUnit = ref(props.formData.depletionUnit || 'day')
 
 const steps: Step[] = [
   { id: 1, title: 'Basic Info' },
@@ -317,6 +345,138 @@ const getFrequencyDisplay = (frequency: string) => {
       return frequency
   }
 }
+
+const quickAdd = () => {
+  // Validate required fields
+  if (!props.formData.title || !props.formData.amount) {
+    return
+  }
+  
+  // Emit save event directly, bypassing steps 2-4
+  emit('save')
+}
+
+const availableUnits = [
+  { value: 'day', label: 'Day' },
+  { value: 'week', label: 'Week' },
+  { value: 'month', label: 'Month' }
+]
+
+const itemSizeUnitOptions = [
+  { value: 'ml', label: 'ml', approximation: '(1/1000 L)', approximationImperial: '(~0.034 fl oz)', group: 'Volume' },
+  { value: 'liter', label: 'liter', approximation: '', approximationImperial: '(~33.8 fl oz)', group: 'Volume' },
+  { value: 'cup', label: 'cup', approximation: '(~237 ml)', approximationImperial: '(~8 fl oz)', group: 'Volume' },
+  { value: 'tablespoon', label: 'tablespoons', approximation: '(~15 ml)', approximationImperial: '(~0.5 fl oz)', group: 'Volume' },
+  { value: 'teaspoon', label: 'teaspoons', approximation: '(~5 ml)', approximationImperial: '(~0.17 fl oz)', group: 'Volume' },
+  { value: 'gram', label: 'grams', approximation: '(1/1000 kg)', approximationImperial: '(~0.035 oz)', group: 'Weight' },
+  { value: 'kg', label: 'kg', approximation: '', approximationImperial: '(~2.2 lb)', group: 'Weight' },
+  { value: 'ounce', label: 'ounces', approximation: '(1/16 lb)', approximationImperial: '(~28.35 g)', group: 'Weight' },
+  { value: 'pound', label: 'pounds', approximation: '(16 oz)', approximationImperial: '(~453.6 g)', group: 'Weight' },
+  { value: 'single', label: 'single', group: 'Quantity' },
+  { value: 'piece', label: 'pieces', group: 'Quantity' },
+  { value: 'can', label: 'cans', group: 'Quantity' },
+  { value: 'bottle', label: 'bottles', group: 'Quantity' }
+]
+
+const depletionUnitOptions = [
+  { value: 'day', label: 'portions/day' },
+  { value: 'week', label: 'portions/week' },
+  { value: 'month', label: 'portions/month' }
+]
+
+const toggleUnitDropdown = () => {
+  showUnitDropdown.value = !showUnitDropdown.value
+}
+
+const getDisplayUnit = () => {
+  return displayUnit.value
+}
+
+const selectDisplayUnit = (unit: string) => {
+  displayUnit.value = unit
+  showUnitDropdown.value = false
+}
+
+const getUnitMnemonic = (unit: string) => {
+  const unitMap: { [key: string]: string } = {
+    'single': '',
+    'gram': 'g',
+    'kg': 'kg',
+    'ounce': 'oz',
+    'pound': 'lb',
+    'ml': 'ml',
+    'liter': 'L',
+    'cup': 'cup',
+    'tablespoon': 'tbsp',
+    'teaspoon': 'tsp',
+    'piece': 'pc',
+    'can': 'can',
+    'bottle': 'bottle'
+  }
+  return unitMap[unit] || unit
+}
+
+const getCostPerPortion = () => {
+  const cost = typeof props.formData.amount === 'string' ? parseFloat(props.formData.amount) : props.formData.amount
+  const estimatedPortions = props.getEstimatedPortions({ 
+    itemSize: props.formData.itemSize, 
+    portionSize: props.formData.portionSize, 
+    quantity: props.formData.quantity 
+  })
+  
+  if (!cost || !estimatedPortions || estimatedPortions === 0) {
+    return 0
+  }
+  
+  return Math.round((cost / estimatedPortions) * 100) / 100
+}
+
+const getDepletionTimeInDisplayUnit = (data: any) => {
+  // Get the original calculation in the depletion unit
+  const timeInDepletionUnit = props.getDepletionTimeInDays(data)
+  
+  // First convert to days as base unit
+  let days
+  switch (props.formData.depletionUnit) {
+    case 'day':
+      days = timeInDepletionUnit
+      break
+    case 'week':
+      days = timeInDepletionUnit * 7
+      break
+    case 'month':
+      days = timeInDepletionUnit * 30 // Approximate month
+      break
+    default:
+      days = timeInDepletionUnit
+  }
+  
+  // Then convert from days to the selected display unit
+  let result
+  switch (displayUnit.value) {
+    case 'day':
+      result = days
+      break
+    case 'week':
+      result = days / 7
+      break
+    case 'month':
+      result = days / 30 // Approximate month
+      break
+    default:
+      result = days
+  }
+  
+  // Format to 2 decimal places
+  return Math.round(result * 100) / 100
+}
+
+// Watch for changes in depletion unit and update display unit
+watch(() => props.formData.depletionUnit, (newUnit) => {
+  if (newUnit) {
+    displayUnit.value = newUnit
+  }
+})
 </script>
 
 <style scoped>
@@ -384,6 +544,13 @@ const getFrequencyDisplay = (frequency: string) => {
   color: rgba(255, 255, 255, 0.6);
   font-weight: 600;
   transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.step-number:hover {
+  background: rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.6);
+  color: #10b981;
 }
 
 .step-title {
@@ -392,6 +559,14 @@ const getFrequencyDisplay = (frequency: string) => {
   font-weight: 500;
   text-align: center;
   transition: all 0.2s ease;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.step-title:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .stepper-step.active .step-number {
@@ -400,9 +575,10 @@ const getFrequencyDisplay = (frequency: string) => {
   color: white;
 }
 
-.stepper-step.active .step-title {
-  color: #10b981;
-  font-weight: 600;
+.stepper-step.active .step-number:hover {
+  background: #059669;
+  border-color: #059669;
+  transform: scale(1.1);
 }
 
 .stepper-step.completed .step-number {
@@ -411,11 +587,14 @@ const getFrequencyDisplay = (frequency: string) => {
   color: white;
 }
 
-.stepper-step.completed .step-title {
-  color: rgba(255, 255, 255, 0.8);
+.stepper-step.completed .step-number:hover {
+  background: #059669;
+  border-color: #059669;
+  transform: scale(1.1);
 }
 
-.stepper-content {
+.stepper-step.completed .step-title {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .step-content {
@@ -445,6 +624,12 @@ const getFrequencyDisplay = (frequency: string) => {
   align-items: center;
   padding: 20px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-buttons-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .nav-btn {
@@ -492,6 +677,35 @@ const getFrequencyDisplay = (frequency: string) => {
   color: white;
   font-weight: 600;
   font-size: 14px;
+}
+
+.form-group > label {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-field.form-field-right label {
+  text-align: right;
+  width: 100%;
+}
+
+.form-field.form-field-right input {
+  text-align: right;
+  width: 100%;
+}
+
+/* Remove stepper arrows from number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .form-input {
@@ -726,5 +940,110 @@ const getFrequencyDisplay = (frequency: string) => {
 .btn-success:hover {
   background: linear-gradient(135deg, #059669, #047857);
   transform: translateY(-1px);
+}
+
+.quick-add-btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  min-width: 100px;
+}
+
+.quick-add-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.quick-add-btn:disabled {
+  background: #6b7280 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3) !important;
+  transform: none !important;
+}
+
+.unit-display-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 12px;
+  margin-left: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  gap: 8px;
+}
+
+.unit-display-dropdown:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dropdown-arrow {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.unit-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: rgba(30, 30, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.unit-option {
+  padding: 10px 12px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.unit-option:hover {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.unit-option:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.unit-option:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+.unit-mnemonic {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 20px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

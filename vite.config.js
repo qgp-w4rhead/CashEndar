@@ -17,5 +17,9 @@ export default defineConfig({
   },
   server: {
     allowedHosts: ['localhost','cashendar.str8octane.com']
+  },
+  test: {
+    environment: 'node',
+    include: ['src/tests/**/*.test.ts'],
   }
 })

@@ -1,52 +1,103 @@
 // Payment service for business logic and data management
-import { Payment, Earning, PaymentType } from '../types/payment.types'
-import { paymentDB } from './payment-db.service'
+import { Payment, PaymentType } from '../types/payment.types'
+import { parsePaymentDate, formatHumanReadableDate, parseAmount, formatAmount, MS_PER_DAY } from '../utils/date-utils'
+import type { ParsedDate } from '../utils/date-utils'
+
+// Re-export parsePaymentDate so existing callers via paymentService.parsePaymentDate still work
+export { parsePaymentDate }
+
+// Helper: collect recurring occurrences in a date range at a fixed interval
+function getRecurringOccurrencesInRange(
+  payment: Payment,
+  startDate: Date,
+  endDate: Date,
+  intervalDays: number,
+  maxIterations: number
+): Payment[] {
+  if (!payment.referenceDate) return []
+
+  const occurrences: Payment[] = []
+  const referenceDate = new Date(payment.referenceDate)
+  referenceDate.setHours(0, 0, 0, 0)
+
+  const start = new Date(startDate)
+  start.setHours(0, 0, 0, 0)
+
+  const end = new Date(endDate)
+  end.setHours(23, 59, 59, 999)
+
+  const intervalMs = intervalDays * MS_PER_DAY
+
+  let currentDate = new Date(referenceDate)
+  let occurrenceCount = 0
+
+  while (currentDate.getTime() <= end.getTime()) {
+    if (currentDate.getTime() >= start.getTime()) {
+      const dayOfMonth = currentDate.getDate()
+
+      occurrences.push({
+        ...payment,
+        id: `${payment.id}-${occurrenceCount}`,
+        date: formatHumanReadableDate(currentDate.getFullYear(), currentDate.getMonth(), dayOfMonth),
+        day: dayOfMonth
+      })
+    }
+
+    currentDate = new Date(currentDate.getTime() + intervalMs)
+    occurrenceCount++
+
+    if (occurrenceCount > maxIterations) break
+  }
+
+  return occurrences
+}
+
+// Helper: check if a date falls on a recurring interval from a reference date
+function matchesRecurringInterval(checkDate: Date, payment: Payment, intervalDays: number): { matches: boolean; occurrenceCount: number } {
+  if (payment.dayOfWeek === undefined || !payment.referenceDate) {
+    return { matches: false, occurrenceCount: 0 }
+  }
+
+  const dayOfWeek = checkDate.getDay()
+  if (payment.dayOfWeek !== dayOfWeek) {
+    return { matches: false, occurrenceCount: 0 }
+  }
+
+  const refDate = new Date(payment.referenceDate)
+  refDate.setHours(0, 0, 0, 0)
+
+  const diffTime = checkDate.getTime() - refDate.getTime()
+  const diffDays = Math.floor(diffTime / MS_PER_DAY)
+
+  if (diffDays >= 0 && diffDays % intervalDays === 0) {
+    return { matches: true, occurrenceCount: Math.floor(diffDays / intervalDays) }
+  }
+
+  return { matches: false, occurrenceCount: 0 }
+}
+
+// Helper: sort payments array by parsed date
+function sortByDate(items: Payment[], ascending = true): Payment[] {
+  return items.sort((a, b) => {
+    const dateA = parsePaymentDate(a.date)
+    const dateB = parsePaymentDate(b.date)
+
+    if (!dateA || !dateB) {
+      return a.date.localeCompare(b.date)
+    }
+
+    const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
+    const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
+
+    return ascending
+      ? dateObjA.getTime() - dateObjB.getTime()
+      : dateObjB.getTime() - dateObjA.getTime()
+  })
+}
 
 export class PaymentService {
-  parsePaymentDate(dateString: string) {
-    // Handle YYYY-MM-DD format (e.g., "2025-10-07")
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-      const [year, month, day] = dateString.split('-').map(Number)
-      return {
-        month: month - 1, // Convert to 0-indexed
-        day: day,
-        year: year
-      }
-    }
-
-    const parts = dateString.split(' ')
-    if (parts.length >= 3) {
-      const monthName = parts[0]
-      const dayPart = parts[1].replace(/\D/g, '')
-      const year = parseInt(parts[2])
-
-      const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ]
-
-      const monthIndex = monthNames.indexOf(monthName)
-      const day = parseInt(dayPart)
-
-      if (monthIndex !== -1 && day && year) {
-        return {
-          month: monthIndex,
-          day: day,
-          year: year
-        }
-      }
-    }
-
-    const fallbackDate = new Date(dateString)
-    if (!isNaN(fallbackDate.getTime())) {
-      return {
-        month: fallbackDate.getMonth(),
-        day: fallbackDate.getDate(),
-        year: fallbackDate.getFullYear()
-      }
-    }
-
-    return null
+  parsePaymentDate(dateString: string): ParsedDate | null {
+    return parsePaymentDate(dateString)
   }
 
   getNextBiMonthlyDate(referenceTimestamp: number, dayOfWeek: number) {
@@ -57,114 +108,26 @@ export class PaymentService {
     referenceDate.setHours(0, 0, 0, 0)
 
     const diffTime = today.getTime() - referenceDate.getTime()
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    const diffDays = Math.floor(diffTime / MS_PER_DAY)
 
     const twoWeeksInDays = 14
     const periodsPassed = Math.floor(diffDays / twoWeeksInDays)
 
-    let nextOccurrence: Date
-    if (diffDays % twoWeeksInDays === 0 && diffDays >= 0) {
-      nextOccurrence = new Date(referenceDate.getTime() + ((periodsPassed + 1) * twoWeeksInDays * 24 * 60 * 60 * 1000))
-    } else {
-      nextOccurrence = new Date(referenceDate.getTime() + ((periodsPassed + 1) * twoWeeksInDays * 24 * 60 * 60 * 1000))
-    }
+    let nextOccurrence = new Date(referenceDate.getTime() + ((periodsPassed + 1) * twoWeeksInDays * MS_PER_DAY))
 
     if (nextOccurrence.getTime() < today.getTime()) {
-      nextOccurrence = new Date(nextOccurrence.getTime() + (twoWeeksInDays * 24 * 60 * 60 * 1000))
+      nextOccurrence = new Date(nextOccurrence.getTime() + (twoWeeksInDays * MS_PER_DAY))
     }
 
     return nextOccurrence
   }
 
   getBiMonthlyOccurrencesInRange(payment: Payment, startDate: Date, endDate: Date) {
-    if (!payment.referenceDate) return []
-
-    const occurrences: Payment[] = []
-    const referenceDate = new Date(payment.referenceDate)
-    referenceDate.setHours(0, 0, 0, 0)
-
-    const start = new Date(startDate)
-    start.setHours(0, 0, 0, 0)
-
-    const end = new Date(endDate)
-    end.setHours(23, 59, 59, 999)
-
-    const twoWeeksInDays = 14
-    const twoWeeksInMs = twoWeeksInDays * 24 * 60 * 60 * 1000
-
-    let currentDate = new Date(referenceDate)
-    let occurrenceCount = 0
-
-    while (currentDate.getTime() <= end.getTime()) {
-      if (currentDate.getTime() >= start.getTime()) {
-        const dayOfMonth = currentDate.getDate()
-        const monthName = this.getMonthNames()[currentDate.getMonth()]
-        const daySuffix = dayOfMonth === 1 ? 'st' : dayOfMonth === 2 ? 'nd' : dayOfMonth === 3 ? 'rd' : 'th'
-
-        occurrences.push({
-          ...payment,
-          id: `${payment.id}-${occurrenceCount}`,
-          date: `${monthName} ${dayOfMonth}${daySuffix}, ${currentDate.getFullYear()}`,
-          day: dayOfMonth
-        })
-      }
-
-      currentDate = new Date(currentDate.getTime() + twoWeeksInMs)
-      occurrenceCount++
-
-      if (occurrenceCount > 100) break
-    }
-
-    return occurrences
+    return getRecurringOccurrencesInRange(payment, startDate, endDate, 14, 100)
   }
 
   getWeeklyOccurrencesInRange(payment: Payment, startDate: Date, endDate: Date) {
-    if (!payment.referenceDate) return []
-
-    const occurrences: Payment[] = []
-    const referenceDate = new Date(payment.referenceDate)
-    referenceDate.setHours(0, 0, 0, 0)
-
-    const start = new Date(startDate)
-    start.setHours(0, 0, 0, 0)
-
-    const end = new Date(endDate)
-    end.setHours(23, 59, 59, 999)
-
-    const oneWeekInDays = 7
-    const oneWeekInMs = oneWeekInDays * 24 * 60 * 60 * 1000
-
-    let currentDate = new Date(referenceDate)
-    let occurrenceCount = 0
-
-    while (currentDate.getTime() <= end.getTime()) {
-      if (currentDate.getTime() >= start.getTime()) {
-        const dayOfMonth = currentDate.getDate()
-        const monthName = this.getMonthNames()[currentDate.getMonth()]
-        const daySuffix = dayOfMonth === 1 ? 'st' : dayOfMonth === 2 ? 'nd' : dayOfMonth === 3 ? 'rd' : 'th'
-
-        occurrences.push({
-          ...payment,
-          id: `${payment.id}-${occurrenceCount}`,
-          date: `${monthName} ${dayOfMonth}${daySuffix}, ${currentDate.getFullYear()}`,
-          day: dayOfMonth
-        })
-      }
-
-      currentDate = new Date(currentDate.getTime() + oneWeekInMs)
-      occurrenceCount++
-
-      if (occurrenceCount > 200) break
-    }
-
-    return occurrences
-  }
-
-  private getMonthNames() {
-    return [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ]
+    return getRecurringOccurrencesInRange(payment, startDate, endDate, 7, 200)
   }
 
   getPaymentsForDay(payments: Payment[], day: number, currentMonth: number, currentYear: number) {
@@ -174,77 +137,58 @@ export class PaymentService {
     const dayPayments: Payment[] = []
 
     payments.forEach(payment => {
-      if (payment.day === day) {
-        dayPayments.push(payment)
-        return
-      }
-
       if (payment.frequency === 'weekly' && payment.dayOfWeek !== undefined && payment.referenceDate) {
-        const dayOfWeek = checkDate.getDay()
-
-        if (payment.dayOfWeek !== dayOfWeek) {
-          return
-        }
-
-        const refDate = new Date(payment.referenceDate)
-        refDate.setHours(0, 0, 0, 0)
-
-        const diffTime = checkDate.getTime() - refDate.getTime()
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-
-        if (diffDays >= 0 && diffDays % 7 === 0) {
-          const occurrenceCount = Math.floor(diffDays / 7)
-          const instancePayment = {
+        const result = matchesRecurringInterval(checkDate, payment, 7)
+        if (result.matches) {
+          dayPayments.push({
             ...payment,
-            id: `${payment.id}-${occurrenceCount}`,
-            date: `${this.getMonthNames()[currentMonth]} ${day}${day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}, ${currentYear}`,
+            id: `${payment.id}-${result.occurrenceCount}`,
+            date: formatHumanReadableDate(currentYear, currentMonth, day),
             day: day
-          }
-          dayPayments.push(instancePayment)
+          })
         }
         return
       }
 
       if (payment.frequency === 'bi-monthly' && payment.dayOfWeek !== undefined && payment.referenceDate) {
-        const dayOfWeek = checkDate.getDay()
-
-        if (payment.dayOfWeek !== dayOfWeek) {
-          return
-        }
-
-        const refDate = new Date(payment.referenceDate)
-        refDate.setHours(0, 0, 0, 0)
-
-        const diffTime = checkDate.getTime() - refDate.getTime()
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-
-        if (diffDays >= 0 && diffDays % 14 === 0) {
-          const occurrenceCount = Math.floor(diffDays / 14)
-          const instancePayment = {
+        const result = matchesRecurringInterval(checkDate, payment, 14)
+        if (result.matches) {
+          dayPayments.push({
             ...payment,
-            id: `${payment.id}-${occurrenceCount}`,
-            date: `${this.getMonthNames()[currentMonth]} ${day}${day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}, ${currentYear}`,
+            id: `${payment.id}-${result.occurrenceCount}`,
+            date: formatHumanReadableDate(currentYear, currentMonth, day),
             day: day
-          }
-          dayPayments.push(instancePayment)
+          })
         }
         return
       }
 
       if (payment.frequency === 'one-time') {
-        const dateInfo = this.parsePaymentDate(payment.date)
+        const dateInfo = parsePaymentDate(payment.date)
         if (dateInfo) {
           const { month: paymentMonth, day: paymentDay, year: paymentYear } = dateInfo
           if (paymentDay === day && paymentMonth === currentMonth && paymentYear === currentYear) {
             dayPayments.push(payment)
           }
         }
+        return
+      }
+
+      // Handle recurring monthly payments
+      if (payment.frequency === 'recurring' && payment.day === day) {
+        dayPayments.push({
+          ...payment,
+          date: formatHumanReadableDate(currentYear, currentMonth, day),
+          day: day
+        })
+        return
       }
     })
 
     return dayPayments
   }
 
+  // Collect future payments (expenses only) in a date range
   getNextPayments(payments: Payment[], paymentTypes: PaymentType[], startDate: Date, endDate: Date) {
     const futurePayments: Payment[] = []
 
@@ -255,49 +199,13 @@ export class PaymentService {
         return
       }
 
-      if (payment.frequency === 'one-time') {
-        const dateInfo = this.parsePaymentDate(payment.date)
-        if (!dateInfo) return
-
-        const { month: paymentMonth, day: paymentDay, year: paymentYear } = dateInfo
-        const paymentDate = new Date(paymentYear, paymentMonth, paymentDay)
-
-        if (paymentDate.getTime() >= startDate.getTime() && paymentDate.getTime() <= endDate.getTime()) {
-          futurePayments.push(payment)
-        }
-      } else if (payment.frequency === 'weekly') {
-        const occurrences = this.getWeeklyOccurrencesInRange(payment, startDate, endDate)
-        futurePayments.push(...occurrences)
-      } else if (payment.frequency === 'bi-monthly') {
-        const occurrences = this.getBiMonthlyOccurrencesInRange(payment, startDate, endDate)
-        futurePayments.push(...occurrences)
-      } else {
-        if (!payment.day) return
-
-        const today = new Date()
-        const currentDay = today.getDate()
-
-        if (payment.day >= currentDay) {
-          futurePayments.push(payment)
-        }
-      }
+      this._collectPaymentInRange(payment, startDate, endDate, futurePayments)
     })
 
-    return futurePayments.sort((a, b) => {
-      const dateA = this.parsePaymentDate(a.date)
-      const dateB = this.parsePaymentDate(b.date)
-
-      if (!dateA || !dateB) {
-        return a.date.localeCompare(b.date)
-      }
-
-      const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
-      const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
-
-      return dateObjA.getTime() - dateObjB.getTime()
-    })
+    return sortByDate(futurePayments)
   }
 
+  // Collect future earnings in a date range
   getNextEarnings(payments: Payment[], paymentTypes: PaymentType[], startDate: Date, endDate: Date) {
     const earnings: Payment[] = []
 
@@ -308,82 +216,87 @@ export class PaymentService {
         return
       }
 
-      if (payment.frequency === 'one-time') {
-        // For one-time payments, check if the original date is in the range
-        const dateInfo = this.parsePaymentDate(payment.date)
-        if (!dateInfo) return
+      this._collectPaymentInRange(payment, startDate, endDate, earnings)
+    })
 
-        const { month: paymentMonth, day: paymentDay, year: paymentYear } = dateInfo
-        const paymentDate = new Date(paymentYear, paymentMonth, paymentDay)
+    return sortByDate(earnings)
+  }
 
+  // Shared logic for collecting a payment's occurrences in a date range
+  private _collectPaymentInRange(payment: Payment, startDate: Date, endDate: Date, target: Payment[]) {
+    if (payment.frequency === 'one-time') {
+      const dateInfo = parsePaymentDate(payment.date)
+      if (!dateInfo) return
+
+      const { month: paymentMonth, day: paymentDay, year: paymentYear } = dateInfo
+      const paymentDate = new Date(paymentYear, paymentMonth, paymentDay)
+
+      if (paymentDate.getTime() >= startDate.getTime() && paymentDate.getTime() <= endDate.getTime()) {
+        target.push(payment)
+      }
+    } else if (payment.frequency === 'weekly') {
+      target.push(...this.getWeeklyOccurrencesInRange(payment, startDate, endDate))
+    } else if (payment.frequency === 'bi-monthly') {
+      target.push(...this.getBiMonthlyOccurrencesInRange(payment, startDate, endDate))
+    } else if (payment.frequency === 'recurring') {
+      // Handle recurring monthly payments
+      if (!payment.day) return
+
+      // For recurring payments, check if the payment day falls within the date range
+      // for each month in the range
+      const startMonth = startDate.getMonth()
+      const startYear = startDate.getFullYear()
+      const endMonth = endDate.getMonth()
+      const endYear = endDate.getFullYear()
+      
+      // Check each month in the date range
+      let currentMonth = startMonth
+      let currentYear = startYear
+      
+      while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+        const paymentDate = new Date(currentYear, currentMonth, payment.day)
+        
+        // Check if this payment date falls within the range
         if (paymentDate.getTime() >= startDate.getTime() && paymentDate.getTime() <= endDate.getTime()) {
-          earnings.push(payment)
+          target.push({
+            ...payment,
+            date: formatHumanReadableDate(currentYear, currentMonth, payment.day),
+            day: payment.day
+          })
         }
-      } else if (payment.frequency === 'weekly') {
-        // For weekly payments, get all occurrences in the range
-        const occurrences = this.getWeeklyOccurrencesInRange(payment, startDate, endDate)
-        earnings.push(...occurrences)
-      } else if (payment.frequency === 'bi-monthly') {
-        // For bi-monthly payments, get all occurrences in the range
-        const occurrences = this.getBiMonthlyOccurrencesInRange(payment, startDate, endDate)
-        earnings.push(...occurrences)
-      } else {
-        // For recurring payments (monthly on same day)
-        if (!payment.day) return
-
-        // Check if this month's occurrence is in the future
-        const today = new Date()
-        const currentDay = today.getDate()
-
-        if (payment.day >= currentDay) {
-          earnings.push(payment)
+        
+        // Move to next month
+        if (currentMonth === 11) {
+          currentMonth = 0
+          currentYear++
+        } else {
+          currentMonth++
         }
       }
-    })
-
-    // Sort earnings by date (first to last)
-    const sortedEarnings = earnings.sort((a, b) => {
-      // Parse the date strings to compare them chronologically
-      const dateA = this.parsePaymentDate(a.date)
-      const dateB = this.parsePaymentDate(b.date)
-
-      if (!dateA || !dateB) {
-        // If parsing fails, fall back to string comparison
-        return a.date.localeCompare(b.date)
-      }
-
-      // Create Date objects for comparison
-      const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
-      const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
-
-      // Return comparison result (negative = a before b, positive = a after b)
-      return dateObjA.getTime() - dateObjB.getTime()
-    })
-
-    return sortedEarnings
+    } else {
+      // Unknown frequency - ignore
+      return
+    }
   }
 
   // Calculate total amount for payments
   calculateTotalAmount(payments: Payment[], forgoneInstances?: Set<string>) {
     return payments.reduce((sum, payment) => {
-      // Skip forgone payment instances - they don't contribute to totals
       if (forgoneInstances && forgoneInstances.has(payment.id)) {
         return sum
       }
 
-      const amount = parseFloat(payment.amount.replace('$', '')) || 0
-      return sum + amount
+      return sum + parseAmount(payment.amount)
     }, 0)
   }
 
   calculateNetDailyTotal(payments: Payment[], paymentTypes: PaymentType[], forgoneInstances?: Set<string>) {
     return payments.reduce((sum, payment) => {
-      // Skip forgone payment instances - they don't contribute to the day total
       if (forgoneInstances && forgoneInstances.has(payment.id)) {
         return sum
       }
 
-      const amount = parseFloat(payment.amount.replace('$', '')) || 0
+      const amount = parseAmount(payment.amount)
       const paymentType = paymentTypes.find(type => type.value === payment.type)
 
       if (paymentType && paymentType.isEarning) {
@@ -395,7 +308,7 @@ export class PaymentService {
   }
 
   formatTotalAmount(total: number) {
-    return `$${total.toFixed(2)}`
+    return formatAmount(total)
   }
 }
 

@@ -1,9 +1,13 @@
 // Payment handlers for event handling and user interactions
-import { watch } from 'vue'
+import { watch, ref } from 'vue'
 import { Payment } from '../types/payment.types'
-import { paymentDB } from '../services/payment-db.service'
+import { getAllPayments, addPayment as addPaymentToDB, updatePayment as updatePaymentInDB, deletePayment as deletePaymentFromDB } from '../repositories/payment.repository'
+import { getNextPaymentId } from '../repositories/counter.repository'
 import { paymentService } from '../services/payment.service'
 import { paymentTypeService } from '../services/payment-type.service'
+import { MONTH_NAMES_FULL } from '../utils/constants'
+import { formatHumanReadableDate, getDaySuffix, parsePaymentDate } from '../utils/date-utils'
+import { formatCurrencyAmount as formatCurrencyAmountUtil } from '../utils/validation-utils'
 import {
   payments,
   paymentTypes,
@@ -139,7 +143,7 @@ export const importPayments = () => {
 
       // Add imported payments to database and local array
       for (const payment of importedPayments) {
-        await paymentDB.addPayment(payment)
+        await addPaymentToDB(payment)
         payments.value.push(payment)
       }
 
@@ -165,9 +169,9 @@ export const resetCalendarView = () => {
 export const clearAllPayments = async () => {
   if (confirm('Are you sure you want to delete all payments? This action cannot be undone.')) {
     try {
-      const allPayments = await paymentDB.getAllPayments()
+      const allPayments = await getAllPayments()
       for (const payment of allPayments) {
-        await paymentDB.deletePayment(payment.id)
+        await deletePaymentFromDB(payment.id)
       }
       payments.value = []
       closeGearMenu()
@@ -381,13 +385,7 @@ export const savePayment = async () => {
     const dateString = editForm.date // Format: "2025-10-07"
     const [year, month, day] = dateString.split('-').map(Number)
     const paymentDate = new Date(year, month - 1, day) // month is 0-indexed
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ]
-    const monthName = monthNames[paymentDate.getMonth()]
-    const daySuffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'
-    const humanReadableDate = `${monthName} ${day}${daySuffix}, ${year}`
+    const humanReadableDate = formatHumanReadableDate(year, month - 1, day)
 
     // Calculate total amount from cost × quantity (quantity defaults to 1)
     const costAmount = parseFloat(editForm.amount) || 0;
@@ -448,7 +446,7 @@ export const savePayment = async () => {
       }
     }
 
-    await paymentDB.updatePayment(updatedPayment)
+    await updatePaymentInDB(updatedPayment)
 
     // Update local payments array immediately
     const paymentIndex = payments.value.findIndex(p => p.id === editingPayment.value!.id)
@@ -498,7 +496,7 @@ export const deletePayment = async () => {
 
   try {
     // Delete the specific payment (works for both regular payments and inventory items)
-    await paymentDB.deletePayment(editingPayment.value.id)
+    await deletePaymentFromDB(editingPayment.value.id)
 
     // Remove from local payments array
     const paymentIndex = payments.value.findIndex(p => p.id === editingPayment.value!.id)
@@ -646,22 +644,10 @@ export const resetDayPayments = () => {
 export const getSelectedDayDate = () => {
   // Use selectedDate if available, otherwise fall back to addForm.day
   if (selectedDate.value) {
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ]
-    const monthName = monthNames[selectedDate.value.getMonth()]
     const day = selectedDate.value.getDate()
-    const daySuffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'
-    return `${monthName} ${day}${daySuffix}`
+    return `${MONTH_NAMES_FULL[selectedDate.value.getMonth()]} ${day}${getDaySuffix(day)}`
   } else if (addForm.day) {
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ]
-    const monthName = monthNames[currentMonth.value]
-    const daySuffix = addForm.day === 1 ? 'st' : addForm.day === 2 ? 'nd' : addForm.day === 3 ? 'rd' : 'th'
-    return `${monthName} ${addForm.day}${daySuffix}`
+    return `${MONTH_NAMES_FULL[currentMonth.value]} ${addForm.day}${getDaySuffix(addForm.day)}`
   }
   return 'Selected Day'
 }
@@ -691,18 +677,12 @@ export const saveNewPayment = async () => {
 
   try {
     // Generate a sequential ID for the new payment
-    const sequentialId = await paymentDB.getNextPaymentId()
+    const sequentialId = await getNextPaymentId()
     const newId = sequentialId.toString()
 
     // Create dynamic date based on current month/year and selected day
     const paymentDate = new Date(currentYear.value, currentMonth.value, addForm.day)
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ]
-    const monthName = monthNames[paymentDate.getMonth()]
-    const daySuffix = addForm.day === 1 ? 'st' : addForm.day === 2 ? 'nd' : addForm.day === 3 ? 'rd' : 'th'
-    const dynamicDate = `${monthName} ${addForm.day}${daySuffix}, ${paymentDate.getFullYear()}`
+    const dynamicDate = formatHumanReadableDate(paymentDate.getFullYear(), paymentDate.getMonth(), addForm.day)
 
     // Calculate total amount from cost × quantity (quantity defaults to 1)
     const costAmount = parseFloat(addForm.amount) || 0;
@@ -737,7 +717,7 @@ export const saveNewPayment = async () => {
 
     try {
       // Save to IndexedDB
-      await paymentDB.addPayment(newPayment)
+      await addPaymentToDB(newPayment)
       console.log('Payment saved successfully')
     } catch (dbError) {
       console.error('Database addPayment failed:', dbError)
@@ -909,7 +889,7 @@ export const closeItemChartModal = () => {
 // Load payments from IndexedDB on component mount
 export const loadPayments = async () => {
   try {
-    const storedPayments = await paymentDB.getAllPayments()
+    const storedPayments = await getAllPayments()
     payments.value = storedPayments
   } catch (error) {
     console.error('Error loading payments:', error)
@@ -928,16 +908,8 @@ export const loadPaymentTypes = async () => {
   }
 }
 
-// Helper function to format currency amounts to 2 decimal places
-export const formatCurrencyAmount = (value: string) => {
-  if (!value) return ''
-
-  // Parse the value and limit to 2 decimal places
-  const numericValue = parseFloat(value.replace(/[^0-9.-]+/g, ''))
-  if (isNaN(numericValue)) return ''
-
-  return numericValue.toFixed(2)
-}
+// Re-export from shared utility (preserves public API)
+export const formatCurrencyAmount = formatCurrencyAmountUtil
 
 // Helper function to handle amount input blur events
 export const handleAmountInputBlur = (event: Event) => {
@@ -971,7 +943,7 @@ export const deleteSinglePurchase = async (purchase: Payment) => {
 
   try {
     // Delete from IndexedDB
-    await paymentDB.deletePayment(purchase.id)
+    await deletePaymentFromDB(purchase.id)
 
     // Remove from local payments array
     const paymentIndex = payments.value.findIndex(p => p.id === purchase.id)
@@ -993,7 +965,7 @@ export const deleteSinglePurchase = async (purchase: Payment) => {
 export const addResupply = async (itemName: string) => {
   try {
     // Generate a new sequential ID
-    const sequentialId = await paymentDB.getNextPaymentId()
+    const sequentialId = await getNextPaymentId()
     const newId = sequentialId.toString()
 
     // Use selected date if available (when modal is open for a specific day), otherwise use today
@@ -1006,16 +978,10 @@ export const addResupply = async (itemName: string) => {
       console.log('Using today\'s date for resupply:', paymentDate.toString())
     }
 
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ]
-    const monthName = monthNames[paymentDate.getMonth()]
     const day = paymentDate.getDate()
     console.log('Day extracted:', day) // Debug log
 
-    const daySuffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'
-    const dynamicDate = `${monthName} ${day}${daySuffix}, ${paymentDate.getFullYear()}`
+    const dynamicDate = formatHumanReadableDate(paymentDate.getFullYear(), paymentDate.getMonth(), day)
 
     console.log('Generated resupply date:', dynamicDate) // Debug log
 
@@ -1060,7 +1026,7 @@ export const addResupply = async (itemName: string) => {
     }
 
     // Save to IndexedDB
-    await paymentDB.addPayment(resupplyPayment)
+    await addPaymentToDB(resupplyPayment)
 
     // Add to local payments array
     payments.value.push(resupplyPayment)
@@ -1138,3 +1104,46 @@ export const initializeComponent = async () => {
     }
   })
 }
+
+// Date picker visibility state
+const showDatePicker = ref(false)
+
+// Open date picker to allow users to change the selected date
+export const openDatePicker = () => {
+  showDatePicker.value = true
+}
+
+// Close date picker
+export const closeDatePicker = () => {
+  showDatePicker.value = false
+}
+
+// Handle date selection from the custom date picker
+export const handleDateSelection = (newDate: Date) => {
+  if (!isNaN(newDate.getTime())) {
+    // Update the selected date
+    selectedDate.value = newDate
+    
+    // Update current month and year to match the new date
+    currentMonth.value = newDate.getMonth()
+    currentYear.value = newDate.getFullYear()
+    
+    // Update the add form day
+    addForm.day = newDate.getDate()
+    
+    // Clear and reload payments for the new selected day
+    selectedDayPayments.value = []
+    const dayPaymentsList = paymentService.getPaymentsForDay(
+      payments.value, 
+      newDate.getDate(), 
+      currentMonth.value, 
+      currentYear.value
+    )
+    selectedDayPayments.value = dayPaymentsList
+  }
+  
+  closeDatePicker()
+}
+
+// Export the date picker visibility state for use in components
+export { showDatePicker }
