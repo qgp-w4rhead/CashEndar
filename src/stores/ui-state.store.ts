@@ -31,7 +31,12 @@ export const editForm = reactive({
     portionsCount: undefined,
     depletionRate: undefined,
     depletionUnit: 'day' as Payment['depletionUnit'],
-    depletionTime: undefined as number | undefined
+    depletionTime: undefined as number | undefined,
+    // Expiration fields
+    expirationPeriod: undefined as number | undefined,
+    expirationUnit: 'day' as Payment['expirationUnit'],
+    freshnessOffset: undefined as number | undefined,
+    freshnessOffsetUnit: 'day' as Payment['expirationUnit']
 })
 
 // Add payment state
@@ -51,7 +56,12 @@ export const addForm = reactive({
   portionsCount: undefined,
   depletionRate: undefined,
   depletionUnit: 'day' as Payment['depletionUnit'],
-  depletionTime: undefined as number | undefined
+  depletionTime: undefined as number | undefined,
+  // Expiration fields
+  expirationPeriod: undefined as number | undefined,
+  expirationUnit: 'day' as Payment['expirationUnit'],
+  freshnessOffset: undefined as number | undefined,
+  freshnessOffsetUnit: 'day' as Payment['expirationUnit']
 })
 
 export const isSavingPayment = ref(false)

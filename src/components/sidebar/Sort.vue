@@ -95,7 +95,7 @@ const getSortButtonTitle = () => {
   position: absolute;
   top: 100%;
   right: 0;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, oklch(from var(--grey-dark) l c h / 1) 0%, oklch(from var(--grey-primary) l c h / 0.5) 100%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -144,7 +144,7 @@ const getSortButtonTitle = () => {
 }
 
 .sort-option.active {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
 }
 

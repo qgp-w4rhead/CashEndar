@@ -1,5 +1,5 @@
 <template>
-  <div class="custom-dropdown" :class="{ 'is-open': isOpen, 'is-disabled': disabled }">
+  <div ref="dropdownRef" class="custom-dropdown" :class="{ 'is-open': isOpen, 'is-disabled': disabled }">
     <div 
       class="dropdown-trigger form-input unit-select dropdown-end"
       @click="toggleDropdown"
@@ -86,6 +86,7 @@ const emit = defineEmits<{
 const isOpen = ref(false)
 const focusedIndex = ref(-1)
 const isImperial = ref(false)
+const dropdownRef = ref<HTMLElement | null>(null)
 
 // Group options by group name
 const groupedOptions = computed(() => {
@@ -241,8 +242,7 @@ const scrollOptionIntoView = () => {
 
 // Close dropdown when clicking outside
 const handleClickOutside = (event: MouseEvent) => {
-  const target = event.target as HTMLElement
-  if (!target.closest('.custom-dropdown')) {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
     isOpen.value = false
   }
 }
@@ -334,9 +334,9 @@ const getOptionApproximation = (option: DropdownOption) => {
   position: absolute;
   top: 100%;
   left: 0;
-  right: 0;
+  min-width: max-content;
   margin-top: 4px;
-  background: rgba(30, 30, 30, 0.95);
+  background: oklch(from var(--grey-dark) l c h / 0.95);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -354,9 +354,9 @@ const getOptionApproximation = (option: DropdownOption) => {
 }
 
 .conversion-btn {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 0.1);
+  border: 1px solid oklch(from var(--lime-primary) l c h / 0.3);
+  color: oklch(from var(--lime-primary) l c h / 1);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 11px;
@@ -368,20 +368,20 @@ const getOptionApproximation = (option: DropdownOption) => {
 }
 
 .conversion-btn:hover {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 0.2);
+  border-color: oklch(from var(--lime-primary) l c h / 1);
   transform: translateY(-1px);
 }
 
 .conversion-btn.imperial {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: #3b82f6;
+  background: oklch(from var(--grey-primary) l c h / 0.1);
+  border-color: oklch(from var(--grey-primary) l c h / 0.3);
+  color: oklch(from var(--grey-light) l c h / 1);
 }
 
 .conversion-btn.imperial:hover {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: #3b82f6;
+  background: oklch(from var(--grey-primary) l c h / 0.2);
+  border-color: oklch(from var(--grey-primary) l c h / 1);
 }
 
 .option-group {
@@ -420,14 +420,14 @@ const getOptionApproximation = (option: DropdownOption) => {
 
 .dropdown-option:hover,
 .dropdown-option:focus {
-  background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 0.2);
+  color: oklch(from var(--lime-primary) l c h / 1);
   outline: none;
 }
 
 .dropdown-option.is-selected {
-  background: rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 0.3);
+  color: oklch(from var(--lime-primary) l c h / 1);
   font-weight: 600;
 }
 

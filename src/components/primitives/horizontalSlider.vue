@@ -129,12 +129,12 @@ const handleSliderChange = (event: Event) => {
 }
 
 .slider-label-left {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, oklch(from var(--grey-primary) l c h / 1), oklch(from var(--grey-dark) l c h / 1));
   color: white;
 }
 
 .slider-label-right {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
 }
 
@@ -164,7 +164,7 @@ const handleSliderChange = (event: Event) => {
 
 .slider-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
+  background: linear-gradient(90deg, oklch(from var(--grey-primary) l c h / 1) 0%, oklch(from var(--lime-primary) l c h / 1) 100%);
   border-radius: 4px;
   transition: width 0.2s ease;
 }
@@ -193,11 +193,11 @@ const handleSliderChange = (event: Event) => {
 }
 
 .person-left {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, oklch(from var(--grey-primary) l c h / 1), oklch(from var(--grey-dark) l c h / 1));
 }
 
 .person-right {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
 }
 
 .slider-stats {

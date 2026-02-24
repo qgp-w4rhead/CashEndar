@@ -1,102 +1,6 @@
 <template>
   <div class="payment-calendar">
-    <div class="payments-sidebar">
-      <div class="section-header">
-        <h2 class="section-title">Next payments</h2>
-        <div class="header-buttons">
-          <button class="gear-btn" @click="openGearMenu" title="Settings">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              <path d="M12 8l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z"/>
-              <circle cx="12" cy="12" r="1"/>
-            </svg>
-          </button>
-          <Sort />
-          <Filter />
-          <button class="add-btn" @click="openAddMenu">+</button>
-        </div>
-      </div>
-
-      <div v-for="payment in sortedPayments" :key="payment.id" class="payment-item" @click="highlightPaymentDay(payment)">
-        <div class="payment-avatar">
-          <div :class="`avatar-circle ${payment.type}`" :style="getAvatarStyle(payment.type)">{{ payment.type.charAt(0).toUpperCase() }}</div>
-        </div>
-        <div class="payment-details">
-          <div class="payment-title">{{ payment.title }}</div>
-          <div class="payment-date">{{ payment.date }}</div>
-          <div :class="['payment-amount', getPaymentTypeClass(payment.type)]">{{ payment.amount }}</div>
-        </div>
-        <div class="payment-menu">
-          <button class="menu-btn" @click.stop="openEditMenu(payment)">⋯</button>
-        </div>
-      </div>
-
-      <div class="next-payments-section">
-        <div
-          :class="['next-payments-header', { collapsed: isNextPaymentsCollapsed }]"
-          @click="toggleNextPaymentsSection"
-        >
-          <h4 class="next-payments-title">
-            <span class="tumbler-icon">▶</span>
-            Upcoming Payments Summary
-          </h4>
-          <span class="next-payments-total">-{{ nextPaymentsTotal }}</span>
-        </div>
-        <div class="next-payments-content">
-          <div class="next-payments-body">
-            <div class="next-payments-summary">
-              <span class="next-payments-period">{{ nextPaymentsPeriod }}</span>
-            </div>
-            <div class="next-payments-list">
-              <div v-if="nextPayments.length === 0" class="next-payments-empty">
-                No upcoming payments for the rest of the month
-              </div>
-              <div v-for="payment in nextPayments" :key="payment.id" class="next-payment-item" @click="highlightPaymentDay(payment)">
-                <span class="payment-id">#{{ payment.id }}</span>
-                <span class="next-payment-name">{{ payment.title }}</span>
-                <span class="next-payment-amount">-{{ payment.amount }} {{ payment.day }}th</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="earnings-section">
-        <div
-          :class="['earnings-header', { collapsed: isEarningsCollapsed }]"
-          @click="toggleEarningsSection"
-        >
-          <h4 class="earnings-title">
-            <span class="tumbler-icon">▶</span>
-            Upcoming Earnings Summary
-          </h4>
-          <span class="earnings-total">{{ earningsTotal }}</span>
-        </div>
-        <div class="earnings-content">
-          <div class="earnings-body">
-            <div class="earnings-summary">
-              <span class="earnings-period">{{ earningsPeriod }}</span>
-            </div>
-            <div class="earnings-list">
-              <div v-if="nextEarnings.length === 0" class="earnings-empty">
-                No upcoming earnings for the rest of the month
-              </div>
-              <div v-for="earning in nextEarnings" :key="earning.id" class="earning-item" @click="highlightPaymentDay(earning)">
-                <span class="earning-id">#{{ earning.id }}</span>
-                <span class="earning-name">{{ earning.title }}</span>
-                <span class="earning-amount">{{ earning.amount }} {{ earning.day }}th</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <Remaining />
-
-      <Inventory />
-
-      <TotalSection />
-    </div>
+    <PaymentSidebar />
 
     <Calendar />
 
@@ -317,13 +221,29 @@
                 </div>
                 <div class="form-field">
                   <label for="addPaymentTitle">Product / Service</label>
-                  <input
-                    id="addPaymentTitle"
-                    v-model="addForm.title"
-                    type="text"
-                    class="form-input"
-                    placeholder="Enter payment title"
-                  >
+                  <div class="autocomplete-wrapper">
+                    <input
+                      id="addPaymentTitle"
+                      v-model="addForm.title"
+                      type="text"
+                      class="form-input"
+                      placeholder="Enter payment title"
+                      autocomplete="off"
+                      @input="onTitleInput"
+                      @blur="hideTitleSuggestions"
+                    >
+                    <div v-if="showTitleSuggestions" class="suggestions-dropdown">
+                      <div
+                        v-for="suggestion in titleSuggestions"
+                        :key="suggestion.id"
+                        class="suggestion-item"
+                        @mousedown.prevent="selectTitleSuggestion(suggestion)"
+                      >
+                        <span class="suggestion-title">{{ suggestion.title }}</span>
+                        <span class="suggestion-meta">{{ suggestion.amount }} · {{ suggestion.type }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -621,131 +541,7 @@
       </div>
     </div>
 
-    <div v-if="showItemChartModal" class="modal-overlay">
-      <div class="item-chart-modal" @click.stop>
-        <div class="modal-header">
-          <h3>Inventory Items Chart</h3>
-          <button class="close-btn" @click="closeItemChartModal">×</button>
-        </div>
-
-        <div class="modal-body">
-          <div class="chart-container">
-            <div class="chart-header">
-              <h4 class="chart-title">Compare Inventory Items</h4>
-              <div class="chart-legend">
-                <div class="chart-total">{{ itemChartItems.length }} items</div>
-              </div>
-            </div>
-
-            <div class="item-comparison-table">
-              <div class="table-header">
-                <div class="header-cell">Item</div>
-                <div class="header-cell">Portion Size</div>
-                <div class="header-cell">Count</div>
-                <div class="header-cell">Cost</div>
-                <div class="header-cell">Est. Depletion</div>
-              </div>
-
-              <div
-                v-for="item in itemChartItems"
-                :key="item.item.id"
-                class="table-row"
-                :class="{ 'selected-row': selectedChartItem === item }"
-                @click="selectedChartItem = item"
-              >
-                <div class="table-cell item-name">
-                  <div class="item-avatar">
-                    {{ item.itemName.charAt(0).toUpperCase() }}
-                  </div>
-                  <span>{{ item.itemName }}</span>
-                </div>
-                <div class="table-cell portion-size">
-                  <div class="comparison-bar">
-                    <div
-                      :class="'bar-fill'"
-                      :style="{
-                        width: `${Math.min(100, ((item.item.itemSize && item.item.portionSize ? item.item.portionSize / item.item.itemSize : 0) * 100))}%`
-                      }"
-                    ></div>
-                    <div
-                      v-if="item.item.itemSize && item.item.portionSize && (item.item.portionSize / item.item.itemSize) > 1"
-                      class="bar-fill-overdraw"
-                      :style="{
-                        width: `${Math.min(100, (((item.item.portionSize - item.item.itemSize) / item.item.itemSize) * 100))}%`
-                      }"
-                    ></div>
-                  </div>
-                  <span class="cell-value">{{ item.item.itemSize && item.item.portionSize ? getSimplifiedFraction(item.item.portionSize, item.item.itemSize) : 'N/A' }}</span>
-                </div>
-                <div class="table-cell portions-count">
-                  <div class="comparison-bar">
-                    <div
-                      :class="'bar-fill'"
-                      :style="{
-                        width: `${Math.min(100, (getPortionsRemaining(item.item) / getTotalPortions(item.item)) * 100)}%`
-                      }"
-                    ></div>
-                  </div>
-                  <span class="cell-value">{{ getPortionsRemaining(item.item) }} / {{ getTotalPortions(item.item) }}</span>
-                </div>
-                <div class="table-cell product-cost">
-                  <span class="cell-value">{{ item.productCost ? `$${item.productCost.toFixed(2)}` : '$0.00' }}</span>
-                </div>
-                <div class="table-cell depletion-date">
-                  <span class="cell-value">{{ item.depletionDate || (getPortionsRemaining(item.item) <= 0 ? 'Depleted' : (item.isTracked ? 'No tracking' : 'No tracking')) }}</span>
-                  <hover-text v-if="item.isTracked" :text="`Tracked with: ${item.item.depletionRate}`">
-                    <span class="tracking-indicator" :class="{ 'depleted-indicator': getPortionsRemaining(item.item) <= 0 }">●</span>
-                  </hover-text>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="selectedChartItem" class="selected-item-details">
-              <h4 class="details-title">Selected Item : {{ selectedChartItem.itemName }}</h4>
-              <div class="details-flex">
-                <div class="detail-item">
-                  <label>Portion Size:</label>
-                  <span>{{ selectedChartItem.portionSize || 'Not specified' }}</span>
-                </div>
-                <div class="detail-item">
-                  <label>Portions Remaining:</label>
-                  <span>{{ selectedChartItem.portionsCount || 0 }} portions</span>
-                </div>
-                <div class="detail-item">
-                  <label>Product Cost:</label>
-                  <span>{{ selectedChartItem.productCost ? `$${selectedChartItem.productCost.toFixed(2)}` : '$0.00' }}</span>
-                </div>
-                <div class="detail-item">
-                  <label>Tracking:</label>
-                  <span>{{ selectedChartItem.isTracked ? 'Enabled' : 'Disabled' }}</span>
-                </div>
-                <div v-if="selectedChartItem.depletionDate" class="detail-item">
-                  <label>Est. Depletion Date:</label>
-                  <span>{{ selectedChartItem.depletionDate }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="chart-summary">
-              <div class="summary-stats">
-                <div class="stat-item">
-                  <span class="stat-label">Total Items:</span>
-                  <span class="stat-value">{{ itemChartItems.length }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Tracked Items:</span>
-                  <span class="stat-value">{{ itemChartItems.filter(i => i.isTracked).length }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Total Value:</span>
-                  <span class="stat-value">${{ itemChartItems.reduce((sum, item) => sum + (item.productCost || 0), 0).toFixed(2) }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ItemChart />
 
     <div v-if="showGearMenu" class="modal-overlay">
       <div class="gear-modal" @click.stop>
@@ -806,6 +602,18 @@
           </div>
 
           <div class="settings-section">
+            <h4 class="settings-title">UI / UX</h4>
+            <div class="settings-options">
+              <button class="settings-btn" @click="openTweaksMenu">
+                Tweaks
+              </button>
+              <button class="settings-btn" @click="openAdvancedMenu">
+                Advanced Options
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-section">
             <h4 class="settings-title">About</h4>
             <div class="settings-info">
               <p class="settings-text">Payment Calendar v1.0</p>
@@ -834,13 +642,10 @@ import { Payment, PaymentType } from '../types/payment.types'
 
 import InventoryFieldsSectionStepper from './primitives/inventoryStepper.vue'
 import DatePicker from './primitives/DatePicker.vue'
-import Sort from './sidebar/Sort.vue'
-import Filter from './sidebar/Filter.vue'
-import Remaining from './sidebar/Remaining.vue'
-import Inventory from './sidebar/Inventory.vue'
-import TotalSection from './sidebar/TotalSection.vue'
+import PaymentSidebar from './sidebar/PaymentSidebar.vue'
 import Calendar from './calendar/Calendar.vue'
 import CustomDropdown from './primitives/CustomDropdown.vue'
+import ItemChart from './modals/itemChart.vue'
 
 import { paymentService } from '../services/payment.service'
 import { paymentTypeService } from '../services/payment-type.service'
@@ -873,11 +678,8 @@ import {
   showGearMenu,
   sortMode,
   showPieChartModal,
-  showItemChartModal,
   hoveredSlice,
   modalStack,
-  isNextPaymentsCollapsed,
-  isEarningsCollapsed,
   isInventoryCollapsed,
   forgoneInstances,
   showEarningsInNextPayments,
@@ -886,16 +688,9 @@ import {
 } from '../stores/ui-state.store'
 
 import {
-  sortedPayments,
   currentMonthName,
   currentMonthYear,
   calendarDates,
-  nextPayments,
-  nextPaymentsTotal,
-  nextPaymentsPeriod,
-  nextEarnings,
-  earningsTotal,
-  earningsPeriod,
   totalRemainingSummary,
   allMonthPayments,
   allMonthEarnings,
@@ -904,19 +699,14 @@ import {
   chartTotal,
   chartPeriod,
   largestCategory,
-  getPaymentTypeClass,
   getPaymentTypeClassForDay,
   getDayStyle,
   getSlicePath,
   inventoryItems,
-  getPortionsRemaining,
   getEstimatedPortions,
   getEstimatedPortionsFromData,
   getEstimatedDepletionDate,
   parsePortionSize,
-  getTotalPortions,
-  itemChartItems,
-  selectedChartItem,
   getDepletionTimeInDays,
   getDepletionTimeInDaysFromData,
   getPortionSizeFraction,
@@ -925,8 +715,7 @@ import {
   getAnnualCostFromPurchases,
   getAnnualCostFromDepletion,
   getCurrentAnnualCost,
-  getCurrentAnnualCostReactive,
-  getSimplifiedFraction
+  getCurrentAnnualCostReactive
 } from '../composables/payment-computables'
 
 import {
@@ -964,13 +753,10 @@ import {
   highlightPaymentDay,
   goToPrevMonth,
   goToNextMonth,
-  toggleNextPaymentsSection,
-  toggleEarningsSection,
   toggleInventorySection,
   togglePieChart,
   closePieChartModal,
   toggleItemChart,
-  closeItemChartModal,
   loadPayments,
   loadPaymentTypes,
   initializeComponent,
@@ -983,11 +769,38 @@ import {
   openDatePicker,
   closeDatePicker,
   handleDateSelection,
-  showDatePicker
+  showDatePicker,
+  getPaymentSuggestions,
+  autofillPaymentForm
 } from '../composables/payment-handlers'
 
 // Color presets from shared constants
 const colorPresets = COLOR_PRESETS
+
+// Autocomplete state for Product / Service input
+const titleSuggestions = ref<ReturnType<typeof getPaymentSuggestions>>([])
+const showTitleSuggestions = ref(false)
+let titleDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+const onTitleInput = () => {
+  if (titleDebounceTimer) clearTimeout(titleDebounceTimer)
+  titleDebounceTimer = setTimeout(() => {
+    titleSuggestions.value = getPaymentSuggestions(addForm.title)
+    showTitleSuggestions.value = titleSuggestions.value.length > 0
+  }, 300)
+}
+
+const selectTitleSuggestion = (payment: (typeof titleSuggestions.value)[number]) => {
+  autofillPaymentForm(payment)
+  showTitleSuggestions.value = false
+  titleSuggestions.value = []
+}
+
+const hideTitleSuggestions = () => {
+  setTimeout(() => {
+    showTitleSuggestions.value = false
+  }, 150)
+}
 
 
 // Helper function to display frequency in a user-friendly format

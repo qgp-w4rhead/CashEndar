@@ -15,11 +15,11 @@ import { totalAmount } from '../../composables/payment-computables'
 /* Total Section */
 .total-section {
   margin-top: 24px;
-  background: linear-gradient(270deg, #10b98186, #059669 100%);
+  background: linear-gradient(270deg, oklch(from var(--lime-primary) l c h / 0.53) 0%, oklch(from var(--lime-dark) l c h / 1) 100%);
   border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid oklch(from var(--lime-primary) l c h / 0.3);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 8px 32px oklch(from var(--lime-primary) l c h / 0.2);
 }
 
 .total-header {

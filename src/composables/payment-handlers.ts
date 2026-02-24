@@ -327,43 +327,110 @@ export const openEditMenu = (payment: any) => {
     // For non-inventory items, use original behavior
     editForm.amount = originalPayment.amount.replace('$', '')
   }
-
-  editForm.type = originalPayment.type
-
-  // Convert payment date from human-readable format to YYYY-MM-DD for date input
-  const parsedDate = paymentService.parsePaymentDate(originalPayment.date)
-  if (parsedDate) {
-    const { year, month, day } = parsedDate
-    // Format as YYYY-MM-DD for HTML date input
-    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    editForm.date = formattedDate
+  
+  // Populate form with existing payment data (but don't override amount that was set above)
+  editForm.title = originalPayment.title || ''
+  editForm.type = originalPayment.type || 'rent'
+  editForm.frequency = originalPayment.frequency || 'recurring'
+  
+  // Convert date to YYYY-MM-DD format for date input
+  if (originalPayment.date) {
+    const parsedDate = paymentService.parsePaymentDate(originalPayment.date)
+    if (parsedDate) {
+      editForm.date = `${parsedDate.year}-${String(parsedDate.month + 1).padStart(2, '0')}-${String(parsedDate.day).padStart(2, '0')}`
+    } else {
+      editForm.date = ''
+    }
   } else {
-    // Fallback: set to current date if parsing fails
-    const today = new Date()
-    editForm.date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    editForm.date = ''
   }
-
-  editForm.frequency = originalPayment.frequency || 'recurring' // Use frequency, fallback to recurring for legacy data
-
-  // Initialize inventory fields
-  editForm.itemName = originalPayment.itemName || ''
-  editForm.brand = originalPayment.brand || ''
-  editForm.itemSize = originalPayment.itemSize || null
-  editForm.itemSizeUnit = originalPayment.itemSizeUnit || 'gram'
-  editForm.portionSize = originalPayment.portionSize || ''
-  editForm.portionsCount = originalPayment.portionsCount || null
-  editForm.depletionRate = originalPayment.depletionRate || ''
-  editForm.depletionUnit = originalPayment.depletionUnit || 'day'
+  
+  editForm.day = originalPayment.day || 1
+  
+  // Handle inventory-specific fields
+  if (originalPayment.type === 'inventory') {
+    editForm.itemName = originalPayment.itemName || ''
+    editForm.brand = originalPayment.brand || ''
+    editForm.itemSize = originalPayment.itemSize || ''
+    editForm.itemSizeUnit = originalPayment.itemSizeUnit || 'gram'
+    editForm.portionSize = originalPayment.portionSize || ''
+    editForm.portionsCount = originalPayment.portionsCount || null
+    editForm.depletionRate = originalPayment.depletionRate || ''
+    editForm.depletionUnit = originalPayment.depletionUnit || 'day'
+    
+    // Initialize expiration fields - preserve shelf life, reset offset
+    editForm.expirationPeriod = originalPayment.expirationPeriod || null
+    editForm.expirationUnit = originalPayment.expirationUnit || 'day'
+    editForm.freshnessOffset = null // Always reset offset
+    editForm.freshnessOffsetUnit = 'day' // Reset to default unit
+  }
 
   showEditMenu.value = true
   openModal('edit')
 }
-
 // Close edit menu
 export const closeEditMenu = () => {
   showEditMenu.value = false
   editingPayment.value = null
   closeModal('edit')
+}
+
+// Helper function to calculate expiration date
+export const calculateExpirationDate = (purchaseDate: string, expirationPeriod: number, expirationUnit: string, freshnessOffset?: number, freshnessOffsetUnit?: string): string => {
+  const parsedDate = paymentService.parsePaymentDate(purchaseDate)
+  if (!parsedDate) return ''
+  
+  const { year, month, day } = parsedDate
+  const date = new Date(year, month, day)
+  
+  // Convert expiration period to days
+  let daysToAdd = 0
+  switch (expirationUnit) {
+    case 'day':
+      daysToAdd = expirationPeriod
+      break
+    case 'week':
+      daysToAdd = expirationPeriod * 7
+      break
+    case 'month':
+      daysToAdd = expirationPeriod * 30 // Approximate
+      break
+    case 'year':
+      daysToAdd = expirationPeriod * 365
+      break
+    default:
+      daysToAdd = expirationPeriod
+  }
+  
+  // Convert freshness offset to days
+  let daysToSubtract = 0
+  if (freshnessOffset && freshnessOffsetUnit) {
+    switch (freshnessOffsetUnit) {
+      case 'day':
+        daysToSubtract = freshnessOffset
+        break
+      case 'week':
+        daysToSubtract = freshnessOffset * 7
+        break
+      case 'month':
+        daysToSubtract = freshnessOffset * 30 // Approximate
+        break
+      case 'year':
+        daysToSubtract = freshnessOffset * 365
+        break
+      default:
+        daysToSubtract = freshnessOffset
+    }
+  }
+  
+  // Apply freshness offset
+  const effectiveDaysToAdd = Math.max(0, daysToAdd - daysToSubtract)
+  
+  // Calculate expiration date
+  const expirationDate = new Date(date.getTime() + (effectiveDaysToAdd * 24 * 60 * 60 * 1000))
+  
+  // Format as YYYY-MM-DD
+  return `${expirationDate.getFullYear()}-${String(expirationDate.getMonth() + 1).padStart(2, '0')}-${String(expirationDate.getDate()).padStart(2, '0')}`
 }
 
 // Save payment changes
@@ -404,12 +471,21 @@ export const savePayment = async () => {
       ...(editForm.type === 'inventory' && {
         itemName: editForm.title.trim(),
         brand: editForm.brand.trim() || undefined,
+        quantity: quantity,
+        unitCost: costAmount,
         itemSize: editForm.itemSize,
         itemSizeUnit: editForm.itemSizeUnit,
         portionSize: editForm.portionSize,
         portionsCount: editForm.portionsCount,
         depletionRate: editForm.depletionRate,
-        depletionUnit: editForm.depletionUnit
+        depletionUnit: editForm.depletionUnit,
+        // Include expiration fields
+        expirationPeriod: editForm.expirationPeriod,
+        expirationUnit: editForm.expirationUnit,
+        freshnessOffset: editForm.freshnessOffset,
+        freshnessOffsetUnit: editForm.freshnessOffsetUnit,
+        calculatedExpirationDate: editForm.expirationPeriod && editForm.expirationUnit ? 
+          calculateExpirationDate(humanReadableDate, editForm.expirationPeriod, editForm.expirationUnit, editForm.freshnessOffset, editForm.freshnessOffsetUnit) : undefined
       })
     }
 
@@ -523,6 +599,48 @@ export const deletePayment = async () => {
   }
 }
 
+// Get payment title suggestions matching a query (case-insensitive grep)
+// Returns unique titles with their most recent payment for autofill
+export const getPaymentSuggestions = (query: string, filterType?: string): Payment[] => {
+  if (!query || query.length < 3) return []
+
+  const lowerQuery = query.toLowerCase()
+
+  // Filter payments by query and optional type
+  const filtered = payments.value.filter(p => {
+    const matchesQuery = p.title.toLowerCase().includes(lowerQuery)
+    const matchesType = filterType ? p.type === filterType : true
+    return matchesQuery && matchesType
+  })
+
+  // Deduplicate by title, keeping only the most recent per title
+  const titleMap = new Map<string, Payment>()
+  filtered.forEach(p => {
+    const existing = titleMap.get(p.title)
+    if (!existing) {
+      titleMap.set(p.title, p)
+    } else {
+      const dateA = paymentService.parsePaymentDate(existing.date)
+      const dateB = paymentService.parsePaymentDate(p.date)
+      if (dateA && dateB) {
+        const a = new Date(dateA.year, dateA.month, dateA.day)
+        const b = new Date(dateB.year, dateB.month, dateB.day)
+        if (b > a) titleMap.set(p.title, p)
+      }
+    }
+  })
+
+  return Array.from(titleMap.values()).slice(0, 8)
+}
+
+// Autofill payment form fields from a selected suggestion
+export const autofillPaymentForm = (payment: Payment) => {
+  addForm.title = payment.title
+  addForm.amount = payment.amount.replace(/[^0-9.]/g, '')
+  addForm.type = payment.type
+  addForm.frequency = payment.frequency
+}
+
 // Find most recent inventory item by name
 export const findMostRecentInventoryItem = (itemName: string): Payment | null => {
   const inventoryItems = payments.value.filter(p => p.type === 'inventory' && p.itemName === itemName)
@@ -553,18 +671,44 @@ export const prefillInventoryFields = (itemName: string) => {
     addForm.portionsCount = mostRecentItem.portionsCount
     addForm.depletionRate = mostRecentItem.depletionRate
     addForm.depletionUnit = mostRecentItem.depletionUnit || 'day'
+    
+    // Preserve shelf life (expiration period and unit) but reset offset
+    addForm.expirationPeriod = mostRecentItem.expirationPeriod
+    addForm.expirationUnit = mostRecentItem.expirationUnit || 'day'
+    addForm.freshnessOffset = null // Always reset offset
+    addForm.freshnessOffsetUnit = 'day' // Reset to default unit
+    
     console.log(`Pre-filled inventory fields for "${itemName}" from previous item`)
   }
 }
 
 // Open add menu
 export const openAddMenu = () => {
-  // Reset form to default values
+  // Reset form to default values completely
   addForm.title = ''
   addForm.amount = ''
   addForm.type = 'credit'
-  // Set default day to current day when no days are selected
+  addForm.frequency = 'one-time'
   addForm.day = new Date().getDate()
+  addForm.quantity = 1
+  
+  // Reset inventory-specific fields to prevent carrying over previous data
+  addForm.itemName = ''
+  addForm.brand = ''
+  addForm.itemSize = undefined
+  addForm.itemSizeUnit = 'gram'
+  addForm.portionSize = undefined
+  addForm.portionsCount = undefined
+  addForm.depletionRate = undefined
+  addForm.depletionUnit = 'day'
+  addForm.depletionTime = undefined
+  
+  // Reset expiration fields
+  addForm.expirationPeriod = undefined
+  addForm.expirationUnit = 'day'
+  addForm.freshnessOffset = undefined
+  addForm.freshnessOffsetUnit = 'day'
+  
   showAddMenu.value = true
   openModal('unified')
 }
@@ -605,14 +749,35 @@ export const handleDayClick = (dateInfo: any) => {
     if (hasPayments) {
       // If day has payments, show the day payments modal
       showDayPaymentsForDay(dateInfo.day)
-  } else {
-    // If no payments, open the add menu
-    addForm.title = ''
-    addForm.amount = ''
-    addForm.type = 'credit'
-    showAddMenu.value = true
-    openModal('unified')
-  }
+    } else {
+      // If no payments, open the add menu with properly reset form
+      addForm.title = ''
+      addForm.amount = ''
+      addForm.type = 'credit'
+      addForm.frequency = 'one-time'
+      addForm.day = dateInfo.day
+      addForm.quantity = 1
+      
+      // Reset inventory-specific fields to prevent carrying over previous data
+      addForm.itemName = ''
+      addForm.brand = ''
+      addForm.itemSize = undefined
+      addForm.itemSizeUnit = 'gram'
+      addForm.portionSize = undefined
+      addForm.portionsCount = undefined
+      addForm.depletionRate = undefined
+      addForm.depletionUnit = 'day'
+      addForm.depletionTime = undefined
+      
+      // Reset expiration fields
+      addForm.expirationPeriod = undefined
+      addForm.expirationUnit = 'day'
+      addForm.freshnessOffset = undefined
+      addForm.freshnessOffsetUnit = 'day'
+      
+      showAddMenu.value = true
+      openModal('unified')
+    }
   } else {
     // First click - just pre-select the day
     preSelectedDay.value = dateInfo.day
@@ -704,12 +869,21 @@ export const saveNewPayment = async () => {
       ...(addForm.type === 'inventory' && {
         itemName: addForm.title.trim(),
         brand: addForm.brand.trim() || undefined,
+        quantity: quantity,
+        unitCost: costAmount,
         itemSize: addForm.itemSize,
         itemSizeUnit: addForm.itemSizeUnit,
         portionSize: addForm.portionSize,
         portionsCount: addForm.portionsCount,
         depletionRate: addForm.depletionRate,
-        depletionUnit: addForm.depletionUnit
+        depletionUnit: addForm.depletionUnit,
+        // Include expiration fields
+        expirationPeriod: addForm.expirationPeriod,
+        expirationUnit: addForm.expirationUnit,
+        freshnessOffset: addForm.freshnessOffset,
+        freshnessOffsetUnit: addForm.freshnessOffsetUnit,
+        calculatedExpirationDate: addForm.expirationPeriod && addForm.expirationUnit ? 
+          calculateExpirationDate(dynamicDate, addForm.expirationPeriod, addForm.expirationUnit, addForm.freshnessOffset, addForm.freshnessOffsetUnit) : undefined
       })
     }
 

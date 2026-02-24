@@ -8,7 +8,7 @@
         </h4>
       </div>
       <span style="margin-right: 10px;" class="inventory-total">{{ inventoryItems.length }} items</span>
-      <button class="add-btn-purple" @click.stop="openInventoryAddMenu">+</button>
+      <button class="add-btn" @click.stop="openInventoryAddMenu">+</button>
     </div>
     <div class="inventory-content">
       <div class="inventory-body">
@@ -19,11 +19,12 @@
           <div v-for="item in inventoryItems" :key="item.id" class="inventory-item" @click="highlightPaymentDay(item)">
             <div class="inventory-details">
             <div class="cost-section">
-              <div class="">
+              <div class="annual-cost-display">
                 <div class="inventory-name">{{ item.itemName || 'Unnamed Item' }}</div>
                 <div class="inventory-meta">
                   <span class="portions-left">{{ getPortionsRemaining(item).toFixed(2) }} portions left</span>
                   <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· {{ getEstimatedDepletionDate(item) }} remaining</span>
+                  <span class="expiration-display" v-if="getExpirationDisplay(item)">· {{ getExpirationDisplay(item) }}</span>
                 </div>
                 <div class="inventory-amount">{{ item.amount }}</div>
               </div>
@@ -46,19 +47,16 @@
                         :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] === false, disabled: !canUsePurchaseMethod(item) }]"
                         :disabled="!canUsePurchaseMethod(item)"
                         :title="!canUsePurchaseMethod(item) ? 'No purchases available' : ''"
-                        @click.stop="itemCostMethodPrefs[item.id] = false"
+                        @click.stop="canUsePurchaseMethod(item) && (itemCostMethodPrefs[item.id] = false)"
                       >
                         Purchase
                       </button>
                     </div>
                   </div>
                 </div>
-                <div class="">
+                <div class="annual-cost-display">
                   <div class="annual-cost-amount" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
                     ${{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).cost.toFixed(2) }}/year
-                  </div>
-                  <div class="annual-cost-method" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
-                    {{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).method }}
                   </div>
                   <div class="annual-cost-details" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
                     {{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).details }}
@@ -76,7 +74,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Payment } from '../../types/payment.types'
-import { isInventoryCollapsed } from '../../stores/ui-state.store'
+import { isInventoryCollapsed, payments } from '../../stores/ui-state.store'
 import {
   inventoryItems,
   getPortionsRemaining,
@@ -84,7 +82,7 @@ import {
   getAnnualCostFromPurchases,
   getAnnualCostFromDepletion,
   getCurrentAnnualCostReactive,
-  getLastPurchases
+  isPurchaseExpired
 } from '../../composables/payment-computables'
 import {
   toggleInventorySection,
@@ -96,12 +94,19 @@ import {
 // Reactive state for annual cost method preferences (item ID -> boolean)
 const itemCostMethodPrefs = ref<Record<string, boolean>>({})
 
+// Helper function to get expiration display text
+const getExpirationDisplay = (item: Payment) => {
+  if (!item.expirationPeriod || !item.expirationUnit) return null
+  
+  const expirationText = `${item.expirationPeriod} ${item.expirationUnit}${item.expirationPeriod === 1 ? '' : 's'}`
+  const offsetText = item.freshnessOffset ? `, was fresh ${item.freshnessOffset} ${item.freshnessOffsetUnit || 'day'}${item.freshnessOffset === 1 ? '' : 's'} ago` : ''
+  
+  return `Shelf life: ${expirationText}${offsetText}`
+}
+
 // Helper function to check if purchase method can be used for an item
 const canUsePurchaseMethod = (item: Payment) => {
-  // Can use purchase method if item has at least 1 purchase (always calculate from last purchase)
-  const hasPurchases = getLastPurchases.value(item.itemName, item.date).length >= 1
-
-  return hasPurchases
+  return getAnnualCostFromPurchases.value(item) !== null
 }
 </script>
 
@@ -109,11 +114,10 @@ const canUsePurchaseMethod = (item: Payment) => {
 /* Inventory Tracker Section */
 .inventory-section {
   margin-top: 24px;
-  background: linear-gradient(270deg, #8b5cf886 0%, #a855f7 50%, #8b5cf8 100%);
+  background: oklch(from var(--lime-primary) l c h / 0.05);
   border-radius: 12px;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid oklch(from var(--lime-primary) l c h / 0.2);
   overflow: show;
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
 }
 
 .inventory-header {
@@ -122,7 +126,7 @@ const canUsePurchaseMethod = (item: Payment) => {
   justify-content: space-between;
   padding: 20px 24px;
   transition: all 0.2s ease;
-  background: rgba(139, 92, 246, 0.02);
+  background: oklch(from var(--grey-primary) l c h / 0.02);
 }
 
 .inventory-title-area {
@@ -133,7 +137,7 @@ const canUsePurchaseMethod = (item: Payment) => {
 }
 
 .inventory-header:hover {
-  background: rgba(139, 92, 246, 0.05);
+  background: oklch(from var(--grey-primary) l c h / 0.05);
 }
 
 .inventory-title {
@@ -150,10 +154,10 @@ const canUsePurchaseMethod = (item: Payment) => {
   color: #ffffff;
   font-size: 14px;
   font-weight: 500;
-  background: rgba(139, 92, 246, 0.3);
+  background: oklch(from var(--grey-primary) l c h / 0.3);
   padding: 4px 8px;
   border-radius: 12px;
-  border: 1px solid rgba(180,130, 246, 0.9);
+  border: 1px solid oklch(from var(--grey-light) l c h / 0.9);
 }
 
 .inventory-content {
@@ -177,15 +181,14 @@ const canUsePurchaseMethod = (item: Payment) => {
   align-items: center;
   padding: 16px;
   margin-bottom: 12px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.4);
   border-radius: 8px;
-  
-  border: 2px solid rgba(139, 92, 246, 0.1);
+  border: 2px solid oklch(from var(--grey-primary) l c h / 0.1);
   transition: all 0.2s ease;
 }
 
 .inventory-item:hover {
-  border-color: rgb(168, 131, 255);
+  border-color: oklch(from var(--grey-light) l c h / 1);
 }
 
 .inventory-avatar {
@@ -193,8 +196,8 @@ const canUsePurchaseMethod = (item: Payment) => {
 }
 
 .avatar-circle.inventory {
-  background: linear-gradient(135deg, #8b5cf6, #a855f7);
-  border: 2px solid rgba(139, 92, 246, 0.3);
+  background: linear-gradient(135deg, oklch(from var(--grey-primary) l c h / 1), oklch(from var(--grey-light) l c h / 1));
+  border: 2px solid oklch(from var(--grey-primary) l c h / 0.3);
 }
 
 .inventory-details {
@@ -217,11 +220,15 @@ const canUsePurchaseMethod = (item: Payment) => {
 }
 
 .portions-left {
-  color: #cdb7ff;
+  color: oklch(from var(--grey-light) l c h / 1);
   font-weight: 500;
 }
 
 .depletion-date {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.expiration-display {
   color: rgba(255, 255, 255, 0.5);
 }
 
@@ -248,16 +255,16 @@ const canUsePurchaseMethod = (item: Payment) => {
 .cost-section {
   margin-top: 12px;
   padding: 12px;
-  background: rgba(139, 92, 246, 0.5);
+  background: oklch(from var(--grey-primary) 0.1 c h / 0.3);
   border-radius: 8px;
-  border: 2px solid rgba(139, 92, 246, 0.5);
+  border: 2px solid oklch(from var(--grey-primary) l c h / 0.5);
   display: flex;
   align-items: flex-start;
   gap: 16px;
 }
 
 .cost-section:hover {
-  border-color: rgb(168, 131, 255);
+  border-color: oklch(from var(--grey-light) l c h / 1);
 }
 
 .cost-toggle {

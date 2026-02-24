@@ -61,7 +61,7 @@
               v-for="n in Math.min(dateInfo.paymentCount, 5)"
               :key="n"
               class="payment-dot"
-              :style="{ backgroundColor: getPaymentTypeClassForDay(dateInfo.day) ? 'var(--payment-color, #10b981)' : '#10b981' }"
+              :style="{ backgroundColor: getPaymentTypeClassForDay(dateInfo.day) ? 'var(--payment-color, oklch(from var(--lime-primary) l c h / 1))' : 'oklch(from var(--lime-primary) l c h / 1)' }"
             ></span>
             <span v-if="dateInfo.paymentCount > 5" class="payment-dot-plus">+</span>
           </div>
@@ -183,8 +183,8 @@ const isToday = (date: Date) => {
 .item-chart-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.05);
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+  border-color: oklch(from var(--grey-primary) l c h / 1);
+  box-shadow: 0 0 0 2px oklch(from var(--grey-primary) l c h / 0.3);
 }
 
 .item-chart-btn svg {
@@ -236,8 +236,8 @@ const isToday = (date: Date) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: oklch(from var(--lime-light) l c h / 0.1) !important;
+  border: 2px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
@@ -245,6 +245,10 @@ const isToday = (date: Date) => {
   transition: all 0.2s ease;
   position: relative;
   padding: 8px 4px;
+  
+  &:hover {
+    background: oklch(from var(--lime-light) l c h / 0.2) !important;
+  }
 }
 
 /* Day total amount displayed above day number */
@@ -258,21 +262,21 @@ const isToday = (date: Date) => {
 }
 
 .day-total-positive {
-  color: #43ffc0 !important; /* green for earnings */
+  color: oklch(from var(--lime-light) l c h / 1) !important;
 }
 
 .day-total-negative {
-  color: #ff7575 !important; /* red for expenses */
-}
-
-.date-cell:hover {
-  background: rgba(255, 255, 255, 0.1);
+  color: #ff7575 !important;
 }
 
 .date-cell.has-payment {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
-  color: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 0.2);
+  border-color: oklch(from var(--lime-primary) l c h / 1);
+  color: oklch(from var(--lime-primary) l c h / 1);
+
+  &:hover {
+    background: oklch(from var(--lime-primary) l c h / 0.3) !important;
+  }
 }
 
 /* Payment dots container */
@@ -298,7 +302,7 @@ const isToday = (date: Date) => {
 .payment-dot-plus {
   font-size: 10px;
   font-weight: bold;
-  color: #10b981;
+  color: oklch(from var(--lime-primary) l c h / 1);
   line-height: 1;
   margin-left: 1px;
 }
@@ -332,8 +336,8 @@ const isToday = (date: Date) => {
 
 
 .date-cell.subscription {
-  background-color: rgba(16, 185, 129, 0.05) !important;
-  border-color: #10b981 !important;
+  background-color: oklch(from var(--lime-primary) l c h / 0.05) !important;
+  border-color: oklch(from var(--lime-primary) l c h / 1) !important;
   border-width: 2px !important;
   color: rgba(255, 255, 255, 0.8) !important;
 }
@@ -341,8 +345,8 @@ const isToday = (date: Date) => {
 
 
 .date-cell.earnings {
-  background-color: rgba(16, 185, 129, 0.05) !important;
-  border-color: #10b981 !important;
+  background-color: oklch(from var(--lime-primary) l c h / 0.05) !important;
+  border-color: oklch(from var(--lime-primary) l c h / 1) !important;
   border-width: 2px !important;
   color: rgba(255, 255, 255, 0.8) !important;
 }
@@ -352,7 +356,7 @@ const isToday = (date: Date) => {
 /* Support for custom payment types with dynamic colors */
 .date-cell[data-payment-type] {
   background-color: rgba(255, 255, 255, 0.02) !important;
-  border-color: var(--payment-color, #10b981) !important;
+  border-color: var(--payment-color, oklch(from var(--lime-primary) l c h / 1)) !important;
   border-width: 2px !important;
   color: rgba(255, 255, 255, 0.8) !important;
 }
@@ -368,57 +372,52 @@ const isToday = (date: Date) => {
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* */
+
 .date-cell.today {
-  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-  border-color: #0ea5e9;
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h), oklch(from var(--lime-dark) l c h));
+  border-color: oklch(from var(--lime-primary) l c h);
   color: white;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.5);
 }
 
 .date-cell.selected {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  border-color: #3b82f6;
+  border: 2px solid oklch(from var(--lime-light) l c h / 1);
   color: white;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-}
-
-.date-cell.selected:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
 }
 
 .date-cell.pulsating {
   animation: pulse 2s ease-in-out infinite;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h), oklch(from var(--lime-dark) l c h / 0.7));
+  border-color: oklch(from var(--lime-dark) l c h);
   color: white;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
 .date-cell.pre-selected {
-  background: linear-gradient(135deg, #494cff, #1e48c5);
-  border-color: #0b69f5b9;
+  background: linear-gradient(135deg, oklch(from var(--grey-primary) l c h), oklch(from var(--grey-dark) l c h));
+  border-color: oklch(from var(--lime-light) l c h);
   color: white;
-  box-shadow: 0 0 0 2px #0b69f582;
   transform: scale(1.04);
 }
 
 .date-cell.pre-selected:hover {
-  background: linear-gradient(135deg, #494cff, #123fc5);
-  box-shadow: 0 0 0 3px #0099ffa2;
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h), oklch(from var(--grey-dark) l c h));
+
 }
+
+/* */
 
 @keyframes pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    box-shadow: 0 0 0 0 oklch(from var(--lime-primary) l c h / 0.7);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 15px oklch(from var(--lime-primary) l c h / 0);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 oklch(from var(--lime-primary) l c h / 0);
   }
 }
 </style>

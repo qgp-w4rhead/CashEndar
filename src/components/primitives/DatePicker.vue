@@ -199,7 +199,7 @@ watch(() => props.isVisible, (newValue) => {
 }
 
 .date-picker-modal {
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(145deg, oklch(from var(--grey-dark) l c h / 1) 0%, oklch(from var(--grey-dark) l c h / 0.7) 100%);
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 
@@ -223,7 +223,7 @@ watch(() => props.isVisible, (newValue) => {
   height: 1px;
   background: linear-gradient(90deg, 
     transparent, 
-    rgba(59, 130, 246, 0.5), 
+    oklch(from var(--lime-primary) l c h / 0.5), 
     transparent
   );
   animation: shimmer 3s infinite;
@@ -252,7 +252,7 @@ watch(() => props.isVisible, (newValue) => {
   align-items: center;
   padding: 24px 28px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.05));
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 0.1), oklch(from var(--grey-primary) l c h / 0.05));
 }
 
 .header-title {
@@ -353,15 +353,15 @@ watch(() => props.isVisible, (newValue) => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, oklch(from var(--lime-primary) l c h / 0.3), transparent);
   transition: left 0.5s ease;
 }
 
 .nav-btn:hover {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
+  border-color: oklch(from var(--lime-primary) l c h / 1);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 25px oklch(from var(--lime-primary) l c h / 0.3);
 }
 
 .nav-btn:hover::before {
@@ -452,7 +452,7 @@ watch(() => props.isVisible, (newValue) => {
   left: 50%;
   width: 0;
   height: 0;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent);
+  background: radial-gradient(circle, oklch(from var(--lime-primary) l c h / 0.3), transparent);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   transition: all 0.3s ease;
@@ -464,10 +464,10 @@ watch(() => props.isVisible, (newValue) => {
 }
 
 .date-cell:hover:not(.other-month):not(.disabled) {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.1));
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 0.2), oklch(from var(--grey-primary) l c h / 0.1));
+  border-color: oklch(from var(--lime-primary) l c h / 1);
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 8px 25px oklch(from var(--lime-primary) l c h / 0.2);
 }
 
 .date-cell:hover:not(.other-month):not(.disabled)::before {
@@ -482,8 +482,8 @@ watch(() => props.isVisible, (newValue) => {
 }
 
 .date-cell.today {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(59, 130, 246, 0.1));
-  border-color: #0ea5e9;
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 0.2), oklch(from var(--lime-dark) l c h / 0.1));
+  border-color: oklch(from var(--lime-primary) l c h / 1);
   color: white;
   font-weight: 700;
   position: relative;
@@ -496,18 +496,18 @@ watch(() => props.isVisible, (newValue) => {
   transform: translateX(-50%);
   width: 4px;
   height: 4px;
-  background: #0ea5e9;
+  background: oklch(from var(--lime-primary) l c h / 1);
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(14, 165, 233, 0.6);
+  box-shadow: 0 0 8px oklch(from var(--lime-primary) l c h / 0.6);
 }
 
 .date-cell.selected {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1)) !important;
+  border-color: oklch(from var(--lime-primary) l c h / 1);
   color: white;
   box-shadow: 
-    0 0 0 3px rgba(59, 130, 246, 0.3),
-    0 8px 25px rgba(59, 130, 246, 0.3);
+    0 0 0 3px oklch(from var(--lime-primary) l c h / 0.3),
+    0 8px 25px oklch(from var(--lime-primary) l c h / 0.3);
   transform: scale(1.05);
   font-weight: 700;
   animation: pulse 0.4s ease-out;
@@ -515,13 +515,13 @@ watch(() => props.isVisible, (newValue) => {
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    box-shadow: 0 0 0 0 oklch(from var(--lime-primary) l c h / 0.7);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 10px oklch(from var(--lime-primary) l c h / 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 oklch(from var(--lime-primary) l c h / 0);
   }
 }
 
@@ -583,15 +583,15 @@ watch(() => props.isVisible, (newValue) => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 15px oklch(from var(--lime-primary) l c h / 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--lime-dark) l c h / 0.8));
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 8px 25px oklch(from var(--lime-primary) l c h / 0.4);
 }
 
 .btn-primary:active {

@@ -95,7 +95,7 @@ const hideTooltip = () => {
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, oklch(from var(--grey-dark) l c h / 1) 0%, oklch(from var(--grey-primary) l c h / 0.5) 100%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   padding: 12px 16px;

@@ -47,9 +47,9 @@
 
 - [x] remove Portion Count Comparison
 
-- [ ] Graph usage over time
+- [x] Graph usage over time
 - [ ] Current item price in favorite store
-- [ ] Expiration date (Drops "totalCount" to 0 once reached)
+- [o] Expiration date can be set for inventory item ("totalCount" should drop to 0 once reached)
 
 - [ ] Mobile mode! Allows to use the app on restricted width device use media queries
 
@@ -122,7 +122,14 @@
     - The average of all purchase price for an item
     - It should pre-fill as the answer for field : editForm.amount
 
-- [ ] Performance issue with Settings menu second layer.
+- [x] Performance issue with Settings menu second layer.
+
+____nitpicks
+
+- Add a $ sign next to cost (1st and 3rd step)
+- The entire button needs to be clickable, not just game-select (game-selector)
+- modals should close when we click out or in another button that opens a modal.
+
 
 
 __________________________

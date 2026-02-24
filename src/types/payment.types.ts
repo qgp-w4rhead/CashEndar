@@ -11,7 +11,8 @@ export interface Payment {
   frequency: 'one-time' | 'recurring' | 'weekly' | 'bi-monthly';
   itemName?: string; 
   brand?: string; 
-  quantity?: number; 
+  quantity?: number;
+  unitCost?: number;
   portionSize?: number; 
   portionsCount?: number; 
   itemSize?: number;
@@ -20,6 +21,12 @@ export interface Payment {
   depletionUnit?: 'day' | 'week' | 'month';
   depletionTime?: number;
   forgone?: boolean;
+  // Expiration tracking fields
+  expirationPeriod?: number; // Time amount (e.g., 5)
+  expirationUnit?: 'day' | 'week' | 'month' | 'year'; // Time unit
+  freshnessOffset?: number; // Days to subtract from expiration
+  freshnessOffsetUnit?: 'day' | 'week' | 'month' | 'year'; // Time unit for freshness offset
+  calculatedExpirationDate?: string; // Computed per purchase (YYYY-MM-DD)
 }
 
 export interface Earning {

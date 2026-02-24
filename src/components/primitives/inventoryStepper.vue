@@ -17,85 +17,105 @@
           <h3 class="section-title">What is your Item?</h3>
         </div>
 
-        <div class="form-group side-by-side">
-          <div class="form-field form-field-right">
-            <label for="stepperItemName">Product Name</label>
-            <input
-              id="stepperItemName"
-              v-model="formData.title"
-              type="text"
-              class="form-input"
-              placeholder="Enter product name"
-            >
+        <div class="form-group two-col-divided">
+          <div class="divided-col divided-col-right">
+            <div class="form-field right">
+              <label for="stepperItemName">Product Name</label>
+              <div class="autocomplete-wrapper">
+                <input
+                  id="stepperItemName"
+                  v-model="formData.title"
+                  type="text"
+                  class="form-input"
+                  placeholder="Enter product name"
+                  autocomplete="off"
+                  @input="onItemNameInput"
+                  @blur="hideItemNameSuggestions"
+                >
+                <div v-if="showItemNameSuggestions" class="suggestions-dropdown">
+                  <div
+                    v-for="suggestion in itemNameSuggestions"
+                    :key="suggestion.id"
+                    class="suggestion-item"
+                    @mousedown.prevent="selectItemNameSuggestion(suggestion)"
+                  >
+                    <span class="suggestion-title">{{ suggestion.title }}</span>
+                    <span class="suggestion-meta">{{ suggestion.amount }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-field right">
+              <label for="stepperCost">Cost</label>
+              <input
+                id="stepperCost"
+                v-model="formData.amount"
+                type="number"
+                step="0.01"
+                class="form-input short-ch"
+                placeholder="0.00"
+                @blur="handleAmountInputBlur"
+              >
+            </div>
           </div>
-          <div class="form-field">
-            <label for="stepperItemBrand">Brand (optional)</label>
-            <input
-              id="stepperItemBrand"
-              v-model="formData.brand"
-              type="text"
-              class="form-input"
-              placeholder="Enter brand name"
-            >
-          </div>
-        </div>
-
-        <div class="form-group side-by-side">
-          <div class="form-field form-field-right">
-            <label for="stepperCost">Cost</label>
-            <input
-              id="stepperCost"
-              v-model="formData.amount"
-              type="number"
-              step="0.01"
-              class="form-input"
-              placeholder="0.00"
-              @blur="handleAmountInputBlur"
-            >
-          </div>
-          <div class="form-field">
-            <label for="stepperQuantity">Quantity (optional)</label>
-            <input
-              id="stepperQuantity"
-              v-model.number="formData.quantity"
-              type="number"
-              min="1"
-              step="1"
-              class="form-input"
-              placeholder="1"
-            >
+          <div class="vertical-divider"></div>
+          <div class="divided-col">
+            <div class="form-field">
+              <label for="stepperItemBrand">Brand (optional)</label>
+              <input
+                id="stepperItemBrand"
+                v-model="formData.brand"
+                type="text"
+                class="form-input"
+                placeholder="Enter brand name"
+              >
+            </div>
+            <div class="form-field">
+              <label for="stepperQuantity">Quantity (optional)</label>
+              <input
+                id="stepperQuantity"
+                v-model.number="formData.quantity"
+                type="number"
+                min="1"
+                step="1"
+                class="form-input short-ch"
+                placeholder="1"
+              >
+            </div>
           </div>
         </div>
       </div>
 
-      <div v-if="currentStep === 2" class="step-content">
+      <div v-if="currentStep === 2" class="step-content" style="align-items: center; justify-content: center;">
         <div class="section-header">
           <h3 class="section-title">Inventory Details</h3>
         </div>
 
-        <div class="form-group">
-          <label for="stepperItemSize">Item Size (Total Amount)</label>
-          <div class="value-unit-input">
-            <input
-              id="stepperItemSize"
-              v-model.number="formData.itemSize"
-              type="number"
-              step="0.01"
-              min="0"
-              class="form-input value-input"
-              placeholder="e.g., 500"
-            >
-            <CustomDropdown
-              v-model="formData.itemSizeUnit"
-              :options="itemSizeUnitOptions"
-              placeholder="Select unit"
-            />
-          </div>
-        </div>
-
         <div class="form-group side-by-side">
+          <div class="form-field" style="align-items: center;">
+            <label for="stepperItemSize">Item Size (Total Amount)</label>
+            <div class="value-unit-input">
+              <input
+                id="stepperItemSize"
+                v-model.number="formData.itemSize"
+                type="number"
+                step="0.01"
+                min="0"
+                class="form-input value-input short-ch"
+                placeholder="Amount"
+              >
+              <CustomDropdown
+                v-model="formData.itemSizeUnit"
+                :options="itemSizeUnitOptions"
+                placeholder="Select unit"
+              />
+            </div>
+          </div>
           <div class="form-field">
-            <label for="stepperPortionSize">Portion Size</label>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="stepperPortionSize">Portion Size</label>
+              <span class="unit-mnemonic">({{ getUnitMnemonic(formData.itemSizeUnit) }})</span>
+            </div>
             <div class="value-unit-input">
               <input
                 id="stepperPortionSize"
@@ -103,10 +123,9 @@
                 type="number"
                 step="0.01"
                 min="0"
-                class="form-input value-input"
-                placeholder="e.g., 250"
+                class="form-input value-input short-ch"
+                placeholder="Amount"
               >
-              <span class="unit-mnemonic">{{ getUnitMnemonic(formData.itemSizeUnit) }}</span>
             </div>
           </div>
           <div class="form-field">
@@ -115,9 +134,80 @@
               :value="getEstimatedPortions({ itemSize: formData.itemSize, portionSize: formData.portionSize, quantity: formData.quantity })"
               type="number"
               readonly
-              class="form-input readonly-field"
+              class="form-input readonly-field short-ch"
               placeholder="Auto-calculated"
             >
+          </div>
+        </div>
+
+        <div style="height: 1px; background: rgba(255, 255, 255, 0.1); margin-top: 12px; margin-bottom: 8px;"></div>
+
+        <div class="form-group">
+          <div class="form-field">
+            <div class="expiration-inputs">
+              <span class="expiration-text">
+                Shelf life is : 
+                <input
+                  v-model.number="localExpirationPeriod"
+                  @blur="syncExpirationPeriod"
+                  type="number"
+                  step="1"
+                  min="1"
+                  class="form-input inline-input"
+                  placeholder="5"
+                >
+                <CustomDropdown
+                  v-model="props.formData.expirationUnit"
+                  :options="expirationUnitOptions"
+                  placeholder="unit"
+                  class="inline-dropdown"
+                />
+                <span v-if="localFreshnessOffset" class="offset-text">
+                  and item is
+                  <input
+                    v-model.number="localFreshnessOffset"
+                    @blur="syncFreshnessOffset"
+                    type="number"
+                    step="1"
+                    min="0"
+                    class="form-input inline-input offset-input"
+                    placeholder="0"
+                  >
+                  <CustomDropdown
+                    v-model="props.formData.freshnessOffsetUnit"
+                    :options="expirationUnitOptions"
+                    placeholder="day"
+                    class="inline-dropdown offset-unit-dropdown"
+                  />
+                  old
+                </span>
+                <span v-else class="offset-placeholder">
+                  and item is
+                  <span 
+                    v-if="!showFreshInput"
+                    class="fresh-text"
+                    @click="showFreshInput = true"
+                  >fresh</span>
+                  <input
+                    v-if="showFreshInput"
+                    v-model.number="localFreshnessOffset"
+                    @blur="syncFreshnessOffset"
+                    @keyup.escape="showFreshInput = false"
+                    type="number"
+                    step="1"
+                    min="0"
+                    class="form-input inline-input offset-input fresh-input"
+                    placeholder="fresh"
+                    ref="freshInputRef"
+                  >
+                </span>
+              </span>
+            </div>
+            <div v-if="getExpirationCountdown()" class="expiration-countdown-container">
+              <span :class="['expiration-countdown-text', { 'expired-text': getExpirationCountdown() === 'Expired' }]">
+                {{ getExpirationCountdown() === 'Expired' ? 'Expired' : `will expire in ${getExpirationCountdown()}` }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -128,75 +218,64 @@
         </div>
 
         <div class="form-group">
-          <label for="stepperDepletionRate">Depletion Rate (optional)</label>
-          <div class="value-unit-input">
-            <input
-              id="stepperDepletionRate"
-              v-model.number="formData.depletionRate"
-              type="number"
-              step="0.01"
-              min="0"
-              class="form-input value-input"
-              placeholder="e.g., 2"
-            >
-            <CustomDropdown
-              v-model="formData.depletionUnit"
-              :options="depletionUnitOptions"
-              placeholder="Select unit"
-            />
-          </div>
-          <div class="section-divider" style="margin-top: 16px; margin-bottom: 16px;"></div>
-          <div style="margin-top: 10px;">
-            <span class="unit-display">Your supply will last</span>
-            <input
-              :value="getDepletionTimeInDisplayUnit({ depletionRate: formData.depletionRate, depletionUnit: formData.depletionUnit, ...getEstimatedPortionsProps })"
-              type="number"
-              readonly
-              class="form-input readonly-field value-input"
-              placeholder="Time until depletion"
-              step="0.01"
-            >
-            <div class="unit-display-dropdown" @click="toggleUnitDropdown">
-              <span class="unit-display">{{ getDisplayUnit() }}s</span>
-              <div class="dropdown-arrow" :class="{ 'open': showUnitDropdown }">▼</div>
-              <div v-if="showUnitDropdown" class="unit-dropdown">
-                <div 
-                  v-for="unit in availableUnits" 
-                  :key="unit.value"
-                  class="unit-option"
-                  @click.stop="selectDisplayUnit(unit.value)"
-                >
-                  {{ unit.label }}
-                </div>
-              </div>
+          <div class="form-field" style="align-items: center;">
+            <label for="stepperDepletionRate">Depletion Rate (optional)</label>
+            <div class="value-unit-input">
+              <input
+                id="stepperDepletionRate"
+                v-model.number="formData.depletionRate"
+                type="number"
+                step="0.01"
+                min="0"
+                class="form-input value-input short-ch"
+                placeholder="e.g., 2"
+              >
+              <CustomDropdown
+                v-model="formData.depletionUnit"
+                :options="depletionUnitOptions"
+                placeholder="Select unit"
+              />
             </div>
           </div>
-          <div style="margin-top: 8px;">
-            <span class="unit-display">and cost</span>
-            <input
-              :value="getCostPerPortion()"
-              type="number"
-              readonly
-              class="form-input readonly-field value-input"
-              placeholder="Cost per portion"
-              step="0.01"
-            >
-            <span class="unit-display">per portion</span>
+
+          <div v-if="getUsageVsExpirationComparison()" class="usage-comparison-container">
+            <div class="comparison-content">
+              <div class="comparison-item">
+                <span class="comparison-label">Supply remaining:</span>
+                <span class="comparison-value">{{ getSupplyRemainingDisplay() }}</span>
+              </div>
+              <div class="comparison-item">
+                <span class="comparison-label">Item expires in:</span>
+                <span class="comparison-value">{{ getExpirationRate() }}</span>
+              </div>
+              <div class="comparison-item">
+                <span class="comparison-label">Cost per portion:</span>
+                <span class="comparison-value">{{ getCostPerPortion() }} $</span>
+              </div>
+              <div class="comparison-result">
+                <span :class="['result-text', getComparisonResultClass()]">
+                  {{ getComparisonResultText() }}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <div v-if="currentStep === 4" class="step-content">
+        <div class="section-divider" style="margin-top: 16px; margin-bottom: 16px;"></div>
         <div class="last-purchase-section">
-          <div class="section-divider">Last Purchase</div>
-          <div class="resupply-section">
-            <button
-              :class="['resupply-btn', { 'resupply-btn-disabled': getLastPurchases(formData.title, formData.date).length === 0 }]"
-              :disabled="getLastPurchases(formData.title, formData.date).length === 0"
-              @click="$emit('add-resupply', formData.title)"
-              :title="getLastPurchases(formData.title, formData.date).length === 0 ? 'No previous purchases found' : 'Add new purchase today (resupply)'"
-            >+1</button>
-            <span class="resupply-label">Resupply</span>
+          <div class="last-purchase-section-header">
+            <label style="color: white; font-weight: 600; font-size: 14px;">Last Purchase</label>
+            <div class="resupply-section">
+              <button
+                :class="['resupply-btn', { 'resupply-btn-disabled': getLastPurchases(formData.title, formData.date).length === 0 }]"
+                :disabled="getLastPurchases(formData.title, formData.date).length === 0"
+                @click="$emit('add-resupply', formData.title)"
+                :title="getLastPurchases(formData.title, formData.date).length === 0 ? 'No previous purchases found' : 'Add new purchase today (resupply)'"
+              >+1</button>
+              <span class="resupply-label">Resupply</span>
+            </div>
           </div>
 
           <div class="last-purchases-list">
@@ -266,8 +345,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import CustomDropdown from './CustomDropdown.vue'
+import { getPaymentSuggestions, prefillInventoryFields } from '../../composables/payment-handlers'
+import type { Payment } from '../../types/payment.types'
 
 interface Step {
   id: number
@@ -285,6 +366,10 @@ interface FormData {
   depletionRate: number | null
   depletionUnit: string
   date?: string
+  expirationPeriod?: number
+  expirationUnit?: string
+  freshnessOffset?: number
+  freshnessOffsetUnit?: string
 }
 
 const props = defineProps<{
@@ -303,7 +388,35 @@ const emit = defineEmits<{
 
 const currentStep = ref(1)
 const showUnitDropdown = ref(false)
+
+// Autocomplete state for Product Name input
+const itemNameSuggestions = ref<Payment[]>([])
+const showItemNameSuggestions = ref(false)
+let itemNameDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+const onItemNameInput = () => {
+  if (itemNameDebounceTimer) clearTimeout(itemNameDebounceTimer)
+  itemNameDebounceTimer = setTimeout(() => {
+    itemNameSuggestions.value = getPaymentSuggestions(props.formData.title, 'inventory')
+    showItemNameSuggestions.value = itemNameSuggestions.value.length > 0
+  }, 300)
+}
+
+const selectItemNameSuggestion = (payment: Payment) => {
+  props.formData.title = payment.title
+  prefillInventoryFields(payment.title)
+  showItemNameSuggestions.value = false
+  itemNameSuggestions.value = []
+}
+
+const hideItemNameSuggestions = () => {
+  setTimeout(() => {
+    showItemNameSuggestions.value = false
+  }, 150)
+}
 const displayUnit = ref(props.formData.depletionUnit || 'day')
+const showFreshInput = ref(false)
+const freshInputRef = ref<HTMLInputElement | null>(null)
 
 const steps: Step[] = [
   { id: 1, title: 'Basic Info' },
@@ -382,6 +495,13 @@ const depletionUnitOptions = [
   { value: 'day', label: 'portions/day' },
   { value: 'week', label: 'portions/week' },
   { value: 'month', label: 'portions/month' }
+]
+
+const expirationUnitOptions = [
+  { value: 'day', label: 'days' },
+  { value: 'week', label: 'weeks' },
+  { value: 'month', label: 'months' },
+  { value: 'year', label: 'years' }
 ]
 
 const toggleUnitDropdown = () => {
@@ -477,6 +597,270 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
     displayUnit.value = newUnit
   }
 })
+
+// Watch for fresh input visibility and focus
+watch(showFreshInput, (newValue) => {
+  if (newValue && freshInputRef.value) {
+    nextTick(() => {
+      freshInputRef.value?.focus()
+    })
+  }
+})
+
+// Helper function to calculate expiration countdown
+const getExpirationCountdown = () => {
+  // Use local refs for real-time updates during typing
+  const expirationPeriod = localExpirationPeriod.value
+  const expirationUnit = props.formData.expirationUnit
+  const freshnessOffset = localFreshnessOffset.value
+  const freshnessOffsetUnit = props.formData.freshnessOffsetUnit
+  
+  if (!expirationPeriod || !expirationUnit) return null
+  
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  // Convert expiration period to days
+  let daysToAdd = 0
+  switch (expirationUnit) {
+    case 'day':
+      daysToAdd = expirationPeriod
+      break
+    case 'week':
+      daysToAdd = expirationPeriod * 7
+      break
+    case 'month':
+      daysToAdd = expirationPeriod * 30 // Approximate
+      break
+    case 'year':
+      daysToAdd = expirationPeriod * 365
+      break
+    default:
+      daysToAdd = expirationPeriod
+  }
+  
+  // Convert freshness offset to days
+  let daysToSubtract = 0
+  if (freshnessOffset && freshnessOffsetUnit) {
+    switch (freshnessOffsetUnit) {
+      case 'day':
+        daysToSubtract = freshnessOffset
+        break
+      case 'week':
+        daysToSubtract = freshnessOffset * 7
+        break
+      case 'month':
+        daysToSubtract = freshnessOffset * 30
+        break
+      case 'year':
+        daysToSubtract = freshnessOffset * 365
+        break
+      default:
+        daysToSubtract = freshnessOffset
+    }
+  }
+  
+  // Calculate effective days and expiration date
+  const effectiveDaysToAdd = Math.max(0, daysToAdd - daysToSubtract)
+  const expirationDate = new Date(today.getTime() + (effectiveDaysToAdd * 24 * 60 * 60 * 1000))
+  
+  // Calculate days until expiration
+  const daysUntilExpiration = Math.ceil((expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  
+  if (daysUntilExpiration <= 0) {
+    return 'Expired'
+  }
+  
+  return `${daysUntilExpiration} day${daysUntilExpiration === 1 ? '' : 's'}`
+}
+
+// Local refs to prevent focus loss during typing
+const localExpirationPeriod = ref(props.formData.expirationPeriod)
+const localFreshnessOffset = ref(props.formData.freshnessOffset)
+
+// Watch for prop changes and update local refs
+watch(() => props.formData.expirationPeriod, (newValue) => {
+  localExpirationPeriod.value = newValue
+})
+
+watch(() => props.formData.freshnessOffset, (newValue) => {
+  localFreshnessOffset.value = newValue
+})
+
+// Sync local values back to props on blur
+const syncExpirationPeriod = () => {
+  props.formData.expirationPeriod = localExpirationPeriod.value
+}
+
+const syncFreshnessOffset = () => {
+  props.formData.freshnessOffset = localFreshnessOffset.value
+  // Always hide the fresh input after syncing
+  showFreshInput.value = false
+}
+
+// Usage vs Expiration comparison functions
+
+// Returns days since purchase date
+const getDaysSincePurchase = (): number => {
+  // Debug logging
+  console.log('getDaysSincePurchase - formData.date:', props.formData.date)
+  
+  // For new items being added, days since purchase should be 0
+  // This is because we're calculating for a new purchase happening today
+  if (!props.formData.date || props.formData.date === '') {
+    console.log('getDaysSincePurchase - no date provided (new item), returning 0')
+    return 0
+  }
+  
+  try {
+    // Try to parse the date - if it fails, assume it's a new item
+    const purchaseDate = new Date(props.formData.date)
+    
+    // Check if the date is invalid
+    if (isNaN(purchaseDate.getTime())) {
+      console.log('getDaysSincePurchase - invalid date format, assuming new item, returning 0')
+      return 0
+    }
+    
+    const today = new Date()
+    purchaseDate.setHours(0, 0, 0, 0)
+    today.setHours(0, 0, 0, 0)
+    
+    const daysSince = Math.max(0, Math.floor((today.getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24)))
+    console.log('getDaysSincePurchase - calculated days since purchase:', daysSince)
+    
+    return daysSince
+  } catch (error) {
+    console.error('getDaysSincePurchase - error:', error, 'returning 0')
+    return 0
+  }
+}
+
+// Returns total depletion time in days from getDepletionTimeInDays prop
+const getDepletionTimeDays = (): number => {
+  try {
+    const data = { 
+      depletionRate: props.formData.depletionRate, 
+      depletionUnit: props.formData.depletionUnit, 
+      itemSize: props.formData.itemSize,
+      portionSize: props.formData.portionSize,
+      quantity: props.formData.quantity
+    }
+    
+    // Debug logging
+    console.log('getDepletionTimeDays - data:', data)
+    
+    const timeInDepletionUnit = props.getDepletionTimeInDays(data)
+    
+    // Debug logging
+    console.log('getDepletionTimeDays - timeInDepletionUnit:', timeInDepletionUnit, 'unit:', props.formData.depletionUnit)
+    
+    // Validate the result before using it
+    if (!isFinite(timeInDepletionUnit) || timeInDepletionUnit < 0) {
+      console.log('getDepletionTimeDays - invalid result, returning 0')
+      return 0
+    }
+    
+    let resultInDays: number
+    switch (props.formData.depletionUnit) {
+      case 'day': 
+        resultInDays = timeInDepletionUnit
+        break
+      case 'week': 
+        resultInDays = timeInDepletionUnit * 7
+        break
+      case 'month': 
+        resultInDays = timeInDepletionUnit * 30
+        break
+      default: 
+        resultInDays = timeInDepletionUnit
+        break
+    }
+    
+    console.log('getDepletionTimeDays - final result in days:', resultInDays)
+    return resultInDays
+  } catch (error) {
+    console.error('getDepletionTimeDays - error:', error)
+    return 0
+  }
+}
+
+// Returns supply_days_remaining = depletionTimeDays - daysSincePurchase
+const getSupplyDaysRemaining = (): number => {
+  const depletionDays = getDepletionTimeDays()
+  const daysSincePurchase = getDaysSincePurchase()
+  
+  // Debug logging
+  console.log('getSupplyDaysRemaining - depletionDays:', depletionDays, 'daysSincePurchase:', daysSincePurchase)
+  
+  // Validate both values before calculation
+  if (!isFinite(depletionDays) || !isFinite(daysSincePurchase)) {
+    console.log('getSupplyDaysRemaining - invalid values, returning 0')
+    return 0
+  }
+  
+  const result = depletionDays - daysSincePurchase
+  const finalResult = Math.max(0, isFinite(result) ? result : 0)
+  
+  console.log('getSupplyDaysRemaining - calculated result:', result, 'final result:', finalResult)
+  return finalResult
+}
+
+// Returns expiration countdown in days (reuses getExpirationCountdown logic as a number)
+const getExpirationCountdownDays = (): number | null => {
+  const countdown = getExpirationCountdown()
+  if (!countdown || countdown === 'Expired') return countdown === 'Expired' ? 0 : null
+  const match = countdown.match(/^(\d+)/)
+  return match ? parseInt(match[1]) : null
+}
+
+const getUsageVsExpirationComparison = () => {
+  const hasUsageRate = props.formData.depletionRate && props.formData.depletionUnit
+  const hasExpiration = getExpirationCountdownDays() !== null
+  return hasUsageRate && hasExpiration
+}
+
+const getSupplyRemainingDisplay = () => {
+  const days = getSupplyDaysRemaining()
+  if (days === 0) return '0 days'
+  return `${Math.round(days)} day${days === 1 ? '' : 's'}`
+}
+
+const getExpirationRate = () => {
+  const days = getExpirationCountdownDays()
+  if (days === null) return 'N/A'
+  if (days === 0) return 'Expired'
+  return `${days} day${days === 1 ? '' : 's'}`
+}
+
+const getWasteFactor = (): number | null => {
+  const supplyDays = getSupplyDaysRemaining()
+  const expirationDays = getExpirationCountdownDays()
+  if (expirationDays === null || expirationDays === 0) return null
+  return Math.round((supplyDays / expirationDays) * 10) / 10
+}
+
+const getComparisonResultClass = () => {
+  if (!getUsageVsExpirationComparison()) return ''
+  const supplyDays = getSupplyDaysRemaining()
+  const expirationDays = getExpirationCountdownDays()
+  if (expirationDays === null) return ''
+  if (supplyDays <= expirationDays) return 'result-good'
+  return 'result-warning'
+}
+
+const getComparisonResultText = () => {
+  const wasteFactor = getWasteFactor()
+  const resultClass = getComparisonResultClass()
+
+  if (resultClass === 'result-good') {
+    return '✓ You will finish it before it expires'
+  } else if (resultClass === 'result-warning') {
+    const wf = wasteFactor !== null ? ` (${wasteFactor}× waste factor)` : ''
+    return `⚠ Item may expire before you finish it${wf}`
+  }
+  return ''
+}
 </script>
 
 <style scoped>
@@ -485,12 +869,19 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
   flex-direction: column;
   gap: 24px;
   margin-top: 24px;
+  min-height: 520px;
+}
+
+.stepper-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .stepper-steps {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   position: relative;
 }
 
@@ -512,7 +903,7 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
 
 .progress-fill {
   height: 100%;
-  background: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 1);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
@@ -548,9 +939,9 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
 }
 
 .step-number:hover {
-  background: rgba(16, 185, 129, 0.3);
-  border-color: rgba(16, 185, 129, 0.6);
-  color: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 0.3);
+  border-color: oklch(from var(--lime-primary) l c h / 0.6);
+  color: oklch(from var(--lime-primary) l c h / 1);
 }
 
 .step-title {
@@ -562,6 +953,7 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
+  white-space: nowrap;
 }
 
 .step-title:hover {
@@ -570,26 +962,26 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
 }
 
 .stepper-step.active .step-number {
-  background: #10b981;
-  border-color: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 1);
+  border-color: oklch(from var(--lime-primary) l c h / 1);
   color: white;
 }
 
 .stepper-step.active .step-number:hover {
-  background: #059669;
-  border-color: #059669;
+  background: oklch(from var(--lime-dark) l c h / 1);
+  border-color: oklch(from var(--lime-dark) l c h / 1);
   transform: scale(1.1);
 }
 
 .stepper-step.completed .step-number {
-  background: #10b981;
-  border-color: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 1);
+  border-color: oklch(from var(--lime-primary) l c h / 1);
   color: white;
 }
 
 .stepper-step.completed .step-number:hover {
-  background: #059669;
-  border-color: #059669;
+  background: oklch(from var(--lime-dark) l c h / 1);
+  border-color: oklch(from var(--lime-dark) l c h / 1);
   transform: scale(1.1);
 }
 
@@ -603,7 +995,9 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
 }
 
 .section-header {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 0;
 }
 
@@ -612,7 +1006,7 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
   font-size: 18px;
   font-weight: 600;
   margin: 0;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -663,14 +1057,40 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
   flex: 1;
 }
 
-.form-field {
-  position: relative;
+.form-group.two-col-divided {
+  display: flex;
+  gap: 0;
+  margin-top: 16px;
+  align-items: stretch;
+}
+
+.divided-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.divided-col-right {
+  padding-right: 16px;
+}
+
+.divided-col:not(.divided-col-right) {
+  padding-left: 16px;
+}
+
+.vertical-divider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+  align-self: stretch;
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  white-space: nowrap;
 }
 
 .form-field label {
@@ -685,14 +1105,22 @@ watch(() => props.formData.depletionUnit, (newUnit) => {
   font-size: 14px;
 }
 
-.form-field.form-field-right label {
+.right label {
   text-align: right;
-  width: 100%;
 }
 
-.form-field.form-field-right input {
+.right input {
   text-align: right;
-  width: 100%;
+  margin-left: auto;
+}
+
+.right .autocomplete-wrapper {
+  margin-left: auto;
+  text-align: right;
+}
+
+.right .autocomplete-wrapper input {
+  text-align: right;
 }
 
 /* Remove stepper arrows from number inputs */
@@ -706,6 +1134,10 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+.short-ch {
+  width: 10ch;
 }
 
 .form-input {
@@ -747,21 +1179,21 @@ input[type="number"] {
 
 .readonly-field {
   background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
-  color: #10b981 !important;
+  border-color: oklch(from var(--lime-primary) l c h / 0.3) !important;
+  color: oklch(from var(--lime-primary) l c h / 1) !important;
   font-weight: 600 !important;
   cursor: not-allowed !important;
 }
 
 .readonly-field:hover {
   background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
+  border-color: oklch(from var(--lime-primary) l c h / 0.3) !important;
   box-shadow: none !important;
 }
 
 .readonly-field:focus {
   background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
+  border-color: oklch(from var(--lime-primary) l c h / 0.3) !important;
   box-shadow: none !important;
 }
 
@@ -769,12 +1201,15 @@ input[type="number"] {
   margin-top: 16px;
 }
 
-.section-divider {
-  color: white;
-  height: 2px;
-  background: rgba(16, 185, 129, 0.2);
-  margin-bottom: 16px;
-  padding: 0 10px;
+.last-purchase-section-header {
+  background: rgb(255, 255, 255, 0.05); 
+  border: 1px rgb(255, 255, 255, 0.1) solid;
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  border-radius: 0.5rem;
 }
 
 .resupply-section {
@@ -785,7 +1220,7 @@ input[type="number"] {
 }
 
 .resupply-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   border: none;
   color: white;
   width: 36px;
@@ -798,26 +1233,26 @@ input[type="number"] {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 8px oklch(from var(--lime-primary) l c h / 0.3);
 }
 
 .resupply-btn:hover:not(.resupply-btn-disabled) {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--lime-dark) l c h / 0.8));
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 12px oklch(from var(--lime-primary) l c h / 0.4);
 }
 
 .resupply-btn-disabled {
-  background: #6b7280 !important;
-  color: #9ca3af !important;
+  background: oklch(from var(--grey-primary) l c h / 1) !important;
+  color: oklch(from var(--grey-light) l c h / 1) !important;
   cursor: not-allowed !important;
-  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3) !important;
+  box-shadow: 0 2px 8px oklch(from var(--grey-primary) l c h / 0.3) !important;
 }
 
 .resupply-btn-disabled:hover {
-  background: #6b7280 !important;
+  background: oklch(from var(--grey-primary) l c h / 1) !important;
   transform: none !important;
-  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3) !important;
+  box-shadow: 0 2px 8px oklch(from var(--grey-primary) l c h / 0.3) !important;
 }
 
 .resupply-label {
@@ -891,9 +1326,9 @@ input[type="number"] {
 
 .next-purchase-info {
   padding: 12px;
-  background: rgba(16, 185, 129, 0.05);
+  background: oklch(from var(--lime-primary) l c h / 0.05);
   border-radius: 6px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid oklch(from var(--lime-primary) l c h / 0.2);
 }
 
 .next-purchase-info label {
@@ -905,7 +1340,7 @@ input[type="number"] {
 }
 
 .next-purchase-date {
-  color: #10b981;
+  color: oklch(from var(--lime-primary) l c h / 1);
   font-weight: 700;
   font-size: 16px;
   font-family: monospace;
@@ -923,22 +1358,22 @@ input[type="number"] {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--lime-dark) l c h / 0.8));
   transform: translateY(-1px);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
 }
 
 .btn-success:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--lime-dark) l c h / 0.8));
   transform: translateY(-1px);
 }
 
@@ -963,10 +1398,10 @@ input[type="number"] {
 }
 
 .quick-add-btn:disabled {
-  background: #6b7280 !important;
-  color: #9ca3af !important;
+  background: oklch(from var(--grey-primary) l c h / 1) !important;
+  color: oklch(from var(--grey-light) l c h / 1) !important;
   cursor: not-allowed !important;
-  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3) !important;
+  box-shadow: 0 2px 8px oklch(from var(--grey-primary) l c h / 0.3) !important;
   transform: none !important;
 }
 
@@ -975,7 +1410,7 @@ input[type="number"] {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 0.5rem;
   margin-left: 8px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1005,7 +1440,7 @@ input[type="number"] {
   left: 0;
   right: 0;
   margin-top: 4px;
-  background: rgba(30, 30, 30, 0.95);
+  background: oklch(from var(--grey-dark) l c h / 0.95);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -1023,8 +1458,8 @@ input[type="number"] {
 }
 
 .unit-option:hover {
-  background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  background: oklch(from var(--lime-primary) l c h / 0.2);
+  color: oklch(from var(--lime-primary) l c h / 1);
 }
 
 .unit-option:first-child {
@@ -1037,7 +1472,7 @@ input[type="number"] {
 
 .unit-mnemonic {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 500;
   white-space: nowrap;
   min-width: 20px;
@@ -1045,5 +1480,298 @@ input[type="number"] {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.field-hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.expiration-inputs {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.expiration-text {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.inline-input {
+  width: 45px;
+  padding: 2px 4px;
+  margin: 0 1px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+  height: 32px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.inline-dropdown {
+  margin: 0 1px;
+  height: 32px;
+}
+
+.inline-dropdown :deep(.custom-dropdown) {
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.inline-dropdown :deep(.dropdown-trigger) {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+  width: fit-content;
+  min-width: fit-content;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.offset-unit-dropdown :deep(.dropdown-trigger) {
+  width: fit-content;
+  min-width: fit-content;
+  padding: 0 4px;
+}
+
+.offset-text {
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+.offset-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+.expiration-countdown {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.expiration-countdown-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.expiration-countdown-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-style: italic;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: fit-content;
+}
+
+.expired-text {
+  color: #ef4444 !important;
+  font-weight: 600;
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.offset-input {
+  width: 45px;
+  height: 32px;
+}
+
+.fresh-input {
+  width: 55px;
+}
+
+.fresh-input::placeholder {
+  color: oklch(from var(--lime-primary) l c h / 1);
+  font-style: italic;
+  opacity: 1;
+}
+
+.fresh-text {
+  color: oklch(from var(--lime-primary) l c h / 1);
+  font-style: italic;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.fresh-text:hover {
+  color: oklch(from var(--lime-dark) l c h / 1);
+}
+
+.fit-content-input {
+  width: 5rem;
+}
+
+.usage-comparison-container {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: fit-content;
+}
+
+.comparison-header {
+  margin-bottom: 8px;
+}
+
+.comparison-title {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.comparison-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.comparison-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comparison-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.comparison-value {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.comparison-result {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.result-text {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.result-good {
+  color: oklch(from var(--lime-primary) l c h / 1);
+}
+
+.result-warning {
+  color: #f59e0b;
+}
+
+.result-neutral {
+  color: oklch(from var(--grey-light) l c h / 1);
+}
+
+.autocomplete-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: oklch(from var(--grey-dark) l c h / 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 1100;
+  backdrop-filter: blur(10px);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.suggestions-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.suggestions-dropdown::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.suggestions-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: oklch(from var(--lime-primary) l c h / 0.18);
+}
+
+.suggestion-title {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestion-meta {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  font-weight: 400;
+  margin-left: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 </style>

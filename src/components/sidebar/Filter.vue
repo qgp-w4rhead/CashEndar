@@ -114,7 +114,7 @@ const switchToEarnings = () => {
   position: absolute;
   top: 100%;
   right: 0;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, oklch(from var(--grey-dark) l c h / 1) 0%, oklch(from var(--grey-primary) l c h / 0.5) 100%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -152,9 +152,9 @@ const switchToEarnings = () => {
 }
 
 .filter-toggle-btn.filter-on {
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
+  border-color: oklch(from var(--lime-primary) l c h / 1);
+  box-shadow: 0 0 0 3px oklch(from var(--lime-primary) l c h / 0.3);
 }
 
 .filter-toggle-btn.filter-off {
@@ -213,7 +213,7 @@ const switchToEarnings = () => {
 .checkbox-input {
   width: 16px;
   height: 16px;
-  accent-color: #3b82f6;
+  accent-color: oklch(from var(--lime-primary) l c h / 1);
   cursor: pointer;
 }
 

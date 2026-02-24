@@ -495,14 +495,36 @@ export const getEstimatedPortions = computed(() => {
 // Variant that accepts data object (for stepper component usage)
 export const getEstimatedPortionsFromData = computed(() => {
   return (data: { itemSize?: number | null, portionSize?: number | null, quantity?: number | null }): number => {
+    // Debug logging
+    console.log('getEstimatedPortionsFromData - input data:', data)
+    
     if (!data.itemSize || !data.portionSize || data.portionSize === 0) {
+      console.log('getEstimatedPortionsFromData - missing data, returning 0')
       return 0
     }
+    
     // Account for quantity if available, default to 1 if not provided
     const quantity = data.quantity || 1
-    return Math.round((data.itemSize / data.portionSize) * quantity * 100) / 100 // Round to 2 decimal places
+    const portions = Math.round((data.itemSize / data.portionSize) * quantity * 100) / 100 // Round to 2 decimal places
+    
+    console.log('getEstimatedPortionsFromData - calculated portions:', portions, `(itemSize: ${data.itemSize}, portionSize: ${data.portionSize}, quantity: ${quantity})`)
+    
+    return portions
   }
 })
+
+// Helper function to check if a purchase is expired
+export const isPurchaseExpired = (purchase: Payment): boolean => {
+  if (!purchase.calculatedExpirationDate) return false
+  
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Reset time to start of day
+  
+  const expirationDate = new Date(purchase.calculatedExpirationDate)
+  expirationDate.setHours(0, 0, 0, 0) // Reset time to start of day
+  
+  return expirationDate.getTime() <= today.getTime()
+}
 
 // Helper function to calculate portions remaining for inventory item
 export const getPortionsRemaining = (item: Payment) => {
@@ -527,13 +549,16 @@ export const getPortionsRemaining = (item: Payment) => {
     return purchaseDate.getTime() <= today.getTime()
   })
 
-  if (itemPurchases.length === 0) {
+  // Filter out expired purchases
+  const nonExpiredPurchases = itemPurchases.filter(purchase => !isPurchaseExpired(purchase))
+
+  if (nonExpiredPurchases.length === 0) {
     return 0
   }
 
-  // Calculate total portions from all purchases
+  // Calculate total portions from non-expired purchases only
   let totalPortions = 0
-  itemPurchases.forEach(purchase => {
+  nonExpiredPurchases.forEach(purchase => {
     // Use portionsCount if it exists, otherwise calculate from itemSize/portionSize
     if (purchase.portionsCount !== null && purchase.portionsCount !== undefined) {
       totalPortions += purchase.portionsCount
@@ -550,7 +575,7 @@ export const getPortionsRemaining = (item: Payment) => {
   // Calculate consumed portions based on time elapsed since each purchase
   let totalConsumedPortions = 0
 
-  itemPurchases.forEach(purchase => {
+  nonExpiredPurchases.forEach(purchase => {
     // Parse purchase date
     const parsedDate = parsePaymentDate(purchase.date)
     if (!parsedDate) return
@@ -795,12 +820,19 @@ export const getDepletionTimeInDays = computed(() => {
 // Variant that accepts data object (for stepper component usage)
 export const getDepletionTimeInDaysFromData = computed(() => {
   return (data: { depletionRate?: number | null, depletionUnit?: string, itemSize?: number | null, portionSize?: number | null, quantity?: number | null }): number => {
+    // Debug logging
+    console.log('getDepletionTimeInDaysFromData - input data:', data)
+    
     const estimatedPortions = getEstimatedPortionsFromData.value(data)
+    console.log('getDepletionTimeInDaysFromData - estimatedPortions:', estimatedPortions)
+    
     if (!estimatedPortions || !data.depletionRate || !data.depletionUnit) {
+      console.log('getDepletionTimeInDaysFromData - missing required data, returning 0')
       return 0
     }
 
     if (data.depletionRate === 0) {
+      console.log('getDepletionTimeInDaysFromData - depletion rate is 0, returning 0')
       return 0
     }
 
@@ -808,7 +840,12 @@ export const getDepletionTimeInDaysFromData = computed(() => {
     // depletionRate is in portions per depletionUnit
     const depletionTime = estimatedPortions / data.depletionRate
 
-    return Math.round(depletionTime * 100) / 100 // Round to 2 decimal places
+    console.log('getDepletionTimeInDaysFromData - calculated depletionTime:', depletionTime, `(${estimatedPortions} / ${data.depletionRate} ${data.depletionUnit})`)
+
+    const result = Math.round(depletionTime * 100) / 100 // Round to 2 decimal places
+    console.log('getDepletionTimeInDaysFromData - final result:', result)
+    
+    return result
   }
 })
 
@@ -1162,4 +1199,154 @@ export const getCurrentAnnualCost = (item: Payment, useDepletionCost: boolean): 
 export const getCurrentAnnualCostReactive = (item: Payment, itemCostMethodPrefs: Record<string, boolean>) => {
   const useDepletionCost = itemCostMethodPrefs[item.id] ?? true
   return getCurrentAnnualCost(item, useDepletionCost)
+}
+
+// Price history chart data structures
+export interface PricePoint {
+  date: Date
+  price: number
+  formattedDate: string
+}
+
+export interface PriceHistoryData {
+  points: PricePoint[]
+  low: number
+  high: number
+  peak: number
+  last: number
+  best: number
+}
+
+// Function to get purchase history data for an item (last 30 days only)
+export const getPurchaseHistoryData = computed(() => {
+  return (itemName: string): PriceHistoryData => {
+    return getPurchaseHistoryDataForPeriod(itemName, 'month')
+  }
+})
+
+// Function to get purchase history data for an item with specific time period
+export const getPurchaseHistoryDataForPeriod = (itemName: string, period: 'month' | 'year'): PriceHistoryData => {
+  // Get all purchases for this item
+  const itemPurchases = payments.value.filter(payment =>
+    payment.type === 'inventory' &&
+    payment.itemName === itemName
+  )
+
+  if (itemPurchases.length === 0) {
+    return {
+      points: [],
+      low: 0,
+      high: 0,
+      peak: 0,
+      last: 0,
+      best: 0
+    }
+  }
+
+  // Filter based on time period
+  const now = new Date()
+  let startDate: Date
+  
+  if (period === 'month') {
+    startDate = new Date()
+    startDate.setDate(startDate.getDate() - 28)
+    startDate.setHours(0, 0, 0, 0) // Start of day 28 days ago
+  } else {
+    startDate = new Date()
+    startDate.setFullYear(startDate.getFullYear() - 1)
+    startDate.setHours(0, 0, 0, 0) // Start of day 1 year ago
+  }
+  
+  const filteredPurchases = itemPurchases.filter(purchase => {
+    const purchaseDate = parsePaymentDate(purchase.date)
+    if (!purchaseDate) return false
+      
+    const purchaseDateTime = new Date(purchaseDate.year, purchaseDate.month, purchaseDate.day)
+    return purchaseDateTime >= startDate && purchaseDateTime <= now
+  })
+
+  if (filteredPurchases.length === 0) {
+    return {
+      points: [],
+      low: 0,
+      high: 0,
+      peak: 0,
+      last: 0,
+      best: 0
+    }
+  }
+
+  // Sort by date (oldest to newest)
+  const sortedPurchases = filteredPurchases.sort((a, b) => {
+    const dateA = parsePaymentDate(a.date)
+    const dateB = parsePaymentDate(b.date)
+
+    if (!dateA || !dateB) return 0
+
+    const dateObjA = new Date(dateA.year, dateA.month, dateA.day)
+    const dateObjB = new Date(dateB.year, dateB.month, dateB.day)
+
+    return dateObjA.getTime() - dateObjB.getTime()
+  })
+
+  // Create points for the chart
+  const points = sortedPurchases.map(purchase => {
+    const purchaseDate = parsePaymentDate(purchase.date)
+    if (!purchaseDate) return null
+
+    const dateObj = new Date(purchaseDate.year, purchaseDate.month, purchaseDate.day)
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    })
+
+    // Use stored unitCost if available, otherwise fall back to amount / quantity for legacy records
+    const price = purchase.unitCost !== undefined
+      ? purchase.unitCost
+      : parseAmount(purchase.amount) / (purchase.quantity && purchase.quantity > 0 ? purchase.quantity : 1)
+
+    return {
+      date: dateObj,
+      price,
+      formattedDate
+    }
+  }).filter(point => point !== null) as PricePoint[]
+
+  if (points.length === 0) {
+    return {
+      points: [],
+      low: 0,
+      high: 0,
+      peak: 0,
+      last: 0,
+      best: 0
+    }
+  }
+
+  // Calculate statistics for the selected period
+  const prices = points.map(p => p.price)
+  const low = Math.min(...prices)
+  const high = Math.max(...prices)
+  const last = prices[prices.length - 1] // Most recent purchase in period
+
+  // Calculate all-time BEST and PEAK from all purchases (not just filtered period)
+  const allTimePrices = itemPurchases.map(purchase => {
+    // Use stored unitCost if available, otherwise fall back to amount / quantity for legacy records
+    const price = purchase.unitCost !== undefined
+      ? purchase.unitCost
+      : parseAmount(purchase.amount) / (purchase.quantity && purchase.quantity > 0 ? purchase.quantity : 1)
+    return price
+  })
+  
+  const best = Math.min(...allTimePrices) // Best price of all time
+  const peak = Math.max(...allTimePrices) // Peak price of all time
+
+  return {
+    points,
+    low,
+    high,
+    peak,
+    last,
+    best
+  }
 }
