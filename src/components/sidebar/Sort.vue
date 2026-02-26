@@ -73,7 +73,7 @@ const getSortButtonTitle = () => {
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: var(--font-medium);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -116,12 +116,12 @@ const getSortButtonTitle = () => {
 .sort-option {
   display: block;
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 12px;
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.8);
   text-align: left;
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;

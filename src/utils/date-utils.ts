@@ -117,3 +117,13 @@ export function formatAmount(total: number): string {
 export function formatNetAmount(netTotal: number): string {
   return netTotal >= 0 ? `$${netTotal.toFixed(2)}` : `-$${Math.abs(netTotal).toFixed(2)}`
 }
+
+// Get the start of the week (Sunday) for a given date
+export function getWeekStart(date: Date): Date {
+  const result = new Date(date)
+  const day = result.getDay()
+  const diff = result.getDate() - day
+  result.setDate(diff)
+  result.setHours(0, 0, 0, 0)
+  return result
+}

@@ -4,10 +4,9 @@
       <span class="no-data-text">No data</span>
     </div>
     <svg v-else class="mini-chart-svg" viewBox="0 0 80 40" preserveAspectRatio="none">
-      <!-- Grid lines (subtle) -->
-      <line x1="0" y1="10" x2="80" y2="10" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
-      <line x1="0" y1="20" x2="80" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
-      <line x1="0" y1="30" x2="80" y2="30" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+      <line x1="0" y1="10" x2="80" y2="10" stroke="var(--grey-primary)" stroke-width="0.5"/>
+      <line x1="0" y1="20" x2="80" y2="20" stroke="var(--grey-primary)" stroke-width="0.5"/>
+      <line x1="0" y1="30" x2="80" y2="30" stroke="var(--grey-primary)" stroke-width="0.5"/>
       
       <!-- Price line -->
       <path
@@ -79,7 +78,7 @@ const emit = defineEmits<{
 
 const chartData = computed(() => getPurchaseHistoryData.value(props.itemName))
 
-const lineColor = 'oklch(from var(--grey-primary) 0.55 0.12 145)' // Grey-primary approximation for chart line
+const lineColor = 'var(--lime-light)'
 
 // Tooltip state
 const tooltip = ref({
@@ -162,6 +161,7 @@ const handleChartClick = () => {
   height: 40px;
   cursor: pointer;
   border-radius: 4px;
+  padding: 10px;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -170,13 +170,17 @@ const handleChartClick = () => {
 }
 
 .price-history-chart:hover {
-  background: oklch(from var(--grey-primary) l c h / 0.1);
+  background: oklch(from var(--grey-primary) l c h / 0.2);
   transform: scale(1.05);
 }
 
 .mini-chart-svg {
+  border: 1px solid var(--lime-light);
+  border-radius: 0.5rem;
   width: 100%;
   height: 100%;
+  margin: 0 auto;
+  display: block;
 }
 
 .no-data-chart {
@@ -191,7 +195,7 @@ const handleChartClick = () => {
 
 .no-data-text {
   color: rgba(255, 255, 255, 0.4);
-  font-size: 8px;
+  font-size: var(--font-x-small);
   font-weight: 500;
 }
 
@@ -244,14 +248,14 @@ const handleChartClick = () => {
 .tooltip-price {
   color: white;
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-family: monospace;
   margin-bottom: 2px;
 }
 
 .tooltip-date {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 10px;
+  font-size: var(--font-x-small);
   font-weight: 500;
 }
 </style>

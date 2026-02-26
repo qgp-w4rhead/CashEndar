@@ -70,7 +70,7 @@ const hideTooltip = () => {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: bold;
   cursor: help;
   transition: all 0.2s ease;
@@ -92,15 +92,15 @@ const hideTooltip = () => {
 
 .hover-tooltip {
   position: absolute;
-  top: 100%;
+  bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, oklch(from var(--grey-dark) l c h / 1) 0%, oklch(from var(--grey-primary) l c h / 0.5) 100%);
+  background: oklch(from var(--grey-dark) l c h / 0.95);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   padding: 12px 16px;
   color: white;
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
   line-height: 1.4;
   white-space: normal;
@@ -150,11 +150,11 @@ const hideTooltip = () => {
 @media (max-width: 768px) {
   .hover-tooltip {
     max-width: 280px;
-    font-size: 13px;
+    font-size: var(--font-x-small);
     padding: 10px 14px;
     left: 0;
     right: 0;
-    transform: translateX(0);
+    transform: none;
   }
 
   .hover-tooltip::before,
@@ -180,6 +180,4 @@ const hideTooltip = () => {
   animation: tooltipFadeIn 0.1s ease-out;
 }
 
-.tooltip-visible {
-}
 </style>

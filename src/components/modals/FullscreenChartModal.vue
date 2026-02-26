@@ -208,7 +208,7 @@ const timeBasedChartData = computed(() => {
   return getPurchaseHistoryDataForPeriod(props.itemName, selectedTimePeriod.value as 'month' | 'year')
 })
 
-const lineColor = 'oklch(from var(--grey-primary) 0.55 0.12 145)' // Grey-primary approximation for chart line
+const lineColor = 'var(--lime-light)' // Grey-primary approximation for chart line
 
 // Tooltip state
 const tooltip = ref({
@@ -351,7 +351,7 @@ const handleBackdropClick = () => {
 }
 
 .fullscreen-chart-modal {
-  background: linear-gradient(135deg, oklch(from var(--grey-dark) l c h / 1) 0%, oklch(from var(--grey-primary) l c h / 0.5) 100%);
+  background: linear-gradient(135deg, var(--grey-dark) 0%, oklch(from var(--grey-primary) l c h / 0.5) 100%);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
@@ -413,7 +413,7 @@ const handleBackdropClick = () => {
 .chart-modal-title {
   color: white;
   margin: 0;
-  font-size: 18px;
+  font-size: var(--font-v-big);
   font-weight: 600;
 }
 
@@ -421,7 +421,7 @@ const handleBackdropClick = () => {
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 24px;
+  font-size: var(--font-x-big);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -452,14 +452,14 @@ const handleBackdropClick = () => {
 }
 
 .no-data-icon {
-  font-size: 48px;
+  font-size: var(--font-x-big);
   margin-bottom: 16px;
   opacity: 0.5;
 }
 
 .no-data-message {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 16px;
+  font-size: var(--font-medium);
   margin: 0;
 }
 
@@ -522,14 +522,14 @@ const handleBackdropClick = () => {
 .tooltip-price-fullscreen {
   color: white;
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--font-small);
   font-family: monospace;
   margin-bottom: 4px;
 }
 
 .tooltip-date-fullscreen {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 500;
 }
 
@@ -602,7 +602,7 @@ const handleBackdropClick = () => {
 
 .stat-label {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -611,13 +611,13 @@ const handleBackdropClick = () => {
 
 .stat-value {
   color: white;
-  font-size: 18px;
+  font-size: var(--font-v-big);
   font-weight: 700;
   font-family: monospace;
 }
 
 .stat-value.low {
-  color: oklch(from var(--lime-primary) l c h / 1);
+  color: var(--lime-light);
 }
 
 .stat-value.high {
@@ -629,7 +629,7 @@ const handleBackdropClick = () => {
 }
 
 .stat-value.last {
-  color: oklch(from var(--grey-light) l c h / 1);
+  color: var(--grey-light);
 }
 
 .stat-value.avg {
@@ -637,7 +637,7 @@ const handleBackdropClick = () => {
 }
 
 .stat-value.best {
-  color: oklch(from var(--lime-primary) l c h / 1);
+  color: var(--lime-light);
 }
 
 /* Responsive design */

@@ -1,12 +1,16 @@
 // UI state store for reactive data and modal states
 import { ref, reactive } from 'vue'
 import { Payment, PaymentType } from '../types/payment.types'
+import { getWeekStart } from '../utils/date-utils'
 
 // Calendar state
 export const currentDate = ref(new Date())
 export const currentMonth = ref(currentDate.value.getMonth())
 export const currentYear = ref(currentDate.value.getFullYear())
 export const isTransitioning = ref(false)
+
+// Week view state
+export const currentWeekStart = ref(getWeekStart(new Date()))
 
 // Payment data
 export const payments = ref<Payment[]>([])
@@ -104,3 +108,6 @@ export const isInventoryCollapsed = ref(false)
 export const modalStack = ref<string[]>([])
 
 export const forgoneInstances = ref<Set<string>>(new Set())
+
+// Calendar view state
+export const calendarViewMode = ref<'month' | 'week'>('month')

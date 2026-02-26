@@ -50,8 +50,10 @@
                 <div class="item-avatar">
                   {{ item.itemName.charAt(0).toUpperCase() }}
                 </div>
-                <span>{{ item.itemName }}</span>
-                
+                <div class="item-name-content">
+                  <span class="item-name-text">{{ item.itemName }}</span>
+                  <span v-if="item.item.brand" class="item-brand">{{ item.item.brand }}</span>
+                </div>
               </div>
               
               <div class="mid-columns-wrap">
@@ -340,7 +342,7 @@ const handleAddItem = () => {
 <style scoped>
 /* Item Chart Modal */
 .item-chart-modal {
-  background: linear-gradient(135deg, oklch(from var(--grey-dark) l c h / 1) 0%, oklch(from var(--grey-primary) l c h / 0.5) 100%);
+  background: linear-gradient(135deg, var(--grey-dark) 0%, oklch(from var(--grey-primary) l c h / 0.5) 100%);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
@@ -390,7 +392,7 @@ const handleAddItem = () => {
 .slider-header label {
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
 }
 
 .inventory-slider {
@@ -436,7 +438,6 @@ const handleAddItem = () => {
   display: grid;
   align-items: center;
   grid-template-columns: 22% 58% 20%;
-  gap: 6px;
   padding: 16px 16px;
   background: oklch(from var(--grey-primary) l c h / 0.1);
   border-radius: 8px 8px 0 0;
@@ -444,9 +445,9 @@ const handleAddItem = () => {
 }
 
 .header-cell {
-  color: oklch(from var(--grey-light) l c h / 1);
+  color: var(--grey-light);
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   overflow: hidden;
@@ -466,12 +467,12 @@ const handleAddItem = () => {
 }
 
 .header-cell.sortable:hover {
-  color: oklch(from var(--lime-primary) l c h / 1);
+  color: var(--lime-primary);
 }
 
 .sort-arrow {
   margin-left: 8px;
-  font-size: 10px;
+  font-size: var(--font-x-small);
   opacity: 0.6;
   transition: opacity 0.2s ease;
 }
@@ -490,8 +491,10 @@ const handleAddItem = () => {
 
 /* Center only Price History column */
 .table-row > .table-cell.price-history {
-  justify-content: center;
-  text-align: center;
+  justify-content: center !important;
+  text-align: center !important;
+  display: flex !important;
+  align-items: center;
 }
 
 .table-header > .header-cell:last-child {
@@ -501,7 +504,6 @@ const handleAddItem = () => {
 .table-row {
   display: grid;
   grid-template-columns: 22% 58% 20%;
-  gap: 6px;
   padding: 16px 16px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -529,38 +531,56 @@ const handleAddItem = () => {
 
 .selected-row {
   background: oklch(from var(--grey-primary) l c h / 0.1) !important;
-  border-color: oklch(from var(--grey-primary) l c h / 1) !important;
+  border-color: var(--grey-primary) !important;
   box-shadow: 0 0 0 2px oklch(from var(--grey-primary) l c h / 0.3);
 }
 
 .table-cell {
-  padding-right: 10px;
-  padding-left: 10px;
+  padding: 12px 8px;
   display: flex;
   align-items: center;
   color: white;
-  font-size: 14px;
+  font-size: var(--font-small);
 }
 
 .table-cell:not(.portion-size):not(.portions-count) {
-  gap: 8px;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .item-name {
   font-weight: 600;
 }
 
+.item-name-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-name-text {
+  font-weight: 600;
+  color: white;
+}
+
+.item-brand {
+  font-size: var(--font-x-small);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
+}
+
 .item-avatar {
+  margin-right: 0.5rem;
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, oklch(from var(--grey-primary) l c h / 1), oklch(from var(--grey-light) l c h / 1));
+  background: linear-gradient(135deg, var(--grey-primary), var(--grey-light));
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   color: white;
-  font-size: 14px;
+  font-size: var(--font-small);
   flex-shrink: 0;
 }
 
@@ -577,7 +597,7 @@ const handleAddItem = () => {
 }
 
 .clickable-value:hover {
-  color: oklch(from var(--lime-primary) l c h / 1);
+  color: var(--lime-primary);
 }
 
 .portion-size .cell-value {
@@ -596,7 +616,7 @@ const handleAddItem = () => {
 
 .bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, oklch(from var(--grey-primary) l c h / 1), oklch(from var(--grey-light) l c h / 1));
+  background: linear-gradient(90deg, var(--grey-primary), var(--grey-light));
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -644,7 +664,7 @@ const handleAddItem = () => {
 
 .portion-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, oklch(from var(--grey-primary) l c h / 1), oklch(from var(--grey-light) l c h / 1));
+  background: linear-gradient(90deg, var(--grey-primary), var(--grey-light));
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -652,19 +672,20 @@ const handleAddItem = () => {
 .bar-label {
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
-  font-size: 14px;
+  font-size: var(--font-small);
   white-space: nowrap;
 }
 
 .bar-label-inside {
   color: white;
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   white-space: nowrap;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   height: 100%;
 }
 
@@ -675,7 +696,7 @@ const handleAddItem = () => {
   transform: translate(-50%, -50%);
   color: white;
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   white-space: nowrap;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   z-index: 10;
@@ -683,10 +704,15 @@ const handleAddItem = () => {
 
 .depletion-date {
   justify-content: space-between;
+  align-items: center;
+}
+
+.depletion-date .cell-value {
+  flex: 1;
 }
 
 .depletion-date .tracking-indicator {
-  color: oklch(from var(--lime-primary) l c h / 1);
+  color: var(--lime-primary);
   cursor: help;
 }
 
@@ -698,7 +724,7 @@ const handleAddItem = () => {
 .price-history {
   display: flex;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   padding: 4px;
   width: 100%;
 }
@@ -713,8 +739,8 @@ const handleAddItem = () => {
 }
 
 .details-title {
-  color: oklch(from var(--grey-light) l c h / 1);
-  font-size: 18px;
+  color: var(--grey-light);
+  font-size: var(--font-v-big);
   font-weight: 700;
   margin: 0 0 16px 0;
 }
@@ -734,7 +760,7 @@ const handleAddItem = () => {
 
 .detail-item label {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -742,7 +768,7 @@ const handleAddItem = () => {
 
 .detail-item span {
   color: white;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 500;
 }
 
@@ -761,14 +787,14 @@ const handleAddItem = () => {
 
 .chart-title {
   color: white;
-  font-size: 20px;
+  font-size: var(--font-v-big);
   font-weight: 600;
   margin: 0;
 }
 
 .chart-total {
-  color: oklch(from var(--lime-primary) l c h / 1);
-  font-size: 24px;
+  color: var(--lime-primary);
+  font-size: var(--font-x-big);
   font-weight: 700;
 }
 
@@ -796,7 +822,7 @@ const handleAddItem = () => {
 
 .stat-label {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -804,7 +830,7 @@ const handleAddItem = () => {
 
 .stat-value {
   color: white;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 700;
   font-family: monospace;
 }
@@ -836,7 +862,7 @@ const handleAddItem = () => {
 .modal-header h3 {
   color: white;
   margin: 0;
-  font-size: 20px;
+  font-size: var(--font-v-big);
   font-weight: 600;
 }
 
@@ -844,7 +870,7 @@ const handleAddItem = () => {
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 28px;
+  font-size: var(--font-x-big);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -934,11 +960,11 @@ const handleAddItem = () => {
   padding: 32px;
   text-align: center;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 16px;
+  font-size: var(--font-medium);
 }
 
 .highlighted-item {
-  color: oklch(from var(--lime-primary) l c h / 1);
+  color: var(--lime-primary);
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;

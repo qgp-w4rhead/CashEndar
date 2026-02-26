@@ -18,51 +18,10 @@
           </div>
           <div v-for="item in inventoryItems" :key="item.id" class="inventory-item" @click="highlightPaymentDay(item)">
             <div class="inventory-details">
-            <div class="cost-section">
-              <div class="annual-cost-display">
-                <div class="inventory-name">{{ item.itemName || 'Unnamed Item' }}</div>
-                <div class="inventory-meta">
-                  <span class="portions-left">{{ getPortionsRemaining(item).toFixed(2) }} portions left</span>
-                  <span class="depletion-date" v-if="getEstimatedDepletionDate(item)">· {{ getEstimatedDepletionDate(item) }} remaining</span>
-                  <span class="expiration-display" v-if="getExpirationDisplay(item)">· {{ getExpirationDisplay(item) }}</span>
-                </div>
-                <div class="inventory-amount">{{ item.amount }}</div>
-              </div>
-              <div class="inventory-menu">
-                <button class="menu-btn" @click.stop="openEditMenu(item)">⋯</button>
-              </div> 
-            </div>
-
-              <div class="cost-section" v-if="getAnnualCostFromPurchases(item) || getAnnualCostFromDepletion(item)">
-                <div class="cost-toggle">
-                  <div class="toggle-switch">
-                    <div class="toggle-container two-options">
-                      <button
-                        :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] !== false }]"
-                        @click.stop="itemCostMethodPrefs[item.id] = true"
-                      >
-                        Depletion
-                      </button>
-                      <button
-                        :class="['toggle-option small', { active: itemCostMethodPrefs[item.id] === false, disabled: !canUsePurchaseMethod(item) }]"
-                        :disabled="!canUsePurchaseMethod(item)"
-                        :title="!canUsePurchaseMethod(item) ? 'No purchases available' : ''"
-                        @click.stop="canUsePurchaseMethod(item) && (itemCostMethodPrefs[item.id] = false)"
-                      >
-                        Purchase
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="annual-cost-display">
-                  <div class="annual-cost-amount" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
-                    ${{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).cost.toFixed(2) }}/year
-                  </div>
-                  <div class="annual-cost-details" v-if="getCurrentAnnualCostReactive(item, itemCostMethodPrefs)">
-                    {{ getCurrentAnnualCostReactive(item, itemCostMethodPrefs).details }}
-                  </div> 
-                </div>
-              </div>
+              <InventoryCostSection 
+                :item="item"
+                @edit-item="openEditMenu"
+              />
             </div>
           </div>
         </div>
@@ -90,24 +49,8 @@ import {
   openEditMenu,
   highlightPaymentDay
 } from '../../composables/payment-handlers'
+import InventoryCostSection from './InventoryCostSection.vue'
 
-// Reactive state for annual cost method preferences (item ID -> boolean)
-const itemCostMethodPrefs = ref<Record<string, boolean>>({})
-
-// Helper function to get expiration display text
-const getExpirationDisplay = (item: Payment) => {
-  if (!item.expirationPeriod || !item.expirationUnit) return null
-  
-  const expirationText = `${item.expirationPeriod} ${item.expirationUnit}${item.expirationPeriod === 1 ? '' : 's'}`
-  const offsetText = item.freshnessOffset ? `, was fresh ${item.freshnessOffset} ${item.freshnessOffsetUnit || 'day'}${item.freshnessOffset === 1 ? '' : 's'} ago` : ''
-  
-  return `Shelf life: ${expirationText}${offsetText}`
-}
-
-// Helper function to check if purchase method can be used for an item
-const canUsePurchaseMethod = (item: Payment) => {
-  return getAnnualCostFromPurchases.value(item) !== null
-}
 </script>
 
 <style scoped>
@@ -142,17 +85,17 @@ const canUsePurchaseMethod = (item: Payment) => {
 
 .inventory-title {
   color: #ffffff;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .inventory-total {
   color: #ffffff;
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
   background: oklch(from var(--grey-primary) l c h / 0.3);
   padding: 4px 8px;
@@ -207,7 +150,7 @@ const canUsePurchaseMethod = (item: Payment) => {
 .inventory-name {
   color: white;
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--font-medium);
   margin-bottom: 4px;
 }
 
@@ -215,7 +158,7 @@ const canUsePurchaseMethod = (item: Payment) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -234,14 +177,14 @@ const canUsePurchaseMethod = (item: Payment) => {
 
 .inventory-amount {
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--font-medium);
   color: rgba(255, 255, 255, 0.8);
 }
 
 .inventory-empty {
   text-align: center;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
+  font-size: var(--font-small);
   padding: 20px 0;
   font-style: italic;
 }
@@ -251,49 +194,4 @@ const canUsePurchaseMethod = (item: Payment) => {
   margin-right: 5px;
 }
 
-/* Annual Cost Estimate Section */
-.cost-section {
-  margin-top: 12px;
-  padding: 12px;
-  background: oklch(from var(--grey-primary) 0.1 c h / 0.3);
-  border-radius: 8px;
-  border: 2px solid oklch(from var(--grey-primary) l c h / 0.5);
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.cost-section:hover {
-  border-color: oklch(from var(--grey-light) l c h / 1);
-}
-
-.cost-toggle {
-  margin-bottom: 8px;
-}
-
-.annual-cost-display {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.annual-cost-amount {
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: monospace;
-}
-
-.annual-cost-method {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.annual-cost-details {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1.3;
-}
 </style>

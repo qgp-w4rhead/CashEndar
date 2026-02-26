@@ -113,7 +113,7 @@ const handleSliderChange = (event: Event) => {
 .slider-label {
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
   text-align: center;
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.05);
@@ -188,7 +188,7 @@ const handleSliderChange = (event: Event) => {
   justify-content: center;
   font-weight: bold;
   color: white;
-  font-size: 14px;
+  font-size: var(--font-small);
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -218,7 +218,7 @@ const handleSliderChange = (event: Event) => {
 
 .stat-name {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 500;
   display: block;
   margin-bottom: 4px;
@@ -228,7 +228,7 @@ const handleSliderChange = (event: Event) => {
 
 .stat-value {
   color: white;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 700;
   display: block;
   margin-bottom: 2px;
@@ -237,7 +237,7 @@ const handleSliderChange = (event: Event) => {
 
 .stat-percentage {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 500;
 }
 
@@ -251,7 +251,7 @@ const handleSliderChange = (event: Event) => {
   }
 
   .slider-label {
-    font-size: 12px;
+    font-size: var(--font-x-small);
     padding: 6px 8px;
   }
 
@@ -262,7 +262,7 @@ const handleSliderChange = (event: Event) => {
   .person {
     width: 28px;
     height: 28px;
-    font-size: 12px;
+    font-size: var(--font-x-small);
   }
 
   .slider-stats {

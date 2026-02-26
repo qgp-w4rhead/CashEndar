@@ -266,7 +266,7 @@
         <div class="section-divider" style="margin-top: 16px; margin-bottom: 16px;"></div>
         <div class="last-purchase-section">
           <div class="last-purchase-section-header">
-            <label style="color: white; font-weight: 600; font-size: 14px;">Last Purchase</label>
+            <label style="color: white; font-weight: 600; font-size: var(--font-small);">Last Purchase</label>
             <div class="resupply-section">
               <button
                 :class="['resupply-btn', { 'resupply-btn-disabled': getLastPurchases(formData.title, formData.date).length === 0 }]"
@@ -478,6 +478,7 @@ const availableUnits = [
 const itemSizeUnitOptions = [
   { value: 'ml', label: 'ml', approximation: '(1/1000 L)', approximationImperial: '(~0.034 fl oz)', group: 'Volume' },
   { value: 'liter', label: 'liter', approximation: '', approximationImperial: '(~33.8 fl oz)', group: 'Volume' },
+  { value: 'fl_oz', label: 'fl oz', approximation: '(~29.6 ml)', approximationImperial: '(1/8 cup)', group: 'Volume' },
   { value: 'cup', label: 'cup', approximation: '(~237 ml)', approximationImperial: '(~8 fl oz)', group: 'Volume' },
   { value: 'tablespoon', label: 'tablespoons', approximation: '(~15 ml)', approximationImperial: '(~0.5 fl oz)', group: 'Volume' },
   { value: 'teaspoon', label: 'teaspoons', approximation: '(~5 ml)', approximationImperial: '(~0.17 fl oz)', group: 'Volume' },
@@ -526,6 +527,7 @@ const getUnitMnemonic = (unit: string) => {
     'pound': 'lb',
     'ml': 'ml',
     'liter': 'L',
+    'fl_oz': 'fl oz',
     'cup': 'cup',
     'tablespoon': 'tbsp',
     'teaspoon': 'tsp',
@@ -936,6 +938,7 @@ const getComparisonResultText = () => {
   font-weight: 600;
   transition: all 0.2s ease;
   cursor: pointer;
+  font-size: var(--font-medium);
 }
 
 .step-number:hover {
@@ -945,7 +948,7 @@ const getComparisonResultText = () => {
 }
 
 .step-title {
-  font-size: 12px;
+  font-size: var(--font-small);
   color: rgba(255, 255, 255, 0.6);
   font-weight: 500;
   text-align: center;
@@ -1003,13 +1006,15 @@ const getComparisonResultText = () => {
 
 .section-title {
   color: white;
-  font-size: 18px;
+  font-size: var(--font-v-big);
   font-weight: 600;
   margin: 0;
   background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .stepper-navigation {
@@ -1032,7 +1037,7 @@ const getComparisonResultText = () => {
 
 .step-indicator {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
 }
 
@@ -1096,13 +1101,13 @@ const getComparisonResultText = () => {
 .form-field label {
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
 }
 
 .form-group > label {
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
 }
 
 .right label {
@@ -1146,7 +1151,7 @@ input[type="number"] {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   color: white;
-  font-size: 16px;
+  font-size: var(--font-medium);
   transition: all 0.2s ease;
   box-sizing: border-box;
 }
@@ -1226,7 +1231,7 @@ input[type="number"] {
   width: 36px;
   height: 36px;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -1257,7 +1262,7 @@ input[type="number"] {
 
 .resupply-label {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
 }
 
@@ -1276,7 +1281,7 @@ input[type="number"] {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 14px;
+  font-size: var(--font-small);
   gap: 12px;
 }
 
@@ -1285,7 +1290,7 @@ input[type="number"] {
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 500;
   background: rgba(255, 255, 255, 0.05);
 }
@@ -1303,7 +1308,7 @@ input[type="number"] {
   padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 600;
   transition: all 0.2s ease;
   margin-left: auto;
@@ -1319,7 +1324,7 @@ input[type="number"] {
 .no-purchases {
   text-align: center;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   padding: 12px 0;
   font-style: italic;
 }
@@ -1334,7 +1339,7 @@ input[type="number"] {
 .next-purchase-info label {
   color: white;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--font-x-small);
   display: block;
   margin-bottom: 4px;
 }
@@ -1342,7 +1347,7 @@ input[type="number"] {
 .next-purchase-date {
   color: oklch(from var(--lime-primary) l c h / 1);
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-family: monospace;
 }
 
@@ -1351,7 +1356,7 @@ input[type="number"] {
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-medium);
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 80px;
@@ -1384,7 +1389,7 @@ input[type="number"] {
   border-radius: 8px;
   padding: 12px 20px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-medium);
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
@@ -1453,7 +1458,7 @@ input[type="number"] {
   color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: var(--font-medium);
   font-weight: 500;
 }
 
@@ -1484,7 +1489,7 @@ input[type="number"] {
 
 .field-hint {
   color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-style: italic;
   margin-top: 4px;
 }
@@ -1500,7 +1505,7 @@ input[type="number"] {
 .expiration-text {
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-medium);
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
@@ -1517,7 +1522,7 @@ input[type="number"] {
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  font-size: 14px;
+  font-size: var(--font-medium);
   height: 32px;
   box-sizing: border-box;
   display: flex;
@@ -1544,7 +1549,7 @@ input[type="number"] {
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  font-size: 14px;
+  font-size: var(--font-medium);
   width: fit-content;
   min-width: fit-content;
   box-sizing: border-box;
@@ -1586,7 +1591,7 @@ input[type="number"] {
 
 .expiration-countdown-text {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
+  font-size: var(--font-x-small);
   font-style: italic;
   padding: 6px 12px;
   background: rgba(0, 0, 0, 0.1);
@@ -1653,7 +1658,7 @@ input[type="number"] {
 .comparison-title {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-medium);
 }
 
 .comparison-content {
@@ -1670,13 +1675,13 @@ input[type="number"] {
 
 .comparison-label {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
+  font-size: var(--font-x-small);
 }
 
 .comparison-value {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
-  font-size: 13px;
+  font-size: var(--font-x-small);
 }
 
 .comparison-result {
@@ -1687,7 +1692,7 @@ input[type="number"] {
 }
 
 .result-text {
-  font-size: 13px;
+  font-size: var(--font-x-small);
   font-weight: 500;
 }
 

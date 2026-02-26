@@ -66,11 +66,15 @@ html, body {
   left: 0;
 }
 
+/* Calendar main area */
+.calendar-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Left Sidebar - Payments */
 .payments-sidebar {
-  min-width: 500px;
-  width: auto;
-  padding: 32px;
   overflow-y: auto;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -159,22 +163,10 @@ html, body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.modal-toggle {
-  margin-left: auto;
-  margin-right: 16px;
-}
-
 .modal-header h3 {
   color: white;
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.add-payment-section h3 {
-  color: white;
-  margin: 0 0 16px 0;
-  font-size: 20px;
+  font-size: var(--font-v-big);
   font-weight: 600;
 }
 
@@ -182,7 +174,7 @@ html, body {
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 28px;
+  font-size: var(--font-x-big);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -260,81 +252,7 @@ html, body {
   color: white;
   font-weight: 600;
   margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.form-field.amount-centered {
-  text-align: center;
-}
-
-.form-field.amount-centered label {
-  text-align: center;
-}
-
-.form-field.amount-centered .form-input {
-  margin: 0 auto;
-  text-align: center;
-  width: auto;
-  max-width: 100px;
-}
-
-/* Hide stepper controls on number inputs */
-.form-field.amount-centered .form-input::-webkit-outer-spin-button,
-.form-field.amount-centered .form-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.form-field.amount-centered .form-input[type=number] {
-  -moz-appearance: textfield;
-}
-
-.form-field.amount-centered .form-input:focus::placeholder {
-  color: transparent;
-}
-
-.frequency-centered {
-  text-align: center;
-  display: block;
-  color: white;
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.payment-type-end {
-  justify-content: end;
-  display: flex;
-  color: white;
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.payment-type-clickable {
-  color: oklch(from var(--lime-light) l c h / 1) !important;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: underline;
-  text-decoration-color: oklch(from var(--lime-light) l c h / 0.3);
-  text-underline-offset: 4px;
-}
-
-.payment-type-clickable:hover {
-  color: oklch(from var(--lime-primary) l c h / 1) !important;
-  text-decoration-color: oklch(from var(--lime-primary) l c h / 0.6);
-  transform: translateY(-1px);
-}
-
-/* Override label-with-button for payment type to align label to end */
-.payment-type-container {
-  justify-content: flex-end !important;
-}
-
-/* Align CustomDropdown to end */
-.dropdown-align-end {
-  display: flex;
-  justify-content: flex-end;
+  font-size: var(--font-small);
 }
 
 .form-input {
@@ -344,7 +262,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   color: white;
-  font-size: 16px;
+  font-size: var(--font-medium);
   transition: all 0.2s ease;
   box-sizing: border-box;
 }
@@ -396,7 +314,7 @@ html, body {
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 100px;
@@ -432,24 +350,6 @@ html, body {
   transform: translateY(-1px);
 }
 
-/* Unified Modal Styles (Add Modal) */
-.add-modal {
-  background: linear-gradient(135deg, oklch(from var(--grey-dark) l c h / 1) 0%, oklch(from var(--grey-primary) l c h / 0.5) 100%);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-  width: 100%;
-  max-width: 580px;
-  overflow-x: clip;
-  overflow-y: auto;
-  animation: modalSlideIn 0.3s ease-out;
-  position: relative;
-  z-index: 1001;
-}
-
-.day-payments-section {
-  margin-bottom: 32px;
-}
 
 .section-subtitle {
   width: fit-content;
@@ -457,7 +357,7 @@ html, body {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 600;
   margin: 0 0 16px 0;
 }
@@ -468,61 +368,6 @@ hr {
   width: 100%;
 }
 
-.day-payments-list {
-  margin-bottom: 24px;
-}
-
-.day-payment-item {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  margin-bottom: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.2s ease;
-}
-
-.day-payment-item.forgone-payment {
-  opacity: 0.5;
-  background: rgba(128, 128, 128, 0.1);
-  border-color: rgba(128, 128, 128, 0.2);
-}
-
-.day-payment-item.forgone-payment .payment-title,
-.day-payment-item.forgone-payment .payment-amount,
-.day-payment-item.forgone-payment .payment-time {
-  color: rgba(255, 255, 255, 0.6) !important;
-}
-
-.day-payment-item.forgone-payment .avatar-circle {
-  opacity: 0.6;
-}
-
-/* Forgo button styling */
-.forgo-btn {
-  position: relative;
-  left: 15%;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  min-height: 24px;
-}
-
-.forgo-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  transform: scale(1.1);
-}
 
 .section-divider {
   color: white;
@@ -531,30 +376,6 @@ hr {
   margin-bottom: 40px;
 }
 
-.selected-date-display {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 18px;
-  font-weight: 600;
-  margin: 16px;
-  padding: 8px 12px;
-  background: oklch(from var(--lime-dark) l c h / 0.5);
-  border: 1px solid oklch(from var(--lime-light) l c h / 0.5);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
-  width: fit-content;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.selected-date-display:hover {
-  background: oklch(from var(--lime-dark) l c h / 1);
-  border: 1px solid oklch(from var(--lime-light) l c h / 1);
-  transform: translateY(-1px);
-}
 
 /* Label with button */
 .label-with-button {
@@ -578,7 +399,7 @@ hr {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -622,7 +443,7 @@ hr {
   color: rgba(255, 255, 255, 0.6);
   padding: 8px 12px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -724,7 +545,7 @@ hr {
   justify-content: center;
   font-weight: bold;
   color: white;
-  font-size: 14px;
+  font-size: var(--font-small);
   flex-shrink: 0;
 }
 
@@ -735,13 +556,13 @@ hr {
 .type-label {
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
   margin-bottom: 2px;
 }
 
 .type-value {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-family: monospace;
 }
 
@@ -769,67 +590,9 @@ hr {
   transform: translateY(-1px);
 }
 
-/* Loading state for buttons */
-.btn-loading {
-  position: relative;
-  cursor: not-allowed;
-  opacity: 0.8;
-}
-
-.loading-spinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 1s linear infinite;
-  margin-right: 8px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Save message styling */
-.save-message {
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  text-align: center;
-  margin-bottom: 16px;
-  animation: slideIn 0.3s ease-out;
-}
-
-.save-message.success {
-  background: oklch(from var(--lime-primary) l c h / 0.2);
-  border: 1px solid oklch(from var(--lime-primary) l c h / 0.3);
-  color: oklch(from var(--lime-primary) l c h / 1);
-}
-
-.save-message.error {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .btn-sm {
   padding: 6px 12px;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   min-width: 60px;
 }
 
@@ -843,7 +606,7 @@ hr {
 }
 
 .char-count {
-  font-size: 12px;
+  font-size: var(--font-x-small);
   color: rgba(255, 255, 255, 0.6);
   text-align: right;
   margin-top: 4px;
@@ -916,7 +679,7 @@ hr {
 .color-value {
   color: white;
   font-family: monospace;
-  font-size: 14px;
+  font-size: var(--font-small);
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 6px;
@@ -943,12 +706,12 @@ hr {
   justify-content: center;
   font-weight: bold;
   color: white;
-  font-size: 18px;
+  font-size: var(--font-v-big);
 }
 
 .preview-text {
   color: white;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 500;
 }
 
@@ -980,14 +743,14 @@ hr {
 
 .chart-title {
   color: white;
-  font-size: 20px;
+  font-size: var(--font-v-big);
   font-weight: 600;
   margin: 0;
 }
 
 .chart-total {
   color: oklch(from var(--lime-primary) l c h / 1);
-  font-size: 24px;
+  font-size: var(--font-x-big);
   font-weight: 700;
 }
 
@@ -1074,19 +837,19 @@ hr {
 .legend-label {
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
 }
 
 .legend-value {
   color: oklch(from var(--lime-primary) l c h / 1);
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
   font-family: monospace;
 }
 
 .legend-percentage {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 500;
   background: rgba(255, 255, 255, 0.1);
   padding: 4px 8px;
@@ -1119,7 +882,7 @@ hr {
 
 .stat-label {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1127,7 +890,7 @@ hr {
 
 .stat-value {
   color: white;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 700;
   font-family: monospace;
 }
@@ -1191,7 +954,7 @@ hr {
 
 .settings-title {
   color: oklch(from var(--lime-primary) l c h / 1);
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 600;
   margin: 0 0 16px 0;
   padding-bottom: 8px;
@@ -1213,7 +976,7 @@ hr {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: white;
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1254,7 +1017,7 @@ hr {
 
 .settings-text {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
+  font-size: var(--font-small);
   margin: 0 0 8px 0;
   line-height: 1.5;
 }
@@ -1311,7 +1074,7 @@ hr {
 
   .settings-btn {
     padding: 16px;
-    font-size: 16px;
+    font-size: var(--font-medium);
   }
 }
 
@@ -1332,7 +1095,7 @@ hr {
 }
 
 .unit-display {
-  font-size: 14px;
+  font-size: var(--font-small);
   color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
   padding: 0 8px;
@@ -1403,7 +1166,7 @@ hr {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 14px;
+  font-size: var(--font-small);
   gap: 12px;
 }
 
@@ -1412,20 +1175,27 @@ hr {
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 500;
   background: rgba(255, 255, 255, 0.05);
 }
 
 .purchase-date {
-  color: rgba(255, 255, 255, 0.8);
+  color: white;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: var(--font-x-small);
   font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .purchase-cost {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
   font-family: monospace;
+  font-size: var(--font-small);
 }
 
 .purchase-delete-btn {
@@ -1435,7 +1205,7 @@ hr {
   padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 600;
   transition: all 0.2s ease;
   margin-left: auto;
@@ -1456,7 +1226,7 @@ hr {
 .no-purchases {
   text-align: center;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   padding: 12px 0;
   font-style: italic;
 }
@@ -1471,7 +1241,7 @@ hr {
 .next-purchase-info label {
   color: white;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--font-x-small);
   display: block;
   margin-bottom: 4px;
 }
@@ -1479,7 +1249,7 @@ hr {
 .next-purchase-date {
   color: oklch(from var(--lime-primary) l c h / 1);
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-family: monospace;
 }
 
@@ -1499,7 +1269,7 @@ hr {
   width: 36px;
   height: 36px;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -1521,79 +1291,35 @@ hr {
 
 .resupply-label {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
 }
 
-/* Autocomplete / suggestions dropdown */
-.autocomplete-wrapper {
-  position: relative;
-  width: 100%;
-}
+/* Calendar Header and View Toggle - REMOVED: was causing floating header issue */
 
-.suggestions-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 4px;
-  background: oklch(from var(--grey-dark) l c h / 0.97);
+.view-toggle-btn {
+  background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  z-index: 1100;
-  backdrop-filter: blur(10px);
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.suggestions-dropdown::-webkit-scrollbar {
-  width: 6px;
-}
-
-.suggestions-dropdown::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
-}
-
-.suggestions-dropdown::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-}
-
-.suggestion-item {
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
+  justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: var(--font-small);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
 }
 
-.suggestion-item:last-child {
-  border-bottom: none;
+.view-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+  border-color: oklch(from var(--lime-primary) l c h / 0.8);
 }
 
-.suggestion-item:hover {
-  background: oklch(from var(--lime-primary) l c h / 0.18);
-}
-
-.suggestion-title {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
-  font-weight: 500;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.suggestion-meta {
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 12px;
-  font-weight: 400;
-  margin-left: 10px;
-  white-space: nowrap;
-  flex-shrink: 0;
+.view-toggle-btn svg {
+  width: 20px;
+  height: 20px;
 }

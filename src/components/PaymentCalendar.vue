@@ -2,7 +2,10 @@
   <div class="payment-calendar">
     <PaymentSidebar />
 
-    <Calendar />
+    <div class="calendar-main">
+      <Calendar v-if="calendarViewMode === 'month'" />
+      <WeekView v-else />
+    </div>
 
     <div v-if="showEditMenu" class="modal-overlay edit-modal-overlay">
       <div class="edit-modal" @click.stop>
@@ -133,189 +136,7 @@
     </div>
 
     <div v-if="showAddMenu" class="modal-overlay">
-      <div class="add-modal" @click.stop>
-        <div class="modal-header">
-          <div v-if="selectedDayPayments.length === 0" class="selected-date-display" @click="openDatePicker">
-            {{ getSelectedDayDate() }}
-          </div>
-          <div class="modal-toggle">
-            <div class="toggle-switch">
-              <div class="toggle-container two-options">
-                <button
-                  :class="['toggle-option', { active: addForm.type !== 'inventory' }]"
-                  @click="setPaymentMode"
-                >
-                  Payment
-                </button>
-                <button
-                  :class="['toggle-option', { active: addForm.type === 'inventory' }]"
-                  @click="setInventoryMode"
-                >
-                  Inventory
-                </button>
-              </div>
-            </div>
-          </div>
-          <button class="close-btn" @click="closeAddMenu">×</button>
-        </div>
-
-        <div class="modal-body">
-          
-          <div v-if="selectedDayPayments.length > 0" class="day-payments-section">
-            <h4 class="section-subtitle">Payments for {{ getSelectedDayDate() }}</h4>
-            <h4 class="underline-subtitle"></h4>
-            <div class="day-payments-list">
-              <div v-for="payment in selectedDayPayments" :key="payment.id" class="day-payment-item" :class="{ 'forgone-payment': forgoneInstances.has(payment.id) }">
-                <div class="payment-avatar">
-                  <div :class="`avatar-circle ${payment.type}`" :style="getAvatarStyle(payment.type)">{{ payment.type.charAt(0).toUpperCase() }}</div>
-                </div>
-                <div class="payment-details">
-                  <div class="payment-title">{{ payment.title }}</div>
-                  <div class="payment-time">{{ payment.time }}</div>
-                  <div class="payment-amount">{{ payment.amount }}</div>
-                </div>
-                <div class="payment-menu">
-                  <button
-                    class="forgo-btn"
-                    @click="toggleForgoPayment(payment)"
-                    :title="payment.forgone ? 'Unforgo this payment' : 'Forgo this payment'"
-                  >
-                    {{ payment.forgone ? '↺' : '⊘' }}
-                  </button>
-                  <button class="menu-btn" @click="openEditMenu(payment)">⋯</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="add-payment-section">
-
-            <div v-if="addForm.type === 'inventory'">
-              <h3>{{ 'Add Inventory Item' }}</h3>
-              <InventoryFieldsSectionStepper
-                :form-data="addForm"
-                :get-estimated-portions="getEstimatedPortionsFromData"
-                :get-depletion-time-in-days="getDepletionTimeInDaysFromData"
-                :get-last-purchases="getLastPurchases"
-                :get-estimated-next-purchase-date="getEstimatedNextPurchaseDate"
-                @add-resupply="addResupply"
-                @delete-purchase="deleteSinglePurchase"
-                @save="saveNewPayment"
-              />
-            </div>
-
-            <div v-else>
-              <h3>{{ 'Add New Payment' }}</h3>
-              <div class="form-group side-by-side">
-                <div class="form-field">
-                  <div class="label-with-button payment-type-container">
-                    <label for="addPaymentType" class="payment-type-end payment-type-clickable" @click="addPaymentTypeFromAdd">Payment Type</label>
-                  </div>
-                  <CustomDropdown
-                    id="addPaymentType"
-                    v-model="addForm.type"
-                    :options="paymentTypeOptions"
-                    placeholder="Select payment type"
-                    class="dropdown-align-end"
-                  />
-                </div>
-                <div class="form-field">
-                  <label for="addPaymentTitle">Product / Service</label>
-                  <div class="autocomplete-wrapper">
-                    <input
-                      id="addPaymentTitle"
-                      v-model="addForm.title"
-                      type="text"
-                      class="form-input"
-                      placeholder="Enter payment title"
-                      autocomplete="off"
-                      @input="onTitleInput"
-                      @blur="hideTitleSuggestions"
-                    >
-                    <div v-if="showTitleSuggestions" class="suggestions-dropdown">
-                      <div
-                        v-for="suggestion in titleSuggestions"
-                        :key="suggestion.id"
-                        class="suggestion-item"
-                        @mousedown.prevent="selectTitleSuggestion(suggestion)"
-                      >
-                        <span class="suggestion-title">{{ suggestion.title }}</span>
-                        <span class="suggestion-meta">{{ suggestion.amount }} · {{ suggestion.type }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <div class="form-field amount-centered">
-                  <label for="addPaymentAmount">Amount</label>
-                  <input
-                    id="addPaymentAmount"
-                    v-model="addForm.amount"
-                    type="number"
-                    step="0.01"
-                    class="form-input"
-                    placeholder="0.00"
-                    @blur="handleAmountInputBlur"
-                    @keyup.enter="handleAmountInputKeyUp"
-                  >
-                </div>
-              </div>
-            </div>
-
-            <div v-if="addForm.type !== 'inventory'" class="form-group">
-              <label class="frequency-centered">Payment Frequency</label>
-              <div class="toggle-switch">
-                <div class="toggle-container four-options">
-                  <button
-                    :class="['toggle-option', { active: addForm.frequency === 'one-time' }]"
-                    @click="addForm.frequency = 'one-time'"
-                  >
-                    One-Time
-                  </button>
-                  <button
-                    :class="['toggle-option', { active: addForm.frequency === 'weekly' }]"
-                    @click="addForm.frequency = 'weekly'"
-                  >
-                    Weekly
-                  </button>
-                  <button
-                    :class="['toggle-option', { active: addForm.frequency === 'bi-monthly' }]"
-                    @click="addForm.frequency = 'bi-monthly'"
-                  >
-                    Bi-Monthly
-                  </button>
-                  <button
-                    :class="['toggle-option', { active: addForm.frequency === 'recurring' }]"
-                    @click="addForm.frequency = 'recurring'"
-                  >
-                    Monthly
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <div v-if="saveMessage" class="save-message" :class="saveMessageType">
-            {{ saveMessage }}
-          </div>
-
-          <div v-if="addForm.type !== 'inventory'" class="btn-group">
-            <button
-              class="btn btn-success"
-              @click="saveNewPayment"
-              :disabled="isSavingPayment"
-              :class="{ 'btn-loading': isSavingPayment }"
-            >
-              <span v-if="isSavingPayment" class="loading-spinner"></span>
-              {{ isSavingPayment ? 'Saving...' : (selectedDayPayments.length > 0 ? 'Add Payment' : 'Save Payment') }}
-            </button>
-          </div>
-        </div>
-      </div>
+      <AddModal />
     </div>
 
     <div v-if="showPaymentTypeModal" class="modal-overlay payment-type-modal-overlay">
@@ -635,7 +456,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, computed } from 'vue'
 import './PaymentCalendar.css'
 
 import { Payment, PaymentType } from '../types/payment.types'
@@ -644,8 +465,10 @@ import InventoryFieldsSectionStepper from './primitives/inventoryStepper.vue'
 import DatePicker from './primitives/DatePicker.vue'
 import PaymentSidebar from './sidebar/PaymentSidebar.vue'
 import Calendar from './calendar/Calendar.vue'
+import WeekView from './calendar/WeekView.vue'
 import CustomDropdown from './primitives/CustomDropdown.vue'
 import ItemChart from './modals/itemChart.vue'
+import AddModal from './modals/AddModal.vue'
 
 import { paymentService } from '../services/payment.service'
 import { paymentTypeService } from '../services/payment-type.service'
@@ -663,12 +486,7 @@ import {
   editingPayment,
   editForm,
   showAddMenu,
-  addForm,
-  isSavingPayment,
-  saveMessage,
-  saveMessageType,
   selectedDate,
-  selectedDayPayments,
   preSelectedDay,
   pulsatingDays,
   pulsatingTimer,
@@ -681,10 +499,10 @@ import {
   hoveredSlice,
   modalStack,
   isInventoryCollapsed,
-  forgoneInstances,
   showEarningsInNextPayments,
   selectedPaymentTypes,
-  isFilteringEnabled
+  isFilteringEnabled,
+  calendarViewMode
 } from '../stores/ui-state.store'
 
 import {
@@ -704,11 +522,9 @@ import {
   getSlicePath,
   inventoryItems,
   getEstimatedPortions,
-  getEstimatedPortionsFromData,
   getEstimatedDepletionDate,
   parsePortionSize,
   getDepletionTimeInDays,
-  getDepletionTimeInDaysFromData,
   getPortionSizeFraction,
   getLastPurchases,
   getEstimatedNextPurchaseDate,
@@ -735,7 +551,6 @@ import {
   confirmDeletePaymentType,
   saveNewPaymentType,
   addPaymentTypeFromEdit,
-  addPaymentTypeFromAdd,
   handleManagePaymentTypes,
   openEditMenu,
   closeEditMenu,
@@ -743,12 +558,9 @@ import {
   deletePayment,
   openAddMenu,
   openInventoryAddMenu,
-  closeAddMenu,
   handleDayClick,
   showDayPaymentsForDay,
   resetDayPayments,
-  getSelectedDayDate,
-  saveNewPayment,
   showMessage,
   highlightPaymentDay,
   goToPrevMonth,
@@ -765,43 +577,13 @@ import {
   handleAmountInputKeyUp,
   addResupply,
   deleteSinglePurchase,
-  toggleForgoPayment,
-  openDatePicker,
   closeDatePicker,
   handleDateSelection,
   showDatePicker,
-  getPaymentSuggestions,
-  autofillPaymentForm
 } from '../composables/payment-handlers'
 
 // Color presets from shared constants
 const colorPresets = COLOR_PRESETS
-
-// Autocomplete state for Product / Service input
-const titleSuggestions = ref<ReturnType<typeof getPaymentSuggestions>>([])
-const showTitleSuggestions = ref(false)
-let titleDebounceTimer: ReturnType<typeof setTimeout> | null = null
-
-const onTitleInput = () => {
-  if (titleDebounceTimer) clearTimeout(titleDebounceTimer)
-  titleDebounceTimer = setTimeout(() => {
-    titleSuggestions.value = getPaymentSuggestions(addForm.title)
-    showTitleSuggestions.value = titleSuggestions.value.length > 0
-  }, 300)
-}
-
-const selectTitleSuggestion = (payment: (typeof titleSuggestions.value)[number]) => {
-  autofillPaymentForm(payment)
-  showTitleSuggestions.value = false
-  titleSuggestions.value = []
-}
-
-const hideTitleSuggestions = () => {
-  setTimeout(() => {
-    showTitleSuggestions.value = false
-  }, 150)
-}
-
 
 // Helper function to display frequency in a user-friendly format
 const getFrequencyDisplay = (frequency: string) => {
@@ -820,15 +602,6 @@ const getFrequencyDisplay = (frequency: string) => {
 }
 
 
-// Helper function to get avatar style for custom payment types
-const getAvatarStyle = (paymentTypeValue: string) => {
-  const paymentType = paymentTypes.value.find(type => type.value === paymentTypeValue)
-  if (paymentType && paymentType.isCustom) {
-    return { background: `linear-gradient(135deg, ${paymentType.color}, ${paymentType.color}dd)` }
-  }
-  return {}
-}
-
 // Convert paymentTypes to dropdown options format
 const paymentTypeOptions = computed(() => {
   return paymentTypes.value
@@ -839,31 +612,10 @@ const paymentTypeOptions = computed(() => {
     }))
 })
 
-
-// Toggle between payment and inventory modes in add modal
-const setPaymentMode = () => {
-  // Switch to regular payment mode - prefer credit card, fallback to first available
-  const regularPaymentTypes = paymentTypes.value.filter(t => t.value !== 'inventory')
-  const creditType = regularPaymentTypes.find(t => t.value === 'credit')
-
-  if (creditType) {
-    addForm.type = creditType.value
-  } else if (regularPaymentTypes.length > 0) {
-    addForm.type = regularPaymentTypes[0].value
-  } else {
-    // Fallback if no regular payment types exist
-    addForm.type = 'utility' // Default fallback
-  }
-}
-
-const setInventoryMode = () => {
-  // Switch to inventory mode
-  addForm.type = 'inventory'
-}
-
 // Initialize component on mount
 onMounted(async () => {
   await initializeComponent()
-  document.addEventListener('keydown', handleEscapeKey)
 })
+
+document.addEventListener('keydown', handleEscapeKey)
 </script>

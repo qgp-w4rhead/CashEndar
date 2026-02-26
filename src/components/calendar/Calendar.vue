@@ -1,25 +1,14 @@
 <template>
   <div class="calendar-container">
-    <div class="calendar-header">
-      <button class="nav-btn prev" @click="goToPrevMonth">‹</button>
-      <h3 class="month-title">{{ currentMonthYear }}</h3>
-      <button class="nav-btn next" @click="goToNextMonth">›</button>
-      <button class="pie-chart-btn" @click="togglePieChart" title="View Summary Chart">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-          <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20"/>
-        </svg>
-      </button>
-      <button class="item-chart-btn" @click="toggleItemChart" title="View Inventory Items Chart">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 3v18h18"/>
-          <path d="M9 9h6"/>
-          <path d="M9 12h6"/>
-          <path d="M9 15h6"/>
-          <path d="M3 3l6 6"/>
-        </svg>
-      </button>
-    </div>
+    <CalendarHeader
+      :view-mode="calendarViewMode"
+      :title="currentMonthYear"
+      :on-prev="handlePrev"
+      :on-next="handleNext"
+      :on-toggle-view="toggleCalendarView"
+      :on-toggle-pie-chart="togglePieChart"
+      :on-toggle-item-chart="toggleItemChart"
+    />
 
     <div class="calendar-grid">
       <div class="calendar-days">
@@ -35,7 +24,7 @@
       <div class="calendar-dates" :style="{ opacity: isTransitioning ? 0 : 1 }">
         <div
           v-for="dateInfo in calendarDates"
-          :key="`${dateInfo.date.getFullYear()}-${dateInfo.date.getMonth()}-${dateInfo.day}`"
+          :key="`month-${dateInfo.date.getFullYear()}-${dateInfo.date.getMonth()}-${dateInfo.day}`"
           :class="{
             'date-cell': true,
             'other-month': !dateInfo.isCurrentMonth,
@@ -72,13 +61,15 @@
 </template>
 
 <script setup lang="ts">
+import CalendarHeader from './CalendarHeader.vue'
 import {
   currentMonth,
   currentYear,
   selectedDate,
   isTransitioning,
   pulsatingDays,
-  preSelectedDay
+  preSelectedDay,
+  calendarViewMode
 } from '../../stores/ui-state.store'
 import {
   currentMonthYear,
@@ -89,10 +80,32 @@ import {
 import {
   goToPrevMonth,
   goToNextMonth,
+  goToPrevWeek,
+  goToNextWeek,
   togglePieChart,
   toggleItemChart,
   handleDayClick
 } from '../../composables/payment-handlers'
+
+const toggleCalendarView = () => {
+  calendarViewMode.value = calendarViewMode.value === 'month' ? 'week' : 'month'
+}
+
+const handlePrev = () => {
+  if (calendarViewMode.value === 'month') {
+    goToPrevMonth()
+  } else {
+    goToPrevWeek()
+  }
+}
+
+const handleNext = () => {
+  if (calendarViewMode.value === 'month') {
+    goToNextMonth()
+  } else {
+    goToNextWeek()
+  }
+}
 
 // Helper function to check if a date is today
 const isToday = (date: Date) => {
@@ -110,96 +123,12 @@ const isToday = (date: Date) => {
   padding: 32px;
   display: flex;
   flex-direction: column;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
 
-.calendar-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  gap: 20px;
-}
-
-.nav-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 80px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 20px;
-  transition: all 0.2s ease;
-}
-
-.nav-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.pie-chart-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s ease;
-}
-
-.pie-chart-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-}
-
-.pie-chart-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.item-chart-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  margin-left: 8px;
-}
-
-.item-chart-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-  border-color: oklch(from var(--grey-primary) l c h / 1);
-  box-shadow: 0 0 0 2px oklch(from var(--grey-primary) l c h / 0.3);
-}
-
-.item-chart-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.month-title {
-  color: white;
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0;
-  min-width: 150px;
-  text-align: center;
-}
 
 .calendar-grid {
   flex: 1;
@@ -218,11 +147,12 @@ const isToday = (date: Date) => {
   color: rgba(255, 255, 255, 0.7);
   text-align: center;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
   padding: 12px;
 }
 
 .calendar-dates {
+  font-size: var(--font-x-big);
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
@@ -230,6 +160,7 @@ const isToday = (date: Date) => {
   transition: opacity 0.15s ease-in-out;
   opacity: 1;
 }
+
 
 .date-cell {
   display: flex;
@@ -254,7 +185,7 @@ const isToday = (date: Date) => {
 /* Day total amount displayed above day number */
 .day-total {
   color: #d1d5db;
-  font-size: 11px;
+  font-size: var(--font-small);
   font-weight: 600;
   margin-bottom: 0px;
   text-align: center;
@@ -300,7 +231,7 @@ const isToday = (date: Date) => {
 
 /* Plus indicator for more than 5 payments */
 .payment-dot-plus {
-  font-size: 10px;
+  font-size: var(--font-x-small);
   font-weight: bold;
   color: oklch(from var(--lime-primary) l c h / 1);
   line-height: 1;
@@ -409,7 +340,7 @@ const isToday = (date: Date) => {
 @keyframes pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 oklch(from var(--lime-primary) l c h / 0.7);
+    box-shadow: 0 0 0 0 oklch(from var(--lime-primary) l c h / 1);
   }
   50% {
     transform: scale(1.05);

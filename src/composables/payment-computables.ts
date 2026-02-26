@@ -14,7 +14,9 @@ import {
   sortMode,
   showEarningsInNextPayments,
   selectedPaymentTypes,
-  isFilteringEnabled
+  isFilteringEnabled,
+  calendarViewMode,
+  currentWeekStart
 } from '../stores/ui-state.store'
 import { MONTH_NAMES_FULL, MONTH_NAMES_SHORT } from '../utils/constants'
 import { getCurrentDateComponents, parsePaymentDate, parseAmount, formatNetAmount, depletionRateToPortionsPerDay, todayMidnight } from '../utils/date-utils'
@@ -132,6 +134,109 @@ export const calendarDates = computed(() => {
     currentYear.value,
     forgoneInstances.value
   )
+})
+
+// Week view computed property - shows current week with detailed payment info
+export const weekViewDates = computed(() => {
+  // Apply the same filtering as calendarDates
+  const filteredPayments = payments.value.filter(payment => {
+    // If filtering is disabled, show all payments (including inventory)
+    if (!isFilteringEnabled.value) return true
+
+    // Handle inventory items - treat them as payments (purchases)
+    if (payment.type === 'inventory') {
+      // Include inventory when showing payments, exclude when showing earnings
+      return !showEarningsInNextPayments.value
+    }
+
+    // Filter by earnings vs payments
+    const paymentType = paymentTypes.value.find(pt => pt.value === payment.type)
+    if (!paymentType) return false
+
+    const isEarning = paymentType.isEarning || false
+    if (showEarningsInNextPayments.value && !isEarning) return false
+    if (!showEarningsInNextPayments.value && isEarning) return false
+
+    // Filter by selected payment types (if any are selected)
+    if (selectedPaymentTypes.value.length > 0) {
+      if (!selectedPaymentTypes.value.includes(payment.type)) return false
+    }
+
+    return true
+  })
+
+  // Generate 7 days for the week starting from currentWeekStart
+  const startDate = new Date(currentWeekStart.value)
+  const dates = []
+  
+  for (let i = 0; i < 7; i++) {
+    const currentDate = new Date(startDate)
+    currentDate.setDate(startDate.getDate() + i)
+    
+    const day = currentDate.getDate()
+    const month = currentDate.getMonth()
+    const year = currentDate.getFullYear()
+    
+    // Get all payments for this day
+    const dayPayments = paymentService.getPaymentsForDay(filteredPayments, day, month, year)
+    const paymentCount = dayPayments.length
+    const totalAmount = paymentService.calculateNetDailyTotal(dayPayments, paymentTypes.value, forgoneInstances.value)
+    
+    // Get detailed payment information for week view
+    const detailedPayments = dayPayments.map(payment => {
+      const paymentType = paymentTypes.value.find(pt => pt.value === payment.type)
+      return {
+        ...payment,
+        paymentTypeLabel: paymentType?.label || payment.type,
+        paymentTypeColor: paymentType?.color || '#ef4444',
+        isEarning: paymentType?.isEarning || false
+      }
+    })
+
+    dates.push({
+      day,
+      isCurrentMonth: month === currentMonth.value && year === currentYear.value,
+      date: currentDate,
+      hasPayment: paymentCount > 0,
+      paymentCount,
+      totalAmount,
+      detailedPayments
+    })
+  }
+
+  return dates
+})
+
+// Week range computed property for displaying the current week's date range
+export const weekRange = computed(() => {
+  const dates = weekViewDates.value
+  if (dates.length === 0) return ''
+  
+  const startDate = dates[0].date
+  const endDate = dates[dates.length - 1].date
+  
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  
+  const startMonth = monthNames[startDate.getMonth()]
+  const startDay = startDate.getDate()
+  const startYear = startDate.getFullYear()
+  
+  const endMonth = monthNames[endDate.getMonth()]
+  const endDay = endDate.getDate()
+  const endYear = endDate.getFullYear()
+  
+  // If same month and year, show "Month Start - End, Year"
+  if (startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear()) {
+    return `${startMonth} ${startDay} - ${endDay}, ${startYear}`
+  }
+  // If same year but different months, show "StartMonth Start - EndMonth End, Year"
+  else if (startDate.getFullYear() === endDate.getFullYear()) {
+    return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${startYear}`
+  }
+  // If different years, show full dates
+  else {
+    return `${startMonth} ${startDay}, ${startYear} - ${endMonth} ${endDay}, ${endYear}`
+  }
 })
 
 // Next payments computed properties (expenses only)
@@ -304,7 +409,7 @@ export const chartData = computed((): ChartSlice[] => {
         amount,
         color: paymentType.color,
         percentage,
-        formattedAmount: `$${amount.toFixed(2)}`
+        formattedAmount: `$${+amount.toFixed(2)}`
       })
     }
   })
@@ -315,7 +420,7 @@ export const chartData = computed((): ChartSlice[] => {
 
 export const chartTotal = computed(() => {
   const total = chartData.value.reduce((sum, slice) => sum + slice.amount, 0)
-  return `$${total.toFixed(2)}`
+  return `$${+total.toFixed(2)}`
 })
 
 export const chartPeriod = computed(() => {
@@ -468,7 +573,7 @@ export const inventoryItems = computed(() => {
     // Create aggregated item with latest details and total cost
     const aggregatedItem: Payment = {
       ...latestPurchase, // Start with most recent purchase details
-      amount: `$${totalCost.toFixed(2)}`, // Show total cost
+      amount: `$${+totalCost.toFixed(2)}`, // Show total cost
       // Keep all other inventory-specific fields from the most recent purchase
       id: latestPurchase.id, // Keep original ID for editing/management
       date: latestPurchase.date // Keep latest purchase date
@@ -1034,7 +1139,7 @@ export const getAnnualCostFromPurchases = computed(() => {
       return {
         cost: annualCost,
         method: 'Scheduled Frequency',
-        details: `$${purchaseAmount.toFixed(2)} × ${frequencyMultiplier} ${frequencyDescription} purchases/year`
+        details: `$${+purchaseAmount.toFixed(2)} × ${frequencyMultiplier} ${frequencyDescription} purchases/year`
       }
     } else {
       // Fall back to historical purchase rate calculation (original logic)
@@ -1087,7 +1192,7 @@ export const getAnnualCostFromPurchases = computed(() => {
       return {
         cost: annualCost,
         method: 'Purchase Rate',
-        details: `Based on ${lastThreePurchases.length} purchases, avg $${averageCost.toFixed(2)} every ${averageInterval.toFixed(1)} days`
+        details: `Based on ${lastThreePurchases.length} purchases, avg $${+averageCost.toFixed(2)} every ${+averageInterval.toFixed(1)} days`
       }
     }
   }
@@ -1166,7 +1271,7 @@ export const getAnnualCostFromDepletion = computed(() => {
     return {
       cost: annualCost,
       method: 'Depletion Rate',
-      details: `$${costPerPortion.toFixed(3)}/portion × ${portionsPerYear.toFixed(1)} portions/year`
+      details: `$${+costPerPortion.toFixed(2)}/portion × ${+portionsPerYear.toFixed(2)} portions/year`
     }
   }
 })

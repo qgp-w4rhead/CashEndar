@@ -38,7 +38,8 @@ import {
   isNextPaymentsCollapsed,
   isEarningsCollapsed,
   isInventoryCollapsed,
-  forgoneInstances
+  forgoneInstances,
+  currentWeekStart
 } from '../stores/ui-state.store'
 
 // Modal management functions
@@ -318,7 +319,7 @@ export const openEditMenu = (payment: any) => {
       }, 0)
 
       const averageAmount = totalAmount / itemPurchases.length
-      editForm.amount = averageAmount.toFixed(2)
+      editForm.amount = String(+averageAmount.toFixed(2))
     } else {
       // Fallback to original amount if no purchases found
       editForm.amount = originalPayment.amount.replace('$', '')
@@ -463,7 +464,7 @@ export const savePayment = async () => {
     const updatedPayment = {
       ...editingPayment.value,
       title: editForm.title,
-      amount: `$${totalAmount.toFixed(2)}`,
+      amount: `$${+totalAmount.toFixed(2)}`,
       type: editForm.type,
       date: humanReadableDate,
       frequency: editForm.frequency,
@@ -858,7 +859,7 @@ export const saveNewPayment = async () => {
     const newPayment = {
       id: newId,
       title: addForm.title.trim(),
-      amount: `$${totalAmount.toFixed(2)}`,
+      amount: `$${+totalAmount.toFixed(2)}`,
       date: dynamicDate,
       type: addForm.type,
       day: (addForm.frequency === 'bi-monthly' || addForm.frequency === 'weekly') ? undefined : addForm.day, // Don't set day for weekly/bi-monthly
@@ -980,6 +981,27 @@ export const highlightPaymentDay = (payment: any) => {
 }
 
 // Calendar navigation functions
+export const navigateWeek = (direction: 'prev' | 'next') => {
+  // Start transition animation
+  isTransitioning.value = true
+
+  // Update week after a brief delay to allow fade out
+  setTimeout(() => {
+    const currentWeek = new Date(currentWeekStart.value)
+    if (direction === 'prev') {
+      currentWeek.setDate(currentWeek.getDate() - 7)
+    } else {
+      currentWeek.setDate(currentWeek.getDate() + 7)
+    }
+    currentWeekStart.value = currentWeek
+
+    // End transition animation after week update
+    setTimeout(() => {
+      isTransitioning.value = false
+    }, 200)
+  }, 200)
+}
+
 export const navigateMonth = (direction: 'prev' | 'next') => {
   // Start transition animation
   isTransitioning.value = true
@@ -1014,6 +1036,12 @@ export const goToPrevMonth = () => navigateMonth('prev')
 
 // Navigate to next month
 export const goToNextMonth = () => navigateMonth('next')
+
+// Navigate to previous week
+export const goToPrevWeek = () => navigateWeek('prev')
+
+// Navigate to next week
+export const goToNextWeek = () => navigateWeek('next')
 
 // Next payments section functions
 export const toggleNextPaymentsSection = () => {

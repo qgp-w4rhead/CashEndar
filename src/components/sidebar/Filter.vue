@@ -37,15 +37,14 @@
       <div class="filter-section">
         <h5 class="filter-section-title">Payment Types</h5>
         <div class="checkbox-list">
-          <label v-for="type in availablePaymentTypes" :key="type.value" class="checkbox-item">
-            <input
-              type="checkbox"
-              :value="type.value"
-              v-model="selectedPaymentTypes"
-              class="checkbox-input"
-            >
-            <span class="checkbox-label">{{ type.label }}</span>
-          </label>
+          <CustomsCheckbox
+            v-for="type in availablePaymentTypes"
+            :key="type.value"
+            :model-value="selectedPaymentTypes.includes(type.value)"
+            @update:model-value="togglePaymentType(type.value)"
+            :label="type.label"
+            size="small"
+          />
         </div>
       </div>
 
@@ -56,6 +55,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import CustomsCheckbox from '../primitives/CustomsCheckbox.vue'
 import {
   isFilteringEnabled,
   showEarningsInNextPayments,
@@ -83,6 +83,15 @@ const switchToEarnings = () => {
   showEarningsInNextPayments.value = true
   selectedPaymentTypes.value = []
 }
+
+const togglePaymentType = (typeValue: string) => {
+  const index = selectedPaymentTypes.value.indexOf(typeValue)
+  if (index > -1) {
+    selectedPaymentTypes.value.splice(index, 1)
+  } else {
+    selectedPaymentTypes.value.push(typeValue)
+  }
+}
 </script>
 
 <style scoped>
@@ -93,7 +102,7 @@ const switchToEarnings = () => {
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: var(--font-medium);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -182,47 +191,18 @@ const switchToEarnings = () => {
 
 .filter-section-title {
   color: white;
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 600;
   margin-bottom: 12px;
 }
 
-/* Checkbox List */
+/* Checkbox List Container */
 .checkbox-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   max-height: 240px;
   overflow-y: auto;
-}
-
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.checkbox-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.checkbox-input {
-  width: 16px;
-  height: 16px;
-  accent-color: oklch(from var(--lime-primary) l c h / 1);
-  cursor: pointer;
-}
-
-.checkbox-label {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  user-select: none;
 }
 
 /* Filter Actions */

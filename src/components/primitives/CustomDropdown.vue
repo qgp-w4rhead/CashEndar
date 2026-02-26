@@ -319,7 +319,7 @@ const getOptionApproximation = (option: DropdownOption) => {
 }
 
 .dropdown-arrow {
-  font-size: 12px;
+  font-size: var(--font-x-small);
   color: rgba(255, 255, 255, 0.6);
   transition: transform 0.2s ease;
   margin-left: 8px;
@@ -359,7 +359,7 @@ const getOptionApproximation = (option: DropdownOption) => {
   color: oklch(from var(--lime-primary) l c h / 1);
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: var(--font-x-small);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -395,7 +395,7 @@ const getOptionApproximation = (option: DropdownOption) => {
 .group-header {
   padding: 8px 12px;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -410,7 +410,7 @@ const getOptionApproximation = (option: DropdownOption) => {
   color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
 }
 
@@ -443,7 +443,7 @@ const getOptionApproximation = (option: DropdownOption) => {
 
 .option-approximation {
   color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 400;
   margin-left: 8px;
   white-space: nowrap;

@@ -8,6 +8,13 @@
   --grey-primary: #6d6d6d;
   --grey-light:   #b2b2b2;
   --grey-dark:    #454545;
+
+  /* Standardized Font Sizes */
+  --font-x-big: 3dvh;
+  --font-v-big: 2dvh;
+  --font-medium: 1.50dvh;
+  --font-small: 1.25dvh;
+  --font-x-small: 1dvh;
 }
 
 /* Reusable Sidebar Styles */
@@ -26,7 +33,7 @@
 
 .section-title {
   color: white;
-  font-size: 24px;
+  font-size: var(--font-v-big);
   font-weight: 600;
   margin: 0;
 }
@@ -38,7 +45,7 @@
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: var(--font-medium);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -58,7 +65,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  font-size: 24px;
+  font-size: var(--font-x-big);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -104,7 +111,7 @@
   justify-content: center;
   font-weight: bold;
   color: white;
-  font-size: 18px;
+  font-size: var(--font-v-big);
 }
 
 .avatar-circle.rent {
@@ -134,19 +141,19 @@
 .payment-title {
   color: white;
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--font-medium);
   margin-bottom: 4px;
 }
 
 .payment-date {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
+  font-size: var(--font-small);
   margin-bottom: 4px;
 }
 
 .payment-amount {
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--font-medium);
   color: #a2a2a2;
 }
 
@@ -158,7 +165,7 @@
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 20px;
+  font-size: var(--font-v-big);
   cursor: pointer;
   padding: 8px;
   border-radius: 6px;
@@ -172,7 +179,7 @@
 
 .summary-section {
   margin-top: 24px;
-  background: oklch(from var(--lime-primary) l c h / 0.05);
+  background: oklch(from var(--grey-light) l c h / 0.1);
   border-radius: 12px;
   border: 1px solid oklch(from var(--lime-primary) l c h / 0.2);
   overflow: show;
@@ -194,7 +201,7 @@
 
 .tumbler-icon {
   transform: rotate(90deg);
-  font-size: 18px;
+  font-size: var(--font-medium);
   transition: transform 0.2s ease;
 }
 

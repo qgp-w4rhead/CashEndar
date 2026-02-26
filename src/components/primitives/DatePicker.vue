@@ -258,33 +258,32 @@ watch(() => props.isVisible, (newValue) => {
 .header-title {
   color: white;
   margin: 0;
-  font-size: 20px;
+  font-size: var(--font-v-big);
   font-weight: 700;
   display: flex;
   align-items: center;
   letter-spacing: -0.02em;
 }
 
-
-.close-btn {
+.close-button {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.7);
-  font-size: 18px;
+  font-size: var(--font-v-big);
   cursor: pointer;
   padding: 0;
   width: 36px;
   height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.close-btn::before {
+.close-button::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -297,14 +296,14 @@ watch(() => props.isVisible, (newValue) => {
   transition: all 0.3s ease;
 }
 
-.close-btn:hover {
+.close-button:hover {
   background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.3);
   color: #ef4444;
   transform: scale(1.05);
 }
 
-.close-btn:hover::before {
+.close-button:hover::before {
   width: 100%;
   height: 100%;
 }
@@ -329,7 +328,7 @@ watch(() => props.isVisible, (newValue) => {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.nav-btn {
+.nav-button {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
@@ -340,13 +339,13 @@ watch(() => props.isVisible, (newValue) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 18px;
+  font-size: var(--font-v-big);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.nav-btn::before {
+.nav-button::before {
   content: '';
   position: absolute;
   top: 0;
@@ -357,18 +356,18 @@ watch(() => props.isVisible, (newValue) => {
   transition: left 0.5s ease;
 }
 
-.nav-btn:hover {
+.nav-button:hover {
   background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   border-color: oklch(from var(--lime-primary) l c h / 1);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px oklch(from var(--lime-primary) l c h / 0.3);
 }
 
-.nav-btn:hover::before {
+.nav-button:hover::before {
   left: 100%;
 }
 
-.nav-btn:active {
+.nav-button:active {
   transform: translateY(0);
 }
 
@@ -384,14 +383,14 @@ watch(() => props.isVisible, (newValue) => {
 }
 
 .month-text {
-  font-size: 18px;
+  font-size: var(--font-v-big);
   font-weight: 700;
   margin-bottom: 4px;
   letter-spacing: -0.01em;
 }
 
 .year-text {
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
   color: rgba(255, 255, 255, 0.6);
   letter-spacing: 0.05em;
@@ -412,7 +411,7 @@ watch(() => props.isVisible, (newValue) => {
   color: rgba(255, 255, 255, 0.6);
   text-align: center;
   font-weight: 700;
-  font-size: 11px;
+  font-size: var(--font-x-small);
   padding: 12px 4px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -440,7 +439,7 @@ watch(() => props.isVisible, (newValue) => {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 10px 4px;
-  font-size: 14px;
+  font-size: var(--font-small);
   position: relative;
   overflow: hidden;
 }
@@ -466,7 +465,7 @@ watch(() => props.isVisible, (newValue) => {
 .date-cell:hover:not(.other-month):not(.disabled) {
   background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 0.2), oklch(from var(--grey-primary) l c h / 0.1));
   border-color: oklch(from var(--lime-primary) l c h / 1);
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-2px);
   box-shadow: 0 8px 25px oklch(from var(--lime-primary) l c h / 0.2);
 }
 
@@ -540,12 +539,13 @@ watch(() => props.isVisible, (newValue) => {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.btn {
-  padding: 12px 20px;
+.action-button {
+  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
+  color: white;
   border: none;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-small);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 90px;

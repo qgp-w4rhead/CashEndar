@@ -31,17 +31,17 @@ import { totalRemainingSummary } from '../../composables/payment-computables'
 
 .total-remaining-title {
   color: white;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .total-remaining-amount {
   color: white;
-  font-size: 20px;
+  font-size: var(--font-v-big);
   font-weight: 700;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
@@ -65,17 +65,17 @@ import { totalRemainingSummary } from '../../composables/payment-computables'
 
 .total-title {
   color: white;
-  font-size: 16px;
+  font-size: var(--font-medium);
   font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .total-amount {
   color: white;
-  font-size: 20px;
+  font-size: var(--font-v-big);
   font-weight: 700;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
