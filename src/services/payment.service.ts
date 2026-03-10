@@ -26,8 +26,6 @@ function getRecurringOccurrencesInRange(
   const end = new Date(endDate)
   end.setHours(23, 59, 59, 999)
 
-  const intervalMs = intervalDays * MS_PER_DAY
-
   let currentDate = new Date(referenceDate)
   let occurrenceCount = 0
 
@@ -43,7 +41,10 @@ function getRecurringOccurrencesInRange(
       })
     }
 
-    currentDate = new Date(currentDate.getTime() + intervalMs)
+    // Use calendar-day arithmetic (DST-safe) instead of ms addition
+    currentDate = new Date(currentDate)
+    currentDate.setDate(currentDate.getDate() + intervalDays)
+    currentDate.setHours(0, 0, 0, 0)
     occurrenceCount++
 
     if (occurrenceCount > maxIterations) break
@@ -67,7 +68,8 @@ function matchesRecurringInterval(checkDate: Date, payment: Payment, intervalDay
   refDate.setHours(0, 0, 0, 0)
 
   const diffTime = checkDate.getTime() - refDate.getTime()
-  const diffDays = Math.floor(diffTime / MS_PER_DAY)
+  // Use Math.round to handle DST transitions (±1 hour won't truncate the day count)
+  const diffDays = Math.round(diffTime / MS_PER_DAY)
 
   if (diffDays >= 0 && diffDays % intervalDays === 0) {
     return { matches: true, occurrenceCount: Math.floor(diffDays / intervalDays) }
@@ -108,15 +110,20 @@ export class PaymentService {
     referenceDate.setHours(0, 0, 0, 0)
 
     const diffTime = today.getTime() - referenceDate.getTime()
-    const diffDays = Math.floor(diffTime / MS_PER_DAY)
+    // Use Math.round to handle DST transitions
+    const diffDays = Math.round(diffTime / MS_PER_DAY)
 
     const twoWeeksInDays = 14
     const periodsPassed = Math.floor(diffDays / twoWeeksInDays)
 
-    let nextOccurrence = new Date(referenceDate.getTime() + ((periodsPassed + 1) * twoWeeksInDays * MS_PER_DAY))
+    // Use calendar-day arithmetic (DST-safe) instead of ms addition
+    let nextOccurrence = new Date(referenceDate)
+    nextOccurrence.setDate(nextOccurrence.getDate() + ((periodsPassed + 1) * twoWeeksInDays))
+    nextOccurrence.setHours(0, 0, 0, 0)
 
     if (nextOccurrence.getTime() < today.getTime()) {
-      nextOccurrence = new Date(nextOccurrence.getTime() + (twoWeeksInDays * MS_PER_DAY))
+      nextOccurrence.setDate(nextOccurrence.getDate() + twoWeeksInDays)
+      nextOccurrence.setHours(0, 0, 0, 0)
     }
 
     return nextOccurrence

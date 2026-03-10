@@ -1,3 +1,24 @@
+export const ViewMode = {
+  MONTH: 'month',
+  WEEK: 'week',
+} as const
+export type ViewMode = typeof ViewMode[keyof typeof ViewMode]
+
+export const PaymentFrequency = {
+  ONE_TIME: 'one-time',
+  WEEKLY: 'weekly',
+  BI_MONTHLY: 'bi-monthly',
+  RECURRING: 'recurring',
+} as const
+export type PaymentFrequency = typeof PaymentFrequency[keyof typeof PaymentFrequency]
+
+export const FREQUENCY_LABELS: Record<PaymentFrequency, string> = {
+  [PaymentFrequency.ONE_TIME]: 'One-Time',
+  [PaymentFrequency.WEEKLY]: 'Weekly',
+  [PaymentFrequency.BI_MONTHLY]: 'Bi-Monthly',
+  [PaymentFrequency.RECURRING]: 'Monthly',
+}
+
 export interface Payment {
   id: string;
   title: string;

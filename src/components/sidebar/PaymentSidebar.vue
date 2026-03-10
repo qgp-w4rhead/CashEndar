@@ -1,99 +1,101 @@
 <template>
-  <div ref="sidebarRef" class="payments-sidebar" :style="{ width: sidebarWidth + 'px' }">
-    <div ref="sidebarHeaderRef" class="sidebar-header">
-      <SectionHeader 
-        title="Next payments" 
-        @gear-click="openGearMenu" 
-        @add-click="openAddMenu"
-      >
-        <template #buttons>
-          <Sort />
-          <Filter />
-        </template>
-      </SectionHeader>
-      <div class="sidebar-divider"></div>
-    </div>
-    
-    <div class="sidebar-content">
-      <div v-for="payment in sortedPayments" :key="payment.id" class="payment-item" @click="highlightPaymentDay(payment)">
-        <div class="payment-avatar">
-          <div :class="`avatar-circle ${payment.type}`" :style="getAvatarStyle(payment.type)">{{ payment.type.charAt(0).toUpperCase() }}</div>
-        </div>
-        <div class="payment-details">
-          <div class="payment-title">{{ payment.title }}</div>
-          <div class="payment-date">{{ payment.date }}</div>
-          <div :class="['payment-amount', getPaymentTypeClass(payment.type)]">{{ payment.amount }}</div>
-        </div>
-        <div class="payment-menu">
-          <button class="menu-btn" @click.stop="openEditMenu(payment)">⋯</button>
-        </div>
-      </div>
-    <div class="summary-container">
-      <div class="summary-section">
-        <div
-          :class="['summary-header', { collapsed: isNextPaymentsCollapsed }]"
-          @click="toggleNextPaymentsSection"
+  <div class="payments-sidebar" :style="{ width: sidebarWidth + 'px' }">
+    <CustomScrollbar ref="sidebarScrollRef" class="sidebar-scroll-area">
+      <div ref="sidebarHeaderRef" class="sidebar-header">
+        <SectionHeader 
+          title="Next payments" 
+          @gear-click="openGearMenu" 
+          @add-click="openAddMenu"
         >
-          <h4 class="next-payments-title">
-            <span class="tumbler-icon">▶</span>
-            Upcoming Payments Summary
-          </h4>
-          <span class="next-payments-total">-{{ nextPaymentsTotal }}</span>
-        </div>
-        <div class="next-payments-content">
-          <div class="next-payments-body">
-            <div class="next-payments-summary">
-              <span class="next-payments-period">{{ nextPaymentsPeriod }}</span>
-            </div>
-            <div class="next-payments-list">
-              <div v-if="nextPayments.length === 0" class="next-payments-empty">
-                No upcoming payments for the rest of the month
-              </div>
-              <div v-for="payment in nextPayments" :key="payment.id" class="next-payment-item" @click="highlightPaymentDay(payment)">
-                <span class="payment-id">#{{ payment.id }}</span>
-                <span class="next-payment-name">{{ payment.title }}</span>
-                <span class="next-payment-amount">-{{ payment.amount }} {{ payment.day }}th</span>
-              </div>
-            </div>
+          <template #buttons>
+            <Sort />
+            <Filter />
+          </template>
+        </SectionHeader>
+        <div class="sidebar-divider"></div>
+      </div>
+      
+      <div class="sidebar-content">
+        <div v-for="payment in sortedPayments" :key="payment.id" class="payment-item" @click="highlightPaymentDay(payment)">
+          <div class="payment-avatar">
+            <div :class="`avatar-circle ${payment.type}`" :style="getAvatarStyle(payment.type)">{{ payment.type.charAt(0).toUpperCase() }}</div>
+          </div>
+          <div class="payment-details">
+            <div class="payment-title">{{ payment.title }}</div>
+            <div class="payment-date">{{ payment.date }}</div>
+            <div :class="['payment-amount', getPaymentTypeClass(payment.type)]">{{ payment.amount }}</div>
+          </div>
+          <div class="payment-menu">
+            <button class="menu-btn" @click.stop="openEditMenu(payment)">⋯</button>
           </div>
         </div>
-      </div>
-
-      <div class="summary-section">
-        <div
-          :class="['summary-header', { collapsed: isEarningsCollapsed }]"
-          @click="toggleEarningsSection"
-        >
-          <h4 class="earnings-title">
-            <span class="tumbler-icon">▶</span>
-            Upcoming Earnings Summary
-          </h4>
-          <span class="earnings-total">{{ earningsTotal }}</span>
-        </div>
-        <div class="earnings-content">
-          <div class="earnings-body">
-            <div class="earnings-summary">
-              <span class="earnings-period">{{ earningsPeriod }}</span>
-            </div>
-            <div class="earnings-list">
-              <div v-if="nextEarnings.length === 0" class="earnings-empty">
-                No upcoming earnings for the rest of the month
-              </div>
-              <div v-for="earning in nextEarnings" :key="earning.id" class="earning-item" @click="highlightPaymentDay(earning)">
-                <span class="earning-id">#{{ earning.id }}</span>
-                <span class="earning-name">{{ earning.title }}</span>
-                <span class="earning-amount">{{ earning.amount }} {{ earning.day }}th</span>
-              </div>
-            </div>
+      <div class="summary-container">
+        <div class="summary-section">
+          <div
+            :class="['summary-header', { collapsed: isNextPaymentsCollapsed }]"
+            @click="toggleNextPaymentsSection"
+          >
+            <h4 class="next-payments-title">
+              <span class="tumbler-icon">▶</span>
+              Upcoming Payments Summary
+            </h4>
+            <span class="next-payments-total">-{{ nextPaymentsTotal }}</span>
           </div>
+          <CustomScrollbar class="next-payments-content" max-height="320px" variant="thin">
+            <div class="next-payments-body">
+              <div class="next-payments-summary">
+                <span class="next-payments-period">{{ nextPaymentsPeriod }}</span>
+              </div>
+              <div class="next-payments-list">
+                <div v-if="nextPayments.length === 0" class="next-payments-empty">
+                  No upcoming payments for the rest of the month
+                </div>
+                <div v-for="payment in nextPayments" :key="payment.id" class="next-payment-item" @click="highlightPaymentDay(payment)">
+                  <span class="payment-id">#{{ payment.id }}</span>
+                  <span class="next-payment-name">{{ payment.title }}</span>
+                  <span class="next-payment-amount">-{{ payment.amount }} {{ payment.day }}th</span>
+                </div>
+              </div>
+            </div>
+          </CustomScrollbar>
         </div>
-      </div>
 
-      <Inventory />
-      <Remaining />
-      <TotalSection />
-    </div>
-    </div>
+        <div class="summary-section">
+          <div
+            :class="['summary-header', { collapsed: isEarningsCollapsed }]"
+            @click="toggleEarningsSection"
+          >
+            <h4 class="earnings-title">
+              <span class="tumbler-icon">▶</span>
+              Upcoming Earnings Summary
+            </h4>
+            <span class="earnings-total">{{ earningsTotal }}</span>
+          </div>
+          <CustomScrollbar class="earnings-content" max-height="320px" variant="thin">
+            <div class="earnings-body">
+              <div class="earnings-summary">
+                <span class="earnings-period">{{ earningsPeriod }}</span>
+              </div>
+              <div class="earnings-list">
+                <div v-if="nextEarnings.length === 0" class="earnings-empty">
+                  No upcoming earnings for the rest of the month
+                </div>
+                <div v-for="earning in nextEarnings" :key="earning.id" class="earning-item" @click="highlightPaymentDay(earning)">
+                  <span class="earning-id">#{{ earning.id }}</span>
+                  <span class="earning-name">{{ earning.title }}</span>
+                  <span class="earning-amount">{{ earning.amount }} {{ earning.day }}th</span>
+                </div>
+              </div>
+            </div>
+          </CustomScrollbar>
+        </div>
+
+        <Inventory />
+        <Remaining />
+        <TotalSection />
+      </div>
+      </div>
+    </CustomScrollbar>
     
     <!-- Resize Handle -->
     <div 
@@ -106,13 +108,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Sort from './Sort.vue'
 import Filter from './Filter.vue'
 import Remaining from './Remaining.vue'
 import Inventory from './Inventory.vue'
 import TotalSection from './TotalSection.vue'
 import SectionHeader from '../primitives/SectionHeader.vue'
+import CustomScrollbar from '../primitives/CustomScrollbar.vue'
 
 import { paymentTypes } from '../../stores/ui-state.store'
 import {
@@ -147,9 +150,11 @@ const startX = ref(0)
 const startWidth = ref(0)
 
 // Refs for height synchronization
-const sidebarRef = ref<HTMLElement>()
+const sidebarScrollRef = ref<InstanceType<typeof CustomScrollbar>>()
 const sidebarHeaderRef = ref<HTMLElement>()
 const resizeHandleRef = ref<HTMLElement>()
+
+const sidebarRef = computed(() => sidebarScrollRef.value?.scrollRef)
 let resizeObserver: ResizeObserver
 
 // Handle scroll to change header background
@@ -258,13 +263,16 @@ const getAvatarStyle = (paymentTypeValue: string) => {
   min-width: 400px;
   max-width: 800px;
   width: 500px;
-  overflow-y: auto;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   position: relative;
   flex-shrink: 0;
+}
+
+.sidebar-scroll-area {
+  flex: 1;
+  min-height: 0;
 }
 
 .resize-handle {
@@ -404,15 +412,22 @@ const getAvatarStyle = (paymentTypeValue: string) => {
 }
 
 .next-payments-content {
-  max-height: 320px;
   opacity: 1;
   transition: all 0.3s ease;
-  overflow: auto;
 }
 
 .summary-header.collapsed + .next-payments-content {
-  max-height: 0;
+  max-height: 0 !important;
   opacity: 0;
+  height: 0 !important;
+}
+
+.summary-header.collapsed + .next-payments-content .custom-scrollbar {
+  height: 0 !important;
+}
+
+.summary-header.collapsed + .next-payments-content .scroll-content {
+  height: 0 !important;
 }
 
 .next-payments-body {
@@ -495,15 +510,22 @@ const getAvatarStyle = (paymentTypeValue: string) => {
 }
 
 .earnings-content {
-  max-height: 320px;
   opacity: 1;
   transition: all 0.3s ease;
-  overflow: auto;
 }
 
 .summary-header.collapsed + .earnings-content {
-  max-height: 0;
+  max-height: 0 !important;
   opacity: 0;
+  height: 0 !important;
+}
+
+.summary-header.collapsed + .earnings-content .custom-scrollbar {
+  height: 0 !important;
+}
+
+.summary-header.collapsed + .earnings-content .scroll-content {
+  height: 0 !important;
 }
 
 .earnings-body {

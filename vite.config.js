@@ -16,7 +16,15 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['localhost','cashendar.str8octane.com']
+    host: '192.168.0.33',
+    port: 5173,
+    allowedHosts: ['192.168.0.33', 'localhost'],
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      }
+    }
   },
   test: {
     environment: 'node',

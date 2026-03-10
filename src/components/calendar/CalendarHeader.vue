@@ -1,21 +1,21 @@
 <template>
   <div class="calendar-header">
-    <button class="nav-btn prev" @click="onPrev" title="Previous">‹</button>
+    <button class="nav-btn prev" @click="emit('prev')" title="Previous">‹</button>
     
     <div class="title-container">
       <h3 class="title">{{ title }}</h3>
     </div>
     
-    <button class="nav-btn next" @click="onNext" title="Next">›</button>
+    <button class="nav-btn next" @click="emit('next')" title="Next">›</button>
     
-    <button class="pie-chart-btn" @click="onTogglePieChart" title="View Summary Chart">
+    <button class="pie-chart-btn" @click="emit('toggle-pie-chart')" title="View Summary Chart">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
         <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20"/>
       </svg>
     </button>
     
-    <button class="item-chart-btn" @click="onToggleItemChart" title="View Inventory Items Chart">
+    <button class="item-chart-btn" @click="emit('toggle-item-chart')" title="View Inventory Items Chart">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 3v18h18"/>
         <path d="M9 9h6"/>
@@ -25,7 +25,7 @@
       </svg>
     </button>
     
-    <button class="view-toggle-btn" @click="onToggleView" :title="viewMode === 'month' ? 'Switch to Week View' : 'Switch to Month View'">
+    <button class="view-toggle-btn" @click="emit('toggle-view')" :title="viewMode === 'month' ? 'Switch to Week View' : 'Switch to Month View'">
       <svg v-if="viewMode === 'month'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
         <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -43,17 +43,20 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  viewMode: 'month' | 'week'
-  title: string
-  onPrev: () => void
-  onNext: () => void
-  onToggleView: () => void
-  onTogglePieChart: () => void
-  onToggleItemChart: () => void
-}
+import { ViewMode } from '../../types/payment.types'
 
-defineProps<Props>()
+defineProps<{
+  viewMode: ViewMode
+  title: string
+}>()
+
+const emit = defineEmits<{
+  prev: []
+  next: []
+  'toggle-view': []
+  'toggle-pie-chart': []
+  'toggle-item-chart': []
+}>()
 </script>
 
 <style scoped>

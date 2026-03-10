@@ -51,7 +51,7 @@
                   :x="35" :y="55 + (i * 40)"
                   text-anchor="end" 
                   fill="rgba(255,255,255,0.6)" 
-                  font-size="10" 
+                  :style="{ fontSize: 'var(--font-x-small)' }" 
                   font-family="monospace">
                   ${{ price.toFixed(2) }}
                 </text>
@@ -63,7 +63,7 @@
                   :x="getXPosition(i)" :y="270"
                   text-anchor="middle" 
                   fill="rgba(255,255,255,0.6)" 
-                  font-size="10">
+                  :style="{ fontSize: 'var(--font-x-small)' }">
                   {{ point.formattedDate }}
                 </text>
               </g>

@@ -10,47 +10,6 @@ html, body {
   overflow: hidden;
 }
 
-/* Custom scrollbar styling */
-::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: linear-gradient(135deg, oklch(from var(--grey-dark) l c h / 1) 0%, oklch(from var(--grey-primary) l c h / 1) 100%);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 0.85), oklch(from var(--lime-dark) l c h / 1));
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-
-::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--grey-dark) l c h / 1));
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-::-webkit-scrollbar-corner {
-  background: oklch(from var(--grey-dark) l c h / 1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Firefox scrollbar styling (limited support) */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: oklch(from var(--lime-primary) l c h / 1) oklch(from var(--grey-dark) l c h / 1);
-}
-
 /* Main container */
 .payment-calendar {
   height: 100vh;
@@ -75,7 +34,6 @@ html, body {
 
 /* Left Sidebar - Payments */
 .payments-sidebar {
-  overflow-y: auto;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -88,7 +46,7 @@ html, body {
   color: oklch(from var(--lime-primary) l c h / 1);
 }
 
-/* Edit Modal Styles */
+/* Modal Overlay Base */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -103,32 +61,9 @@ html, body {
   backdrop-filter: blur(4px);
 }
 
-.edit-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3000;
-  backdrop-filter: blur(4px);
-}
-
+.edit-modal-overlay,
 .payment-type-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 3000;
-  backdrop-filter: blur(4px);
 }
 
 .edit-modal {
@@ -136,8 +71,6 @@ html, body {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-  max-height: 90vh;
-  overflow-y: auto;
   animation: modalSlideIn 0.3s ease-out;
   position: relative;
   z-index: 1003;
@@ -320,32 +253,32 @@ html, body {
   min-width: 100px;
 }
 
-.btn-primary {
+.btn.primary {
   background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
 }
 
-.btn-primary:hover {
+.btn.primary:hover {
   background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--lime-dark) l c h / 0.8));
   transform: translateY(-1px);
 }
 
-.btn-success {
+.btn.success {
   background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
 }
 
-.btn-success:hover {
+.btn.success:hover {
   background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--lime-dark) l c h / 0.8));
   transform: translateY(-1px);
 }
 
-.btn-secondary {
+.btn.secondary {
   background: linear-gradient(135deg, #ef4444, #dc2626) !important;
   color: white;
 }
 
-.btn-secondary:hover {
+.btn.secondary:hover {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   transform: translateY(-1px);
 }
@@ -495,8 +428,6 @@ hr {
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
   width: 90%;
   max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
   animation: modalSlideIn 0.3s ease-out;
   z-index: 3000 !important;
 }
@@ -505,8 +436,6 @@ hr {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 360px;
-  overflow-y: auto;
 }
 
 .payment-type-item {
@@ -570,27 +499,27 @@ hr {
   margin-left: 16px;
 }
 
-.btn-danger {
+.btn.danger {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
 }
 
-.btn-danger:hover {
+.btn.danger:hover {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   transform: translateY(-1px);
 }
 
-.btn-secondary {
+.btn.secondary {
   background: linear-gradient(135deg, oklch(from var(--grey-primary) l c h / 1), oklch(from var(--grey-dark) l c h / 1));
   color: white;
 }
 
-.btn-secondary:hover {
+.btn.secondary:hover {
   background: linear-gradient(135deg, oklch(from var(--grey-dark) l c h / 1), oklch(from var(--grey-dark) l c h / 0.7));
   transform: translateY(-1px);
 }
 
-.btn-sm {
+.btn.sm {
   padding: 6px 12px;
   font-size: var(--font-x-small);
   min-width: 60px;
@@ -723,8 +652,8 @@ hr {
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
   width: 90%;
   max-width: 700px;
+  height: 80vh;
   max-height: 90vh;
-  overflow-y: auto;
   animation: modalSlideIn 0.3s ease-out;
 }
 
@@ -790,8 +719,6 @@ hr {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: 250px;
-  overflow-y: auto;
 }
 
 .legend-item {
@@ -859,8 +786,14 @@ hr {
 }
 
 .chart-summary {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
   padding: 24px 32px;
   border-top: 1px solid rgb(255, 255, 255);
   background: rgba(0, 0, 0, 0.165);
@@ -945,7 +878,6 @@ hr {
 
 .gear-modal .modal-body {
   flex: 1;
-  overflow-y: auto;
 }
 
 .settings-section {
@@ -1132,30 +1064,7 @@ hr {
 
 .last-purchases-list {
   margin-bottom: 16px;
-  max-height: 150px; /* Fits about 3 purchase items */
-  overflow-y: auto;
-  padding-right: 12px; /* Add padding to create space around the scrollbar */
-  /* Custom scrollbar styling for the purchase list */
-  scrollbar-width: thin;
-  scrollbar-color: oklch(from var(--grey-primary) l c h / 0.3) rgba(255, 255, 255, 0.1);
-}
-
-.last-purchases-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.last-purchases-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-}
-
-.last-purchases-list::-webkit-scrollbar-thumb {
-  background: oklch(from var(--grey-primary) l c h / 0.5);
-  border-radius: 4px;
-}
-
-.last-purchases-list::-webkit-scrollbar-thumb:hover {
-  background: oklch(from var(--grey-primary) l c h / 0.7);
+  padding-right: 12px;
 }
 
 .purchase-item {

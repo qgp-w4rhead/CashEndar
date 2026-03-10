@@ -236,3 +236,70 @@ describe('PaymentService.getBiMonthlyOccurrencesInRange', () => {
     expect(results).toHaveLength(3)
   })
 })
+
+// --- DST-crossing regression tests ---
+// US DST 2026 starts March 8 (spring forward). A reference date before DST
+// must still produce correct future occurrences after the clock change.
+
+describe('Weekly payment across DST boundary (March 2026)', () => {
+  it('getPaymentsForDay matches March 12 when ref is March 5', () => {
+    // March 5, 2026 is a Thursday (before DST)
+    const refDate = new Date(2026, 2, 5) // month 2 = March
+    const payment = makePayment({
+      frequency: 'weekly',
+      day: undefined,
+      dayOfWeek: refDate.getDay(), // Thursday = 4
+      referenceDate: refDate.getTime()
+    })
+
+    // March 12, 2026 is the next Thursday (after DST spring-forward on March 8)
+    const results = svc.getPaymentsForDay([payment], 12, 2, 2026)
+    expect(results).toHaveLength(1)
+  })
+
+  it('getWeeklyOccurrencesInRange spans DST correctly', () => {
+    const refDate = new Date(2026, 2, 5) // Thursday March 5
+    const payment = makePayment({
+      frequency: 'weekly',
+      day: undefined,
+      dayOfWeek: refDate.getDay(),
+      referenceDate: refDate.getTime()
+    })
+    const start = new Date(2026, 2, 1)
+    const end = new Date(2026, 2, 31)
+    const results = svc.getWeeklyOccurrencesInRange(payment, start, end)
+    // Thursdays in March 2026: 5, 12, 19, 26 = 4
+    expect(results).toHaveLength(4)
+  })
+})
+
+describe('Bi-monthly payment across DST boundary (March 2026)', () => {
+  it('getPaymentsForDay matches March 19 when ref is March 5', () => {
+    const refDate = new Date(2026, 2, 5)
+    const payment = makePayment({
+      frequency: 'bi-monthly',
+      day: undefined,
+      dayOfWeek: refDate.getDay(),
+      referenceDate: refDate.getTime()
+    })
+
+    // 14 days after March 5 = March 19 (crosses DST)
+    const results = svc.getPaymentsForDay([payment], 19, 2, 2026)
+    expect(results).toHaveLength(1)
+  })
+
+  it('getBiMonthlyOccurrencesInRange spans DST correctly', () => {
+    const refDate = new Date(2026, 2, 5)
+    const payment = makePayment({
+      frequency: 'bi-monthly',
+      day: undefined,
+      dayOfWeek: refDate.getDay(),
+      referenceDate: refDate.getTime()
+    })
+    const start = new Date(2026, 2, 1)
+    const end = new Date(2026, 2, 31)
+    const results = svc.getBiMonthlyOccurrencesInRange(payment, start, end)
+    // March 5, March 19 = 2 occurrences
+    expect(results).toHaveLength(2)
+  })
+})

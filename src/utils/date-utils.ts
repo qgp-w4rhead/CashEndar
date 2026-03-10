@@ -118,6 +118,22 @@ export function formatNetAmount(netTotal: number): string {
   return netTotal >= 0 ? `$${netTotal.toFixed(2)}` : `-$${Math.abs(netTotal).toFixed(2)}`
 }
 
+// Check if a date is today
+export function isToday(date: Date): boolean {
+  const today = new Date()
+  return date.getDate() === today.getDate() &&
+         date.getMonth() === today.getMonth() &&
+         date.getFullYear() === today.getFullYear()
+}
+
+// Check if two dates represent the same calendar day
+export function isSameDate(a: Date | null, b: Date | null): boolean {
+  if (!a || !b) return false
+  return a.getDate() === b.getDate() &&
+         a.getMonth() === b.getMonth() &&
+         a.getFullYear() === b.getFullYear()
+}
+
 // Get the start of the week (Sunday) for a given date
 export function getWeekStart(date: Date): Date {
   const result = new Date(date)

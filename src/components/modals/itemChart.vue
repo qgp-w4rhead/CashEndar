@@ -1,6 +1,6 @@
 <template>
   <div v-if="showItemChartModal" class="modal-overlay">
-    <div class="item-chart-modal" @click.stop>
+    <CustomScrollbar class="item-chart-modal" direction="both" max-height="90vh" @click.stop>
       <div class="modal-header">
         <h3>Inventory Items Chart</h3>
         <button class="close-btn" @click="closeItemChartModal">×</button>
@@ -152,7 +152,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </CustomScrollbar>
 
     <!-- Price History Chart Modal -->
     <FullscreenChartModal
@@ -187,6 +187,7 @@ import {
 } from '../../composables/payment-handlers'
 
 import PriceHistoryChart from './PriceHistoryChart.vue'
+import CustomScrollbar from '../primitives/CustomScrollbar.vue'
 import FullscreenChartModal from './FullscreenChartModal.vue'
 import HoverText from '../primitives/hoverText.vue'
 
@@ -348,9 +349,6 @@ const handleAddItem = () => {
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
   width: 95%;
   max-width: 1000px;
-  max-height: 90vh;
-  overflow-y: auto;
-  overflow-x: auto;
   animation: modalSlideIn 0.3s ease-out;
 }
 

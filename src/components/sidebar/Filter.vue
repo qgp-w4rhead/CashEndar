@@ -36,7 +36,7 @@
 
       <div class="filter-section">
         <h5 class="filter-section-title">Payment Types</h5>
-        <div class="checkbox-list">
+        <CustomScrollbar class="checkbox-list" max-height="240px" variant="thin">
           <CustomsCheckbox
             v-for="type in availablePaymentTypes"
             :key="type.value"
@@ -45,7 +45,7 @@
             :label="type.label"
             size="small"
           />
-        </div>
+        </CustomScrollbar>
       </div>
 
 
@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import CustomsCheckbox from '../primitives/CustomsCheckbox.vue'
+import CustomScrollbar from '../primitives/CustomScrollbar.vue'
 import {
   isFilteringEnabled,
   showEarningsInNextPayments,
@@ -201,8 +202,6 @@ const togglePaymentType = (typeValue: string) => {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 240px;
-  overflow-y: auto;
 }
 
 /* Filter Actions */

@@ -10,7 +10,7 @@
       <span style="margin-right: 10px;" class="inventory-total">{{ inventoryItems.length }} items</span>
       <button class="add-btn" @click.stop="openInventoryAddMenu">+</button>
     </div>
-    <div class="inventory-content">
+    <CustomScrollbar class="inventory-content" max-height="290px" variant="thin">
       <div class="inventory-body">
         <div class="inventory-list">
           <div v-if="inventoryItems.length === 0" class="inventory-empty">
@@ -26,7 +26,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </CustomScrollbar>
   </div>
 </template>
 
@@ -50,6 +50,7 @@ import {
   highlightPaymentDay
 } from '../../composables/payment-handlers'
 import InventoryCostSection from './InventoryCostSection.vue'
+import CustomScrollbar from '../primitives/CustomScrollbar.vue'
 
 </script>
 
@@ -104,15 +105,22 @@ import InventoryCostSection from './InventoryCostSection.vue'
 }
 
 .inventory-content {
-  max-height: 290px;
   opacity: 1;
   transition: all 0.3s ease;
-  overflow: auto;
 }
 
 .inventory-header.collapsed + .inventory-content {
-  max-height: 0;
+  max-height: 0 !important;
   opacity: 0;
+  height: 0 !important;
+}
+
+.inventory-header.collapsed + .inventory-content .custom-scrollbar {
+  height: 0 !important;
+}
+
+.inventory-header.collapsed + .inventory-content .scroll-content {
+  height: 0 !important;
 }
 
 .inventory-body {

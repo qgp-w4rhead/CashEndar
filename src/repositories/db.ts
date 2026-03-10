@@ -1,43 +1,54 @@
-// Shared IndexedDB connection manager
-const DB_NAME = 'PaymentCalendarDB'
-const DB_VERSION = 3
-const PAYMENT_STORE = 'payments'
-const TYPE_STORE = 'paymentTypes'
-const COUNTER_STORE = 'counters'
+// API base URL — proxied through Vite in dev, configurable for production
+// Set VITE_API_BASE in .env to point to the backend machine (e.g. https://api.example.com/api)
+export const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 
-export { PAYMENT_STORE, TYPE_STORE, COUNTER_STORE }
+const TOKEN_KEY = 'cashendar_token'
 
-let db: IDBDatabase | null = null
+export function getAuthToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY)
+}
 
-export async function getDB(): Promise<IDBDatabase> {
-  if (db) return db
+export function setAuthToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token)
+}
 
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION)
+export function clearAuthToken(): void {
+  localStorage.removeItem(TOKEN_KEY)
+}
 
-    request.onerror = () => reject(request.error)
-    request.onsuccess = () => {
-      db = request.result
-      resolve(db)
-    }
+// Helper for making API requests with error handling
+export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const url = `${API_BASE}${path}`
+  const token = getAuthToken()
 
-    request.onupgradeneeded = (event) => {
-      const database = (event.target as IDBOpenDBRequest).result
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string>),
+  }
 
-      if (!database.objectStoreNames.contains(PAYMENT_STORE)) {
-        const store = database.createObjectStore(PAYMENT_STORE, { keyPath: 'id' })
-        store.createIndex('day', 'day', { unique: false })
-        store.createIndex('type', 'type', { unique: false })
-      }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
 
-      if (!database.objectStoreNames.contains(TYPE_STORE)) {
-        const typeStore = database.createObjectStore(TYPE_STORE, { keyPath: 'id' })
-        typeStore.createIndex('value', 'value', { unique: true })
-      }
-
-      if (!database.objectStoreNames.contains(COUNTER_STORE)) {
-        database.createObjectStore(COUNTER_STORE, { keyPath: 'name' })
-      }
-    }
+  const res = await fetch(url, {
+    ...options,
+    headers,
   })
+
+  if (res.status === 401) {
+    clearAuthToken()
+    throw new Error('Unauthorized — please log in again')
+  }
+
+  if (!res.ok) {
+    const errorBody = await res.text()
+    throw new Error(`API error ${res.status}: ${errorBody}`)
+  }
+
+  return res.json()
+}
+
+// Kept for backward compatibility — services that call getDB() will get a resolved promise
+export async function getDB(): Promise<void> {
+  return Promise.resolve()
 }

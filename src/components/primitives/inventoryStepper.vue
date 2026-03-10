@@ -32,7 +32,7 @@
                   @input="onItemNameInput"
                   @blur="hideItemNameSuggestions"
                 >
-                <div v-if="showItemNameSuggestions" class="suggestions-dropdown">
+                <CustomScrollbar v-if="showItemNameSuggestions" class="suggestions-dropdown" max-height="220px" variant="thin">
                   <div
                     v-for="suggestion in itemNameSuggestions"
                     :key="suggestion.id"
@@ -42,7 +42,7 @@
                     <span class="suggestion-title">{{ suggestion.title }}</span>
                     <span class="suggestion-meta">{{ suggestion.amount }}</span>
                   </div>
-                </div>
+                </CustomScrollbar>
               </div>
             </div>
             <div class="form-field right">
@@ -278,7 +278,7 @@
             </div>
           </div>
 
-          <div class="last-purchases-list">
+          <CustomScrollbar class="last-purchases-list" max-height="150px" variant="thin">
             <div v-for="purchase in getLastPurchases(formData.title, formData.date)" :key="purchase.id" class="purchase-item">
               <span class="purchase-date">{{ purchase.date }}</span>
               <span class="purchase-frequency">{{ getFrequencyDisplay(purchase.frequency) }}</span>
@@ -288,7 +288,7 @@
             <div v-if="getLastPurchases(formData.title, formData.date).length === 0" class="no-purchases">
               No previous purchases found for this item
             </div>
-          </div>
+          </CustomScrollbar>
 
           <div v-if="getLastPurchases(formData.title, formData.date).length >= 3" class="next-purchase-info">
             <label>Estimated Next Purchase:</label>
@@ -309,7 +309,7 @@
 
     <div class="stepper-navigation">
       <button
-        :class="['nav-btn btn btn-primary', { disabled: currentStep <= 1 }]"
+        :class="['nav-btn btn primary', { disabled: currentStep <= 1 }]"
         :disabled="currentStep <= 1"
         @click="goToStep(currentStep - 1)"
       >
@@ -327,14 +327,14 @@
         </button>
         <button
           v-if="currentStep < steps.length"
-          class="nav-btn btn btn-success"
+          class="nav-btn btn success"
           @click="goToStep(currentStep + 1)"
         >
           Next
         </button>
         <button
           v-else
-          class="nav-btn btn btn-success"
+          class="nav-btn btn success"
           @click="$emit('save')"
         >
           Save Payment
@@ -347,6 +347,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import CustomDropdown from './CustomDropdown.vue'
+import CustomScrollbar from './CustomScrollbar.vue'
 import { getPaymentSuggestions, prefillInventoryFields } from '../../composables/payment-handlers'
 import type { Payment } from '../../types/payment.types'
 
@@ -872,6 +873,7 @@ const getComparisonResultText = () => {
   gap: 24px;
   margin-top: 24px;
   min-height: 520px;
+  overflow-y: hidden;
 }
 
 .stepper-content {
@@ -1268,8 +1270,6 @@ input[type="number"] {
 
 .last-purchases-list {
   margin-bottom: 16px;
-  max-height: 150px;
-  overflow-y: auto;
   padding-right: 12px;
 }
 
@@ -1362,22 +1362,22 @@ input[type="number"] {
   min-width: 80px;
 }
 
-.btn-primary {
+.btn.primary {
   background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
 }
 
-.btn-primary:hover {
+.btn.primary:hover {
   background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--lime-dark) l c h / 0.8));
   transform: translateY(-1px);
 }
 
-.btn-success {
+.btn.success {
   background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
 }
 
-.btn-success:hover {
+.btn.success:hover {
   background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--lime-dark) l c h / 0.8));
   transform: translateY(-1px);
 }
@@ -1430,7 +1430,7 @@ input[type="number"] {
 }
 
 .dropdown-arrow {
-  font-size: 12px;
+  font-size: var(--font-x-small);
   color: rgba(255, 255, 255, 0.6);
   transition: transform 0.2s ease;
 }
@@ -1477,7 +1477,7 @@ input[type="number"] {
 
 .unit-mnemonic {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 10px;
+  font-size: var(--font-x-small);
   font-weight: 500;
   white-space: nowrap;
   min-width: 20px;
@@ -1725,22 +1725,6 @@ input[type="number"] {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   z-index: 1100;
   backdrop-filter: blur(10px);
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.suggestions-dropdown::-webkit-scrollbar {
-  width: 6px;
-}
-
-.suggestions-dropdown::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
-}
-
-.suggestions-dropdown::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
 }
 
 .suggestion-item {
@@ -1763,7 +1747,7 @@ input[type="number"] {
 
 .suggestion-title {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
+  font-size: var(--font-small);
   font-weight: 500;
   flex: 1;
   overflow: hidden;
@@ -1773,7 +1757,7 @@ input[type="number"] {
 
 .suggestion-meta {
   color: rgba(255, 255, 255, 0.45);
-  font-size: 12px;
+  font-size: var(--font-x-small);
   font-weight: 400;
   margin-left: 10px;
   white-space: nowrap;

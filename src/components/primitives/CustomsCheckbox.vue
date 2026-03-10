@@ -120,7 +120,7 @@ const handleChange = (event: Event) => {
 
 .checkbox-mark {
   color: white;
-  font-size: 10px;
+  font-size: var(--font-x-small);
   font-weight: bold;
   transform: scale(0);
   transition: transform 0.2s ease;
@@ -128,7 +128,7 @@ const handleChange = (event: Event) => {
 }
 
 .custom-checkbox.is-small .checkbox-mark {
-  font-size: 8px;
+  font-size: calc(var(--font-x-small) * 0.8);
 }
 
 .checkbox-input:checked + .checkbox-visual .checkbox-mark {

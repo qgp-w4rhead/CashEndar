@@ -144,8 +144,8 @@ export const importPayments = () => {
 
       // Add imported payments to database and local array
       for (const payment of importedPayments) {
-        await addPaymentToDB(payment)
-        payments.value.push(payment)
+        const savedPayment = await addPaymentToDB(payment)
+        payments.value.push(savedPayment)
       }
 
       closeGearMenu()
@@ -842,9 +842,8 @@ export const saveNewPayment = async () => {
   saveMessageType.value = ''
 
   try {
-    // Generate a sequential ID for the new payment
-    const sequentialId = await getNextPaymentId()
-    const newId = sequentialId.toString()
+    // Generate a temporary ID — server will assign the real MongoDB _id
+    const tempId = await getNextPaymentId()
 
     // Create dynamic date based on current month/year and selected day
     const paymentDate = new Date(currentYear.value, currentMonth.value, addForm.day)
@@ -857,7 +856,7 @@ export const saveNewPayment = async () => {
 
     // Create new payment object
     const newPayment = {
-      id: newId,
+      id: tempId,
       title: addForm.title.trim(),
       amount: `$${+totalAmount.toFixed(2)}`,
       date: dynamicDate,
@@ -891,16 +890,15 @@ export const saveNewPayment = async () => {
     console.log('Attempting to save new payment:', newPayment)
 
     try {
-      // Save to IndexedDB
-      await addPaymentToDB(newPayment)
+      // Save to MongoDB via API
+      const savedPayment = await addPaymentToDB(newPayment)
       console.log('Payment saved successfully')
+      // Add to local payments array using server-returned payment (with real MongoDB ID)
+      payments.value.push(savedPayment)
     } catch (dbError) {
       console.error('Database addPayment failed:', dbError)
       throw dbError // Re-throw to be caught by outer catch
     }
-
-    // Add to local payments array
-    payments.value.push(newPayment)
 
     // Show success message
     showMessage(`Payment "${addForm.title}" saved successfully!`, 'success')
@@ -1088,7 +1086,7 @@ export const closeItemChartModal = () => {
   closeModal('itemChart')
 }
 
-// Load payments from IndexedDB on component mount
+// Load payments from MongoDB on component mount
 export const loadPayments = async () => {
   try {
     const storedPayments = await getAllPayments()
@@ -1144,7 +1142,7 @@ export const deleteSinglePurchase = async (purchase: Payment) => {
   }
 
   try {
-    // Delete from IndexedDB
+    // Delete from MongoDB via API
     await deletePaymentFromDB(purchase.id)
 
     // Remove from local payments array
@@ -1166,9 +1164,8 @@ export const deleteSinglePurchase = async (purchase: Payment) => {
 // Add resupply function for inventory items
 export const addResupply = async (itemName: string) => {
   try {
-    // Generate a new sequential ID
-    const sequentialId = await getNextPaymentId()
-    const newId = sequentialId.toString()
+    // Generate a temporary ID — server will assign the real MongoDB _id
+    const tempId = await getNextPaymentId()
 
     // Use selected date if available (when modal is open for a specific day), otherwise use today
     let paymentDate: Date
@@ -1209,7 +1206,7 @@ export const addResupply = async (itemName: string) => {
 
     // Create new resupply payment with the same details but today's date
     const resupplyPayment: Payment = {
-      id: newId,
+      id: tempId,
       title: itemName,
       amount: mostRecentItem.amount, // Copy the amount from most recent item
       date: dynamicDate,
@@ -1227,11 +1224,11 @@ export const addResupply = async (itemName: string) => {
         depletionUnit: mostRecentItem.depletionUnit
     }
 
-    // Save to IndexedDB
-    await addPaymentToDB(resupplyPayment)
+    // Save to MongoDB via API
+    const savedResupply = await addPaymentToDB(resupplyPayment)
 
-    // Add to local payments array
-    payments.value.push(resupplyPayment)
+    // Add to local payments array using server-returned payment (with real MongoDB ID)
+    payments.value.push(savedResupply)
 
     // Keep the modal open so user can see updated purchase history
     console.log('Resupply added successfully with date:', dynamicDate)

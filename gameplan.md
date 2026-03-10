@@ -1,5 +1,11 @@
 ### FEATURES
 
+#### Catalogue
+
+- The catalogue allows to see all features from one singular place, as such the user is able to actually edit multiple items at the same time, it should be hidden under the Advanced Options tab under the UI / UX category in Settings
+
+##### Random features below
+
 - [x] Instead of using the "Amount" field and refreshing it dynamically, make a new "Total Amount" field that will be in the "Last Purchase" section
 - [x] Add a "Resupply" button (Depicted as "+1") that allows to add the current date to the "last-purchase-section" for this item
 - [x] When clicking the + button and no days are selected, the default behaviour should be to open the modal to add a payment for the current day, we can do so by selecting the day in question instead of the first
@@ -52,6 +58,14 @@
 - [o] Expiration date can be set for inventory item ("totalCount" should drop to 0 once reached)
 
 - [ ] Mobile mode! Allows to use the app on restricted width device use media queries
+
+Can we re-style the scrollbar to only be a container with high vw border-radius simple background instead of the current one?
+
+- Make a button next to amount called "duration" similar to the "fresh" button we have in : 
+
+- Additionally, when editing the date frequency, we expect the new payment dates to update accordingly (only for future dates)
+
+Why wont week-dates stretch all the way to week-view-grid parent?
 
 ### BUGSECTION / DESIGNFLAWS
 
@@ -124,6 +138,13 @@
 
 - [x] Performance issue with Settings menu second layer.
 
+- [ ] Re-style the scrollbar to only be a container with high vw border-radius simple background instead of the current one?
+
+- [ ] Make a button next to amount called "duration" similar to the "fresh" button we have in : 
+- [ ] Additionally, when editing the date frequency, we expect the new payment dates to update accordingly (only for future dates)
+
+
+
 ____nitpicks
 
 - Add a $ sign next to cost (1st and 3rd step)
@@ -137,7 +158,7 @@ __________________________
 ## COMMIT TERMINOLOGY : 
 
 MODIFIED : Previous feature/style or file change that result in noticeable changes
-ADDED : New Features that are worth mentionning to the user and develloper alike
+ADDED : New Features that are worth mentionning to the user and developer alike
 FIXED : Bugfixes affecting specific area of the codebase.
 REFACTORED : Refactoring of code, must include the name and short description of what was refactored.
 REMOVED : idem

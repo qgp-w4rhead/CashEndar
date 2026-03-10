@@ -3,72 +3,78 @@
     <CalendarHeader
       :view-mode="calendarViewMode"
       :title="weekRange"
-      :on-prev="handlePrev"
-      :on-next="handleNext"
-      :on-toggle-view="toggleCalendarView"
-      :on-toggle-pie-chart="togglePieChart"
-      :on-toggle-item-chart="toggleItemChart"
+      @prev="goToPrevWeek"
+      @next="goToNextWeek"
+      @toggle-view="toggleCalendarView"
+      @toggle-pie-chart="togglePieChart"
+      @toggle-item-chart="toggleItemChart"
     />
     <div class="week-view-grid">
-      <div class="week-dates" :style="{ opacity: isTransitioning ? 0 : 1 }">
-      <div
-        v-for="dateInfo in weekViewDates"
-        :key="`week-${dateInfo.date.getFullYear()}-${dateInfo.date.getMonth()}-${dateInfo.day}`"
-        :class="{
-          'week-date-cell': true,
-          'has-payment': dateInfo.hasPayment,
-          'today': isToday(dateInfo.date),
-          'selected': selectedDate && selectedDate.getDate() === dateInfo.day &&
-                     selectedDate.getMonth() === dateInfo.date.getMonth() &&
-                     selectedDate.getFullYear() === dateInfo.date.getFullYear(),
-          'pulsating': pulsatingDays.has(dateInfo.day) && dateInfo.isCurrentMonth,
-          'pre-selected': preSelectedDay === dateInfo.day && dateInfo.isCurrentMonth,
-          [getPaymentTypeClassForDay(dateInfo.day, dateInfo.date)]: dateInfo.hasPayment && getPaymentTypeClassForDay(dateInfo.day, dateInfo.date)
-        }"
-        :style="getDayStyle(dateInfo.day, dateInfo.date)"
-        :data-payment-type="getPaymentTypeClassForDay(dateInfo.day, dateInfo.date) || undefined"
-        @click="handleDayClick(dateInfo)"
+      <CustomScrollbar 
+        class="week-dates-scrollbar"
+        :max-height="'calc(100vh - 200px)'"
+        variant="thin"
+        direction="y"
       >
-        <div class="week-date-header">
-          <div class="week-date-position" :class="{ 'selected': selectedDate && selectedDate.getDate() === dateInfo.day &&
-                     selectedDate.getMonth() === dateInfo.date.getMonth() &&
-                     selectedDate.getFullYear() === dateInfo.date.getFullYear() }">
-            <div class="week-date-day">{{ dateInfo.day }}</div>
-            <div class="week-date-day-name">{{ getDayName(dateInfo.date) }}</div>
-          </div>
-          <div v-if="dateInfo.totalAmount !== 0" class="week-date-total" :class="{ 'week-date-total-positive': dateInfo.totalAmount > 0, 'week-date-total-negative': dateInfo.totalAmount < 0 }">
-            TOTAL : {{ dateInfo.totalAmount > 0 ? '+' : '-' }}${{ Math.abs(dateInfo.totalAmount).toFixed(2) }}
-          </div>
-        </div>
-        <div v-if="dateInfo.detailedPayments && dateInfo.detailedPayments.length > 0" class="week-payments-list">
+        <div class="week-dates" :style="{ opacity: isTransitioning ? 0 : 1 }">
           <div
-            v-for="payment in dateInfo.detailedPayments"
-            :key="payment.id"
-            class="week-payment-item"
-            :class="{ 'week-payment-earning': payment.isEarning }"
+            v-for="dateInfo in weekViewDates"
+            :key="`week-${dateInfo.date.getFullYear()}-${dateInfo.date.getMonth()}-${dateInfo.day}`"
+            :class="{
+              'week-date-cell': true,
+              'has-payment': dateInfo.hasPayment,
+              'today': isToday(dateInfo.date),
+              'selected': isSameDate(selectedDate, dateInfo.date),
+              'pulsating': pulsatingDays.has(dateInfo.day) && dateInfo.isCurrentMonth,
+              'pre-selected': preSelectedDay === dateInfo.day && dateInfo.isCurrentMonth,
+              [getPaymentTypeClassForDay(dateInfo.day, dateInfo.date)]: dateInfo.hasPayment && getPaymentTypeClassForDay(dateInfo.day, dateInfo.date)
+            }"
+            :style="getDayStyle(dateInfo.day, dateInfo.date)"
+            :data-payment-type="getPaymentTypeClassForDay(dateInfo.day, dateInfo.date) || undefined"
+            @click="handleDayClick(dateInfo)"
           >
-            <div class="week-payment-type" :style="{ backgroundColor: payment.paymentTypeColor }">
-              {{ payment.paymentTypeLabel.charAt(0).toUpperCase() }}
-            </div>
-            <div class="week-payment-details">
-              <div class="week-payment-title">{{ payment.paymentTypeLabel }}</div>
-              <div class="week-payment-amount" :class="{ 'week-payment-amount-positive': payment.isEarning }">
-                {{ payment.isEarning ? '+' : '-' }}${{ Math.abs(parseAmount(payment.amount || '0')).toFixed(2) }}
+            <div class="week-date-header">
+              <div class="week-date-position" :class="{ 'selected': isSameDate(selectedDate, dateInfo.date) }">
+                <div class="week-date-day">{{ dateInfo.day }}</div>
+                <div class="week-date-day-name">{{ DAY_NAMES[dateInfo.date.getDay()] }}</div>
+              </div>
+              <div v-if="dateInfo.totalAmount !== 0" class="week-date-total" :class="{ 'week-date-total-positive': dateInfo.totalAmount > 0, 'week-date-total-negative': dateInfo.totalAmount < 0 }">
+                TOTAL : {{ dateInfo.totalAmount > 0 ? '+' : '-' }}${{ Math.abs(dateInfo.totalAmount).toFixed(2) }}
               </div>
             </div>
+            <div v-if="dateInfo.detailedPayments && dateInfo.detailedPayments.length > 0" class="week-payments-list">
+              <div
+                v-for="payment in dateInfo.detailedPayments"
+                :key="payment.id"
+                class="week-payment-item"
+                :class="{ 'week-payment-earning': payment.isEarning }"
+              >
+                <div class="week-payment-type" :style="{ backgroundColor: payment.paymentTypeColor }">
+                  {{ payment.paymentTypeLabel.charAt(0).toUpperCase() }}
+                </div>
+                <div class="week-payment-details">
+                  <div class="week-payment-title">{{ payment.paymentTypeLabel }}</div>
+                  <div class="week-payment-amount" :class="{ 'week-payment-amount-positive': payment.isEarning }">
+                    {{ payment.isEarning ? '+' : '-' }}${{ Math.abs(parseAmount(payment.amount || '0')).toFixed(2) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="week-empty-message">
+              Empty
+            </div>
           </div>
         </div>
-        <div v-else class="week-empty-message">
-          Empty
-        </div>
-      </div>
+      </CustomScrollbar>
     </div>
   </div>
-</div>
 </template>
 
 <script setup lang="ts">
 import CalendarHeader from './CalendarHeader.vue'
+import CustomScrollbar from '../primitives/CustomScrollbar.vue'
+import { ViewMode } from '../../types/payment.types'
+import { isToday, isSameDate, parseAmount } from '../../utils/date-utils'
 import {
   selectedDate,
   isTransitioning,
@@ -89,32 +95,11 @@ import {
   toggleItemChart,
   handleDayClick
 } from '../../composables/payment-handlers'
-import { parseAmount } from '../../utils/date-utils'
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
 
 const toggleCalendarView = () => {
-  calendarViewMode.value = calendarViewMode.value === 'month' ? 'week' : 'month'
-}
-
-const handlePrev = () => {
-  goToPrevWeek()
-}
-
-const handleNext = () => {
-  goToNextWeek()
-}
-
-// Helper function to check if a date is today
-const isToday = (date: Date) => {
-  const today = new Date()
-  return date.getDate() === today.getDate() &&
-         date.getMonth() === today.getMonth() &&
-         date.getFullYear() === today.getFullYear()
-}
-
-// Helper function to get day name
-const getDayName = (date: Date) => {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  return days[date.getDay()]
+  calendarViewMode.value = calendarViewMode.value === ViewMode.MONTH ? ViewMode.WEEK : ViewMode.MONTH
 }
 </script>
 
@@ -135,11 +120,15 @@ const getDayName = (date: Date) => {
   gap: 12px;
 }
 
+.week-dates-scrollbar {
+  flex: 1;
+}
+
 .week-dates {
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  flex: 1;
   transition: opacity 0.15s ease-in-out;
   opacity: 1;
 }
@@ -199,6 +188,7 @@ const getDayName = (date: Date) => {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 8px;
+  border-bottom: 1px solid oklch(from var(--lime-light) l c h / 0.5);
 }
 
 .week-date-position {

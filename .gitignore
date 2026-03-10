@@ -30,3 +30,7 @@ coverage
 *.tsbuildinfo
 plan.md
 gameplan.md
+.env
+server/.env
+server/dist
+server/node_modules

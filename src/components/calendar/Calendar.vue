@@ -3,11 +3,11 @@
     <CalendarHeader
       :view-mode="calendarViewMode"
       :title="currentMonthYear"
-      :on-prev="handlePrev"
-      :on-next="handleNext"
-      :on-toggle-view="toggleCalendarView"
-      :on-toggle-pie-chart="togglePieChart"
-      :on-toggle-item-chart="toggleItemChart"
+      @prev="handlePrev"
+      @next="handleNext"
+      @toggle-view="toggleCalendarView"
+      @toggle-pie-chart="togglePieChart"
+      @toggle-item-chart="toggleItemChart"
     />
 
     <div class="calendar-grid">
@@ -30,9 +30,7 @@
             'other-month': !dateInfo.isCurrentMonth,
             'has-payment': dateInfo.hasPayment,
             'today': isToday(dateInfo.date),
-            'selected': selectedDate && selectedDate.getDate() === dateInfo.day &&
-                       selectedDate.getMonth() === currentMonth &&
-                       selectedDate.getFullYear() === currentYear,
+            'selected': isSameDate(selectedDate, dateInfo.date),
             'pulsating': pulsatingDays.has(dateInfo.day) && dateInfo.isCurrentMonth,
             'pre-selected': preSelectedDay === dateInfo.day && dateInfo.isCurrentMonth,
             [getPaymentTypeClassForDay(dateInfo.day, dateInfo.date)]: dateInfo.hasPayment && getPaymentTypeClassForDay(dateInfo.day, dateInfo.date)
@@ -62,9 +60,9 @@
 
 <script setup lang="ts">
 import CalendarHeader from './CalendarHeader.vue'
+import { ViewMode } from '../../types/payment.types'
+import { isToday, isSameDate } from '../../utils/date-utils'
 import {
-  currentMonth,
-  currentYear,
   selectedDate,
   isTransitioning,
   pulsatingDays,
@@ -80,40 +78,17 @@ import {
 import {
   goToPrevMonth,
   goToNextMonth,
-  goToPrevWeek,
-  goToNextWeek,
   togglePieChart,
   toggleItemChart,
   handleDayClick
 } from '../../composables/payment-handlers'
 
 const toggleCalendarView = () => {
-  calendarViewMode.value = calendarViewMode.value === 'month' ? 'week' : 'month'
+  calendarViewMode.value = calendarViewMode.value === ViewMode.MONTH ? ViewMode.WEEK : ViewMode.MONTH
 }
 
-const handlePrev = () => {
-  if (calendarViewMode.value === 'month') {
-    goToPrevMonth()
-  } else {
-    goToPrevWeek()
-  }
-}
-
-const handleNext = () => {
-  if (calendarViewMode.value === 'month') {
-    goToNextMonth()
-  } else {
-    goToNextWeek()
-  }
-}
-
-// Helper function to check if a date is today
-const isToday = (date: Date) => {
-  const today = new Date()
-  return date.getDate() === today.getDate() &&
-         date.getMonth() === today.getMonth() &&
-         date.getFullYear() === today.getFullYear()
-}
+const handlePrev = () => goToPrevMonth()
+const handleNext = () => goToNextMonth()
 </script>
 
 <style scoped>

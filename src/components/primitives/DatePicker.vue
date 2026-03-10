@@ -52,10 +52,10 @@
         </div>
         
         <div class="date-picker-footer">
-          <button class="btn btn-secondary" @click="close">
+          <button class="btn secondary" @click="close">
             <span class="btn-text">Cancel</span>
           </button>
-          <button class="btn btn-primary" @click="confirmSelection" :disabled="!selectedDate">
+          <button class="btn primary" @click="confirmSelection" :disabled="!selectedDate">
             <span class="btn-text">Select Date</span>
             <span class="btn-icon">✓</span>
           </button>
@@ -265,49 +265,6 @@ watch(() => props.isVisible, (newValue) => {
   letter-spacing: -0.02em;
 }
 
-.close-button {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.7);
-  font-size: var(--font-v-big);
-  cursor: pointer;
-  padding: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.close-button::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(239, 68, 68, 0.3);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: all 0.3s ease;
-}
-
-.close-button:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-  transform: scale(1.05);
-}
-
-.close-button:hover::before {
-  width: 100%;
-  height: 100%;
-}
-
 .close-icon {
   position: relative;
   z-index: 1;
@@ -326,49 +283,6 @@ watch(() => props.isVisible, (newValue) => {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.nav-button {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: var(--font-v-big);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.nav-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, oklch(from var(--lime-primary) l c h / 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.nav-button:hover {
-  background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
-  border-color: oklch(from var(--lime-primary) l c h / 1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px oklch(from var(--lime-primary) l c h / 0.3);
-}
-
-.nav-button:hover::before {
-  left: 100%;
-}
-
-.nav-button:active {
-  transform: translateY(0);
 }
 
 .nav-arrow {
@@ -557,21 +471,6 @@ watch(() => props.isVisible, (newValue) => {
   gap: 8px;
 }
 
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn:hover::before {
-  left: 100%;
-}
-
 .btn-text {
   position: relative;
   z-index: 1;
@@ -582,43 +481,41 @@ watch(() => props.isVisible, (newValue) => {
   z-index: 1;
 }
 
-.btn-primary {
+.btn.primary {
   background: linear-gradient(135deg, oklch(from var(--lime-primary) l c h / 1), oklch(from var(--lime-dark) l c h / 1));
   color: white;
   box-shadow: 0 4px 15px oklch(from var(--lime-primary) l c h / 0.3);
 }
 
-.btn-primary:hover:not(:disabled) {
+.btn.primary:hover:not(:disabled) {
   background: linear-gradient(135deg, oklch(from var(--lime-dark) l c h / 1), oklch(from var(--lime-dark) l c h / 0.8));
   transform: translateY(-2px);
   box-shadow: 0 8px 25px oklch(from var(--lime-primary) l c h / 0.4);
 }
 
-.btn-primary:active {
+.btn.primary:active {
   transform: translateY(0);
 }
 
-.btn-primary:disabled {
+.btn.primary:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-.btn-secondary {
+.btn.secondary {
   background: rgba(255, 255, 255, 0.08);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.btn-secondary:hover {
+.btn.secondary:hover {
   background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
 }
 
-.btn-secondary:active {
+.btn.secondary:active {
   transform: translateY(0);
 }
 </style>

@@ -14,7 +14,7 @@
       <div class="dropdown-arrow" :class="{ 'open': isOpen }">▼</div>
     </div>
     
-    <div v-if="isOpen" class="dropdown-menu" @click.stop>
+    <CustomScrollbar v-if="isOpen" class="dropdown-menu" max-height="240px" variant="thin" @click.stop>
       <!-- Unit conversion toggle button -->
       <div v-if="hasUnitApproximations" class="unit-conversion-toggle">
         <button 
@@ -51,12 +51,13 @@
           <span v-if="getOptionApproximation(option)" class="option-approximation">{{ getOptionApproximation(option) }}</span>
         </div>
       </div>
-    </div>
+    </CustomScrollbar>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import CustomScrollbar from './CustomScrollbar.vue'
 
 interface DropdownOption {
   value: string
@@ -342,8 +343,6 @@ const getOptionApproximation = (option: DropdownOption) => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 1000;
   backdrop-filter: blur(10px);
-  max-height: 240px;
-  overflow-y: auto;
 }
 
 .unit-conversion-toggle {
@@ -449,22 +448,4 @@ const getOptionApproximation = (option: DropdownOption) => {
   white-space: nowrap;
 }
 
-/* Scrollbar styling */
-.dropdown-menu::-webkit-scrollbar {
-  width: 6px;
-}
-
-.dropdown-menu::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
-}
-
-.dropdown-menu::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-}
-
-.dropdown-menu::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
 </style>
