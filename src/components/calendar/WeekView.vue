@@ -5,7 +5,7 @@
       :title="weekRange"
       @prev="goToPrevWeek"
       @next="goToNextWeek"
-      @toggle-view="toggleCalendarView"
+      @set-view="setCalendarView"
       @toggle-pie-chart="togglePieChart"
       @toggle-item-chart="toggleItemChart"
     />
@@ -98,8 +98,8 @@ import {
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
 
-const toggleCalendarView = () => {
-  calendarViewMode.value = calendarViewMode.value === ViewMode.MONTH ? ViewMode.WEEK : ViewMode.MONTH
+const setCalendarView = (mode: ViewMode) => {
+  calendarViewMode.value = mode
 }
 </script>
 

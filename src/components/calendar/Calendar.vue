@@ -5,7 +5,7 @@
       :title="currentMonthYear"
       @prev="handlePrev"
       @next="handleNext"
-      @toggle-view="toggleCalendarView"
+      @set-view="setCalendarView"
       @toggle-pie-chart="togglePieChart"
       @toggle-item-chart="toggleItemChart"
     />
@@ -83,8 +83,8 @@ import {
   handleDayClick
 } from '../../composables/payment-handlers'
 
-const toggleCalendarView = () => {
-  calendarViewMode.value = calendarViewMode.value === ViewMode.MONTH ? ViewMode.WEEK : ViewMode.MONTH
+const setCalendarView = (mode: ViewMode) => {
+  calendarViewMode.value = mode
 }
 
 const handlePrev = () => goToPrevMonth()

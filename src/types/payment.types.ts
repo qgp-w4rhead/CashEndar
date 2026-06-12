@@ -1,6 +1,7 @@
 export const ViewMode = {
   MONTH: 'month',
   WEEK: 'week',
+  DASHBOARD: 'dashboard',
 } as const
 export type ViewMode = typeof ViewMode[keyof typeof ViewMode]
 

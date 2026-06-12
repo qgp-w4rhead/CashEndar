@@ -4,7 +4,8 @@
 
     <div class="calendar-main">
       <Calendar v-if="calendarViewMode === ViewMode.MONTH" />
-      <WeekView v-else />
+      <WeekView v-else-if="calendarViewMode === ViewMode.WEEK" />
+      <DashboardView v-else />
     </div>
 
     <div v-if="showEditMenu" class="modal-overlay edit-modal-overlay">
@@ -53,6 +54,7 @@ import DatePicker from './primitives/DatePicker.vue'
 import PaymentSidebar from './sidebar/PaymentSidebar.vue'
 import Calendar from './calendar/Calendar.vue'
 import WeekView from './calendar/WeekView.vue'
+import DashboardView from './dashboard/DashboardView.vue'
 import ItemChart from './modals/itemChart.vue'
 import ComparisonView from './modals/ComparisonView.vue'
 import StatManagerModal from './modals/StatManagerModal.vue'
