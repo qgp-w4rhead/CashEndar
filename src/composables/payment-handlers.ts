@@ -5,6 +5,8 @@ import { getAllPayments, addPayment as addPaymentToDB, updatePayment as updatePa
 import { getNextPaymentId } from '../repositories/counter.repository'
 import { paymentService } from '../services/payment.service'
 import { paymentTypeService } from '../services/payment-type.service'
+import { loadCatalog, backfillCatalogFromPayments } from '../services/catalog.service'
+import { isSameItemName } from './payment-computables'
 import { MONTH_NAMES_FULL } from '../utils/constants'
 import { formatHumanReadableDate, getDaySuffix, parsePaymentDate } from '../utils/date-utils'
 import { formatCurrencyAmount as formatCurrencyAmountUtil } from '../utils/validation-utils'
@@ -644,7 +646,7 @@ export const autofillPaymentForm = (payment: Payment) => {
 
 // Find most recent inventory item by name
 export const findMostRecentInventoryItem = (itemName: string): Payment | null => {
-  const inventoryItems = payments.value.filter(p => p.type === 'inventory' && p.itemName === itemName)
+  const inventoryItems = payments.value.filter(p => p.type === 'inventory' && isSameItemName(p.itemName, itemName))
 
   if (inventoryItems.length === 0) return null
 
@@ -1280,6 +1282,8 @@ export const openInventoryAddMenu = () => {
 export const initializeComponent = async () => {
   await loadPaymentTypes()
   await loadPayments()
+  await loadCatalog()
+  await backfillCatalogFromPayments(payments.value)
 
   // Set up reactive watcher for inventory pre-filling
   watch(() => addForm.title, (newTitle) => {

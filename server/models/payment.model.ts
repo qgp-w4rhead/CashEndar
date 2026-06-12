@@ -42,7 +42,10 @@ const paymentSchema = new Schema({
     type: String,
     enum: ['day', 'week', 'month', 'year']
   },
-  calculatedExpirationDate: { type: String }
+  calculatedExpirationDate: { type: String },
+  // Per-purchase stat values (statDefinitionId -> value) so custom stats
+  // can be tracked over time; falls back to the item-level value
+  statOverrides: { type: Map, of: Number }
 }, {
   timestamps: true,
   toJSON: {
