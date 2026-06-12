@@ -48,6 +48,42 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   return res.json()
 }
 
+// Multipart upload helper — must NOT set a JSON Content-Type (the browser
+// sets the multipart boundary itself)
+export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  const url = `${API_BASE}${path}`
+  const token = getAuthToken()
+
+  const headers: Record<string, string> = {}
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData,
+    headers,
+  })
+
+  if (res.status === 401) {
+    clearAuthToken()
+    throw new Error('Unauthorized — please log in again')
+  }
+
+  if (!res.ok) {
+    let message = `API error ${res.status}`
+    try {
+      const body = await res.json()
+      if (body?.error) message = body.error
+    } catch {
+      // non-JSON error body — keep the generic message
+    }
+    throw new Error(message)
+  }
+
+  return res.json()
+}
+
 // Kept for backward compatibility — services that call getDB() will get a resolved promise
 export async function getDB(): Promise<void> {
   return Promise.resolve()

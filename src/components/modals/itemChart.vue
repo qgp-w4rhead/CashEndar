@@ -31,6 +31,20 @@
             </div>
           </div>
 
+          <div v-if="selectedNames.size > 1" class="bulk-bar">
+            <span class="bulk-count">{{ selectedNames.size }} selected</span>
+            <CustomDropdown v-model="bulkCategoryId" :options="categoryAssignOptions" class="bulk-dropdown" />
+            <button class="toolbar-btn" @click="applyBulkCategory">Set category</button>
+            <span class="bulk-divider"></span>
+            <CustomDropdown v-model="bulkMergeTarget" :options="mergeTargetOptions" class="bulk-dropdown" />
+            <button
+              class="toolbar-btn merge-btn"
+              title="Merge the selected items into the target — their names become aliases and all purchases are regrouped"
+              @click="applyMerge"
+            >⇒ Merge into target</button>
+            <span v-if="bulkMessage" class="bulk-message">{{ bulkMessage }}</span>
+          </div>
+
           <div class="item-comparison-table">
             <div class="table-header" :style="outerGridStyle">
               <div class="header-cell select-cell" @click.stop>
@@ -266,7 +280,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 import {
   showItemChartModal
@@ -287,7 +301,8 @@ import {
   closeItemChartModal,
   openInventoryAddMenu,
   openStatManagerModal,
-  openComparisonView
+  openComparisonView,
+  loadPayments
 } from '../../composables/payment-handlers'
 
 import {
@@ -301,7 +316,7 @@ import {
 
 import { computeStatValue, formatStatValue } from '../../services/stats.service'
 import { suggestWaterContent } from '../../utils/food-defaults'
-import { updateItem, addAlias, removeAlias } from '../../repositories/item.repository'
+import { updateItem, addAlias, removeAlias, mergeItems } from '../../repositories/item.repository'
 import { ComparisonCategory } from '../../types/catalog.types'
 
 import PriceHistoryChart from './PriceHistoryChart.vue'
@@ -402,6 +417,60 @@ const toggleSelectAll = () => {
 const startComparison = () => {
   if (selectedNames.value.size >= 2) {
     openComparisonView([...selectedNames.value])
+  }
+}
+
+// --- Bulk editing of selected items ---
+const bulkCategoryId = ref('')
+const bulkMergeTarget = ref('')
+const bulkMessage = ref('')
+
+const mergeTargetOptions = computed(() => {
+  return [...selectedNames.value].map(name => ({ value: name, label: name }))
+})
+
+watch(selectedNames, names => {
+  if (!names.has(bulkMergeTarget.value)) {
+    bulkMergeTarget.value = [...names][0] ?? ''
+  }
+  bulkMessage.value = ''
+})
+
+const applyBulkCategory = async () => {
+  for (const name of selectedNames.value) {
+    const catalogItem = itemByCanonicalName.value.get(name)
+    if (!catalogItem) continue
+    try {
+      const updated = await updateItem({ ...catalogItem, categoryId: bulkCategoryId.value || undefined })
+      replaceItemInStore(updated)
+    } catch (error) {
+      console.error(`Error setting category on "${name}":`, error)
+    }
+  }
+  bulkMessage.value = 'Category applied'
+}
+
+const applyMerge = async () => {
+  const target = itemByCanonicalName.value.get(bulkMergeTarget.value)
+  if (!target) return
+  const sourceIds = [...selectedNames.value]
+    .filter(name => name !== target.name)
+    .map(name => itemByCanonicalName.value.get(name)?.id)
+    .filter((id): id is string => !!id)
+  if (sourceIds.length === 0) return
+
+  try {
+    const { target: merged, paymentsRenamed } = await mergeItems(sourceIds, target.id)
+    items.value = items.value
+      .filter(i => !sourceIds.includes(i.id))
+      .map(i => i.id === merged.id ? merged : i)
+    // The server rewrote payments' itemNames — refresh them
+    await loadPayments()
+    selectedNames.value = new Set([merged.name])
+    bulkMessage.value = `Merged — ${paymentsRenamed} purchase(s) regrouped`
+  } catch (error) {
+    console.error('Error merging items:', error)
+    bulkMessage.value = 'Merge failed'
   }
 }
 
@@ -1309,6 +1378,46 @@ const removeAliasFromSelected = async (alias: string) => {
   background: oklch(from var(--lime-primary) l c h / 0.15);
   border-color: var(--lime-primary);
   color: var(--lime-light);
+}
+
+/* Bulk edit bar */
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: oklch(from var(--lime-primary) l c h / 0.08);
+  border: 1px solid oklch(from var(--lime-primary) l c h / 0.35);
+  border-radius: 8px;
+}
+
+.bulk-count {
+  color: var(--lime-light);
+  font-size: var(--font-x-small);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bulk-dropdown {
+  min-width: 150px;
+}
+
+.bulk-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.merge-btn:hover {
+  border-color: #fbbf24 !important;
+  color: #fbbf24 !important;
+}
+
+.bulk-message {
+  color: var(--lime-light);
+  font-size: var(--font-x-small);
 }
 
 /* Selection checkboxes */

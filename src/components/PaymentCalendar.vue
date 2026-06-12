@@ -30,6 +30,8 @@
 
     <StatManagerModal />
 
+    <ScanBillModal />
+
     <div v-if="showGearMenu" class="modal-overlay">
       <SettingsModal />
     </div>
@@ -58,6 +60,7 @@ import DashboardView from './dashboard/DashboardView.vue'
 import ItemChart from './modals/itemChart.vue'
 import ComparisonView from './modals/ComparisonView.vue'
 import StatManagerModal from './modals/StatManagerModal.vue'
+import ScanBillModal from './modals/ScanBillModal.vue'
 import CustomModal from './modals/CustomModal.vue'
 import PaymentTypeModal from './modals/PaymentTypeModal.vue'
 import PieChartModal from './modals/PieChartModal.vue'
