@@ -1,12 +1,12 @@
 <template>
   <div class="calendar-header">
-    <button class="nav-btn prev" @click="emit('prev')" title="Previous">‹</button>
-    
+    <button v-if="showNav" class="nav-btn prev" @click="emit('prev')" title="Previous">‹</button>
+
     <div class="title-container">
       <h3 class="title">{{ title }}</h3>
     </div>
-    
-    <button class="nav-btn next" @click="emit('next')" title="Next">›</button>
+
+    <button v-if="showNav" class="nav-btn next" @click="emit('next')" title="Next">›</button>
     
     <button class="pie-chart-btn" @click="emit('toggle-pie-chart')" title="View Summary Chart">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -25,35 +25,68 @@
       </svg>
     </button>
     
-    <button class="view-toggle-btn" @click="emit('toggle-view')" :title="viewMode === 'month' ? 'Switch to Week View' : 'Switch to Month View'">
-      <svg v-if="viewMode === 'month'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-        <line x1="16" y1="2" x2="16" y2="6"></line>
-        <line x1="8" y1="2" x2="8" y2="6"></line>
-        <line x1="3" y1="10" x2="21" y2="10"></line>
-      </svg>
-      <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="4" width="7" height="7" rx="1"></rect>
-        <rect x="14" y="4" width="7" height="7" rx="1"></rect>
-        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-      </svg>
-    </button>
+    <div class="view-segmented" role="tablist" aria-label="View mode">
+      <button
+        class="segment-btn"
+        :class="{ active: viewMode === ViewMode.MONTH }"
+        title="Month view"
+        @click="emit('set-view', ViewMode.MONTH)"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span class="segment-label">Month</span>
+      </button>
+      <button
+        class="segment-btn"
+        :class="{ active: viewMode === ViewMode.WEEK }"
+        title="Week view"
+        @click="emit('set-view', ViewMode.WEEK)"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="4" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+        </svg>
+        <span class="segment-label">Week</span>
+      </button>
+      <button
+        class="segment-btn"
+        :class="{ active: viewMode === ViewMode.DASHBOARD }"
+        title="Dashboard — deals, diffs and stats at a glance"
+        @click="emit('set-view', ViewMode.DASHBOARD)"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="9" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+          <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+          <rect x="3" y="16" width="7" height="5" rx="1"></rect>
+        </svg>
+        <span class="segment-label">Dashboard</span>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ViewMode } from '../../types/payment.types'
 
-defineProps<{
+withDefaults(defineProps<{
   viewMode: ViewMode
   title: string
-}>()
+  showNav?: boolean
+}>(), {
+  showNav: true,
+})
 
 const emit = defineEmits<{
   prev: []
   next: []
-  'toggle-view': []
+  'set-view': [mode: ViewMode]
   'toggle-pie-chart': []
   'toggle-item-chart': []
 }>()
@@ -169,29 +202,51 @@ const emit = defineEmits<{
   height: 20px;
 }
 
-.view-toggle-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+.view-segmented {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: var(--font-small);
-  transition: all 0.2s ease;
+  align-items: stretch;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
-.view-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
+.segment-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: var(--font-x-small);
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
-.view-toggle-btn svg {
-  width: 16px;
-  height: 16px;
+.segment-btn + .segment-btn {
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.segment-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.segment-btn.active {
+  background: oklch(from var(--lime-primary) l c h / 0.18);
+  color: var(--lime-light);
+}
+
+.segment-btn svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .segment-label {
+    display: none;
+  }
 }
 </style>

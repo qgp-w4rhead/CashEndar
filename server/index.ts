@@ -4,6 +4,10 @@ import dotenv from 'dotenv'
 import { connectDB } from './db'
 import paymentsRouter from './routes/payments'
 import paymentTypesRouter from './routes/payment-types'
+import itemsRouter from './routes/items'
+import categoriesRouter from './routes/categories'
+import statDefinitionsRouter from './routes/stat-definitions'
+import ocrRouter from './routes/ocr'
 import authRouter from './routes/auth'
 import { authMiddleware } from './middleware/auth'
 
@@ -35,6 +39,10 @@ app.use('/api/auth', authRouter)
 // Protected API routes
 app.use('/api/payments', authMiddleware, paymentsRouter)
 app.use('/api/payment-types', authMiddleware, paymentTypesRouter)
+app.use('/api/items', authMiddleware, itemsRouter)
+app.use('/api/categories', authMiddleware, categoriesRouter)
+app.use('/api/stat-definitions', authMiddleware, statDefinitionsRouter)
+app.use('/api/ocr', authMiddleware, ocrRouter)
 
 async function start() {
   await connectDB()

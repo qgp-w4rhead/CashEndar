@@ -2,14 +2,25 @@
   <div class="payments-sidebar" :style="{ width: sidebarWidth + 'px' }">
     <CustomScrollbar ref="sidebarScrollRef" class="sidebar-scroll-area">
       <div ref="sidebarHeaderRef" class="sidebar-header">
-        <SectionHeader 
-          title="Next payments" 
-          @gear-click="openGearMenu" 
+        <SectionHeader
+          title="Next payments"
+          @gear-click="openGearMenu"
           @add-click="openAddMenu"
         >
           <template #buttons>
             <Sort />
             <Filter />
+            <button class="scan-bill-btn" title="Scan a bill (OCR)" @click="openScanBillModal">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7V5a1 1 0 0 1 1-1h2"/>
+                <path d="M17 4h2a1 1 0 0 1 1 1v2"/>
+                <path d="M20 17v2a1 1 0 0 1-1 1h-2"/>
+                <path d="M7 20H5a1 1 0 0 1-1-1v-2"/>
+                <line x1="7" y1="9" x2="17" y2="9"/>
+                <line x1="7" y1="12" x2="17" y2="12"/>
+                <line x1="7" y1="15" x2="13" y2="15"/>
+              </svg>
+            </button>
           </template>
         </SectionHeader>
         <div class="sidebar-divider"></div>
@@ -138,6 +149,7 @@ import {
   openGearMenu,
   openAddMenu,
   openEditMenu,
+  openScanBillModal,
   highlightPaymentDay,
   toggleNextPaymentsSection,
   toggleEarningsSection

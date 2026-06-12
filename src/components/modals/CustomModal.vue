@@ -18,6 +18,7 @@
               </div>
             </div>
           </div>
+          <button class="scan-shortcut" title="Scan a bill instead of typing" @click="switchToScan">📷 scan a bill</button>
         </template>
         <h3 v-else>Edit Payment</h3>
         <button class="close-btn" @click="close">×</button>
@@ -188,7 +189,8 @@ import {
   handleAmountInputBlur, handleAmountInputKeyUp,
   addResupply, deleteSinglePurchase, toggleForgoPayment,
   addPaymentTypeFromAdd, addPaymentTypeFromEdit,
-  openDatePicker, getPaymentSuggestions, autofillPaymentForm
+  openDatePicker, getPaymentSuggestions, autofillPaymentForm,
+  openScanBillModal
 } from '../../composables/payment-handlers'
 
 const props = defineProps<{ mode: 'add' | 'edit' }>()
@@ -198,6 +200,12 @@ const isEdit = !isAdd
 const form = isAdd ? addForm : editForm
 const close = isAdd ? closeAddMenu : closeEditMenu
 const save = isAdd ? saveNewPayment : savePayment
+
+// Scanning beats typing — jump from manual entry straight to OCR
+const switchToScan = () => {
+  close()
+  openScanBillModal()
+}
 
 // Add-mode: dynamic height
 const modalHeight = ref(600)
@@ -389,4 +397,21 @@ const hideTitleSuggestions = () => { setTimeout(() => { showTitleSuggestions.val
 .suggestion-item:hover { background: oklch(from var(--lime-primary) l c h / 0.18); }
 .suggestion-title { color: rgba(255, 255, 255, 0.9); font-size: var(--font-small); font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .suggestion-meta { color: rgba(255, 255, 255, 0.45); font-size: var(--font-x-small); font-weight: 400; margin-left: 10px; white-space: nowrap; flex-shrink: 0; }
+
+.scan-shortcut {
+  background: none;
+  border: 1px dashed oklch(from var(--lime-primary) l c h / 0.5);
+  color: var(--lime-light);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: var(--font-x-small);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.scan-shortcut:hover {
+  border-style: solid;
+  background: oklch(from var(--lime-primary) l c h / 0.12);
+}
 </style>

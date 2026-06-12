@@ -81,6 +81,27 @@
   box-shadow: 0 6px 20px oklch(from var(--grey-primary) l c h / 0.4);
 }
 
+/* Scan bill button — lime accent: scanning is the fastest way to enter data */
+.scan-bill-btn {
+  background: oklch(from var(--lime-primary) l c h / 0.18);
+  border: 1px solid var(--lime-primary);
+  color: var(--lime-light);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.scan-bill-btn:hover {
+  background: oklch(from var(--lime-primary) l c h / 0.35);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px oklch(from var(--lime-primary) l c h / 0.3);
+}
+
 .payment-item {
   display: flex;
   align-items: center;

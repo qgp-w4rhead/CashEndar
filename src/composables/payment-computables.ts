@@ -20,6 +20,18 @@ import {
 } from '../stores/ui-state.store'
 import { MONTH_NAMES_FULL, MONTH_NAMES_SHORT } from '../utils/constants'
 import { getCurrentDateComponents, parsePaymentDate, parseAmount, formatNetAmount, depletionRateToPortionsPerDay, todayMidnight } from '../utils/date-utils'
+import { aliasLookup } from '../stores/catalog.store'
+import { resolveCanonicalName } from '../services/alias.service'
+
+// Resolve any stored itemName (legacy free text, receipt alias…) to its
+// canonical catalog name so groupings survive name variations
+export const canonicalItemName = (name?: string): string => {
+  return name ? resolveCanonicalName(name, aliasLookup.value) : ''
+}
+
+export const isSameItemName = (a?: string, b?: string): boolean => {
+  return !!a && !!b && canonicalItemName(a) === canonicalItemName(b)
+}
 
 // Computed property to sort and filter payments based on current sort mode and filter settings, excluding inventory items
 export const sortedPayments = computed(() => {
@@ -523,7 +535,7 @@ export const inventoryItems = computed(() => {
 
   inventoryPayments.forEach(payment => {
     if (payment.itemName) {
-      const key = payment.itemName
+      const key = canonicalItemName(payment.itemName)
       if (!groupedItems.has(key)) {
         groupedItems.set(key, [])
       }
@@ -639,7 +651,7 @@ export const getPortionsRemaining = (item: Payment) => {
 
   // Get all purchases for this item that are on or before today
   const itemPurchases = payments.value.filter(payment => {
-    if (payment.type !== 'inventory' || payment.itemName !== item.itemName) {
+    if (payment.type !== 'inventory' || !isSameItemName(payment.itemName, item.itemName)) {
       return false
     }
 
@@ -840,7 +852,7 @@ export const getTotalPortions = computed(() => {
   return (item: Payment): number => {
     // Get all purchases for this item on or before today
     const itemPurchases = payments.value.filter(payment => {
-      if (payment.type !== 'inventory' || payment.itemName !== item.itemName) return false
+      if (payment.type !== 'inventory' || !isSameItemName(payment.itemName, item.itemName)) return false
 
       const parsedDate = parsePaymentDate(payment.date)
       if (!parsedDate) return false
@@ -1000,7 +1012,7 @@ export const getLastPurchases = computed(() => {
     // Find all payments with the same item name - this helps with prediction
     const allItemPurchases = payments.value.filter(payment =>
       payment.type === 'inventory' &&
-      payment.itemName === itemName
+      isSameItemName(payment.itemName, itemName)
     )
 
     // For add forms (empty currentItemDate), show all purchases
@@ -1084,7 +1096,7 @@ export const getAnnualCostFromPurchases = computed(() => {
     // Get all purchases for this item
     const itemPurchases = payments.value.filter(payment =>
       payment.type === 'inventory' &&
-      payment.itemName === item.itemName
+      isSameItemName(payment.itemName, item.itemName)
     )
 
     if (itemPurchases.length === 0) {
@@ -1209,7 +1221,7 @@ export const getAnnualCostFromDepletion = computed(() => {
     today.setHours(0, 0, 0, 0)
 
     const itemPurchases = payments.value.filter(payment => {
-      if (payment.type !== 'inventory' || payment.itemName !== item.itemName) {
+      if (payment.type !== 'inventory' || !isSameItemName(payment.itemName, item.itemName)) {
         return false
       }
 
@@ -1334,7 +1346,7 @@ export const getPurchaseHistoryDataForPeriod = (itemName: string, period: 'month
   // Get all purchases for this item
   const itemPurchases = payments.value.filter(payment =>
     payment.type === 'inventory' &&
-    payment.itemName === itemName
+    isSameItemName(payment.itemName, itemName)
   )
 
   if (itemPurchases.length === 0) {
