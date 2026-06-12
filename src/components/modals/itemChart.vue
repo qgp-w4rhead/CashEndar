@@ -169,7 +169,7 @@
 
             <div v-if="itemChartItems.length === 0" class="empty-state-section">
               <div class="empty-state-content">
-                No item yet, add an <span class="highlighted-item" @click="handleAddItem">item</span>
+                No item yet — <span class="highlighted-item" @click="openScanBillModal">scan a bill</span> or add an <span class="highlighted-item" @click="handleAddItem">item</span>
               </div>
             </div>
           </div>
@@ -302,6 +302,7 @@ import {
   openInventoryAddMenu,
   openStatManagerModal,
   openComparisonView,
+  openScanBillModal,
   loadPayments
 } from '../../composables/payment-handlers'
 

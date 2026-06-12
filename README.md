@@ -28,6 +28,25 @@ In short, *Cashendar* helps you estimate and manage your future, pre-calculated 
 
 ## Features
 
+### Bill Scanning (OCR)
+- **Scan instead of typing**: Upload a photo (or PDF) of a bill and every line item is extracted server-side
+- **Three OCR engines**: Tesseract (works out of the box), EasyOCR (optional local Python engine), Mistral Document AI (best accuracy, set `MISTRAL_API_KEY`)
+- **Review grid**: Every scanned line lands in an editable grid — fix names, quantities, prices and types before anything is saved, with a sum-vs-total sanity check
+- **Alias rectification**: Supermarkets mangle product names ("PST BARILLA 500G"); Cashendar suggests the matching item and remembers the receipt spelling as an alias, healing all your history and groupings
+- **Bulk editing**: Multi-select rows to set types/categories, exclude lines, or merge name variants in one action
+
+### Dashboard
+- **Cheap again soon**: Per-item predictions of the next deal window from your own price history (seasonal patterns + sale intervals, with confidence levels)
+- **Purchase diff**: A GitHub-style diff of this month vs your usual — newly bought (+), more (+), less (−), stopped (−), with cost impact
+- **Shrinkflation watch**: Flags items whose price per 100g rose while the pack price stayed flat
+- **Starred stats at a glance** for your most-purchased items
+
+### Comparison & Stats
+- **Apples-to-apples comparisons**: Comparison categories (pasta, bread, fruit, snack…) make different products comparable — per portion, per 100g or per unit; fruits show their water content so per-gram comparisons stay honest
+- **Compare anything**: Multi-select any items (cross-category allowed, clearly flagged) and compare them side by side with a best-price highlight and bar charts
+- **Starred stats**: Star the stats you care about — they become table columns, comparison rows and dashboard tiles
+- **Custom stats**: Define your own stats (e.g. protein/100g), set per-item values, record per-purchase overrides and chart them over time
+
 ### Payment Management
 - **Interactive Calendar View**: Visual calendar displaying all payments and earnings with color-coded categories
 - **Flexible Payment Types**: Create custom payment categories (credit, utilities, subscriptions, etc.) with custom colors
