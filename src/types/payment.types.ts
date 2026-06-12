@@ -48,6 +48,7 @@ export interface Payment {
   freshnessOffset?: number; // Days to subtract from expiration
   freshnessOffsetUnit?: 'day' | 'week' | 'month' | 'year'; // Time unit for freshness offset
   calculatedExpirationDate?: string; // Computed per purchase (YYYY-MM-DD)
+  statOverrides?: Record<string, number>; // Per-purchase stat values (statDefinitionId -> value)
 }
 
 export interface Earning {

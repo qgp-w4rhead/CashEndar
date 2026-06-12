@@ -41,7 +41,11 @@ import {
   isEarningsCollapsed,
   isInventoryCollapsed,
   forgoneInstances,
-  currentWeekStart
+  currentWeekStart,
+  showStatManagerModal,
+  showComparisonView,
+  comparisonItemNames,
+  showScanBillModal
 } from '../stores/ui-state.store'
 
 // Modal management functions
@@ -80,8 +84,52 @@ export const handleEscapeKey = (event: KeyboardEvent) => {
       case 'itemChart':
         closeItemChartModal()
         break
+      case 'statManager':
+        closeStatManagerModal()
+        break
+      case 'comparison':
+        closeComparisonView()
+        break
+      case 'scanBill':
+        closeScanBillModal()
+        break
     }
   }
+}
+
+// Stat manager modal (star stats, create custom stats)
+export const openStatManagerModal = () => {
+  showStatManagerModal.value = true
+  openModal('statManager')
+}
+
+export const closeStatManagerModal = () => {
+  showStatManagerModal.value = false
+  closeModal('statManager')
+}
+
+// Comparison view: side-by-side items normalized per portion / 100g / unit
+export const openComparisonView = (itemNames: string[]) => {
+  comparisonItemNames.value = itemNames
+  showComparisonView.value = true
+  openModal('comparison')
+}
+
+export const closeComparisonView = () => {
+  showComparisonView.value = false
+  comparisonItemNames.value = []
+  closeModal('comparison')
+}
+
+// Scan bill (OCR) modal
+export const openScanBillModal = () => {
+  showScanBillModal.value = true
+  openModal('scanBill')
+}
+
+export const closeScanBillModal = () => {
+  showScanBillModal.value = false
+  closeModal('scanBill')
 }
 
 // Gear menu functionality

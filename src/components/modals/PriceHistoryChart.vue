@@ -55,7 +55,7 @@
     >
       <div class="tooltip-arrow"></div>
       <div class="tooltip-content">
-        <div class="tooltip-price">${{ tooltip.price?.toFixed(2) }}</div>
+        <div class="tooltip-price">{{ valuePrefix ?? '$' }}{{ tooltip.price?.toFixed(2) }}{{ valueSuffix ?? '' }}</div>
         <div class="tooltip-date">{{ tooltip.date }}</div>
       </div>
     </div>
@@ -68,6 +68,11 @@ import { getPurchaseHistoryData, type PriceHistoryData, type PricePoint } from '
 
 interface Props {
   itemName: string
+  // Optional series override: chart any values over time (custom stats,
+  // price-per-100g...) instead of the item's purchase prices
+  data?: PriceHistoryData
+  valuePrefix?: string
+  valueSuffix?: string
 }
 
 const props = defineProps<Props>()
@@ -76,7 +81,7 @@ const emit = defineEmits<{
   chartClick: [data: PriceHistoryData]
 }>()
 
-const chartData = computed(() => getPurchaseHistoryData.value(props.itemName))
+const chartData = computed(() => props.data ?? getPurchaseHistoryData.value(props.itemName))
 
 const lineColor = 'var(--lime-light)'
 

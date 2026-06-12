@@ -25,6 +25,10 @@
 
     <ItemChart />
 
+    <ComparisonView />
+
+    <StatManagerModal />
+
     <div v-if="showGearMenu" class="modal-overlay">
       <SettingsModal />
     </div>
@@ -50,6 +54,8 @@ import PaymentSidebar from './sidebar/PaymentSidebar.vue'
 import Calendar from './calendar/Calendar.vue'
 import WeekView from './calendar/WeekView.vue'
 import ItemChart from './modals/itemChart.vue'
+import ComparisonView from './modals/ComparisonView.vue'
+import StatManagerModal from './modals/StatManagerModal.vue'
 import CustomModal from './modals/CustomModal.vue'
 import PaymentTypeModal from './modals/PaymentTypeModal.vue'
 import PieChartModal from './modals/PieChartModal.vue'

@@ -110,4 +110,14 @@ export const modalStack = ref<string[]>([])
 export const forgoneInstances = ref<Set<string>>(new Set())
 
 // Calendar view state
-export const calendarViewMode = ref<'month' | 'week'>('month')
+export const calendarViewMode = ref<'month' | 'week' | 'dashboard'>('month')
+
+// Stat manager modal (star stats, create custom stats)
+export const showStatManagerModal = ref(false)
+
+// Comparison view: canonical item names being compared side by side
+export const showComparisonView = ref(false)
+export const comparisonItemNames = ref<string[]>([])
+
+// Scan bill (OCR) modal
+export const showScanBillModal = ref(false)
